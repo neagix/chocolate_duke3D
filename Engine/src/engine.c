@@ -251,8 +251,6 @@ typedef struct
 static permfifotype permfifo[MAXPERMS];
 static int32_t permhead = 0, permtail = 0;
 
-short numbunches;
-
 short editstatus = 0;
 short searchit;
 int32_t searchx = -1, searchy;                     /* search input  */
@@ -325,7 +323,7 @@ unsigned int _swap32(unsigned int D)
  Scan through sectors using portals (a portal is wall with a nextsector attribute >= 0).
  Flood is prevented if a portal does not face the POV.
  */
-static void scansector (short sectnum, short *numscans)
+static void scansector (short sectnum, short *numscans, short *numbunches)
 {
     walltype *wal, *wal2;
     spritetype *spr;
@@ -370,7 +368,7 @@ static void scansector (short sectnum, short *numscans)
         //Mark the current sector bit as "visited" in the bitvector
         visitedSectors[sectnum>>3] |= pow2char[sectnum&7];
 
-        bunchfrst = numbunches;
+        bunchfrst = *numbunches;
         numscansbefore = *numscans;
 
         startwall = sector[sectnum].wallptr;
@@ -524,7 +522,7 @@ skipitaddwall:
                  pvWalls[bunchWallsList[z]].worldWallId) || (pvWalls[z].screenSpaceCoo[1][VEC_COL] >= pvWalls[bunchWallsList[z]].screenSpaceCoo[0][VEC_COL]))
             {
                 // Create an entry in the bunch list
-                bunchfirst[numbunches++] = bunchWallsList[z];
+                bunchfirst[(*numbunches)++] = bunchWallsList[z];
                 
                 //Mark the end of the bunch wall list.
                 bunchWallsList[z] = -1;
@@ -532,7 +530,7 @@ skipitaddwall:
         }
 
         //For each bunch, find the last wall and cache it in bunchlast.
-        for(z=bunchfrst; z<numbunches; z++)
+        for(z=bunchfrst; z < *numbunches; z++)
         {
             for(zz=bunchfirst[z]; bunchWallsList[zz]>=0; zz=bunchWallsList[zz]);
             bunchlast[z] = zz;
@@ -2179,7 +2177,7 @@ static int wallmost(short *mostbuf, int32_t w, int32_t sectnum, uint8_t  dastat)
 }
 
 
-static void drawalls(int32_t bunch, short *numscans, short *numhits)
+static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numbunches)
 {
     sectortype *sec, *nextsec;
     walltype *wal;
@@ -2481,12 +2479,12 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits)
             if (*numhits < 0) return;
             if ((!(wal->cstat&32)) && ((visitedSectors[nextsectnum>>3]&pow2char[nextsectnum&7]) == 0)){
                 if (umost[x2] < dmost[x2])
-                    scansector((short) nextsectnum, numscans);
+                    scansector((short) nextsectnum, numscans, numbunches);
                 else
                 {
                     for(x=x1; x<x2; x++)
                         if (umost[x] < dmost[x]){
-                            scansector((short) nextsectnum, numscans);
+                            scansector((short) nextsectnum, numscans, numbunches);
                             break;
                         }
 
@@ -2783,6 +2781,8 @@ void drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daang, int32
 
     //FCS: Number of colums to draw. ALWAYS set to the screen dimension width.
     short numhits;
+
+    short numbunches;
     
 	// When visualizing the rendering process, part of the screen
 	// are not updated: In order to avoid the "ghost effect", we
@@ -2928,7 +2928,7 @@ void drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daang, int32
     if (globalposz > fz) globparaflorclip = 0;
 
 	//Build the list of potentially visible wall in to "bunches".
-    scansector(globalcursectnum, &numscans);
+    scansector(globalcursectnum, &numscans, &numbunches);
 
     if (inpreparemirror)
     {
@@ -2963,7 +2963,7 @@ void drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daang, int32
                 numhits--;
             }
 
-        drawalls(0L, &numscans, &numhits);
+        drawalls(0L, &numscans, &numhits, &numbunches);
         numbunches--;
         bunchfirst[0] = bunchfirst[numbunches];
         bunchlast[0] = bunchlast[numbunches];
@@ -3011,7 +3011,7 @@ void drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daang, int32
         }
 
         //Draw every solid walls with ceiling/floor in the bunch "closest"
-        drawalls(closest, &numscans, &numhits);
+        drawalls(closest, &numscans, &numhits, &numbunches);
 
         if (automapping)
         {
