@@ -251,9 +251,6 @@ typedef struct
 static permfifotype permfifo[MAXPERMS];
 static int32_t permhead = 0, permtail = 0;
 
-//FCS: Num walls to potentially render.
-short numscans ;
-
 short numbunches;
 
 //FCS: Number of colums to draw. ALWAYS set to the screen dimension width.
@@ -331,7 +328,7 @@ unsigned int _swap32(unsigned int D)
  Scan through sectors using portals (a portal is wall with a nextsector attribute >= 0).
  Flood is prevented if a portal does not face the POV.
  */
-static void scansector (short sectnum)
+static void scansector (short sectnum, short *numscans)
 {
     walltype *wal, *wal2;
     spritetype *spr;
@@ -377,11 +374,11 @@ static void scansector (short sectnum)
         visitedSectors[sectnum>>3] |= pow2char[sectnum&7];
 
         bunchfrst = numbunches;
-        numscansbefore = numscans;
+        numscansbefore = *numscans;
 
         startwall = sector[sectnum].wallptr;
         endwall = startwall + sector[sectnum].wallnum;
-        scanfirst = numscans;
+        scanfirst = *numscans;
         for(z=startwall,wal=&wall[z]; z<endwall; z++,wal++)
         {
             nextsectnum = wal->nextsector;
@@ -451,71 +448,71 @@ static void scansector (short sectnum)
                     goto skipitaddwall;
 
                 //Project the point onto screen and see in which column it belongs.
-                pvWalls[numscans].screenSpaceCoo[0][VEC_COL] = halfxdimen + scale(xp1,halfxdimen,yp1);
+                pvWalls[*numscans].screenSpaceCoo[0][VEC_COL] = halfxdimen + scale(xp1,halfxdimen,yp1);
                 if (xp1 >= 0)
-                    pvWalls[numscans].screenSpaceCoo[0][VEC_COL]++;   /* Fix for SIGNED divide */
+                    pvWalls[*numscans].screenSpaceCoo[0][VEC_COL]++;   /* Fix for SIGNED divide */
 
-                if (pvWalls[numscans].screenSpaceCoo[0][VEC_COL] >= xdimen)
-                    pvWalls[numscans].screenSpaceCoo[0][VEC_COL] = xdimen-1;
+                if (pvWalls[*numscans].screenSpaceCoo[0][VEC_COL] >= xdimen)
+                    pvWalls[*numscans].screenSpaceCoo[0][VEC_COL] = xdimen-1;
 
-                pvWalls[numscans].screenSpaceCoo[0][VEC_DIST] = yp1;
+                pvWalls[*numscans].screenSpaceCoo[0][VEC_DIST] = yp1;
             }
             else{
                 
                 if (xp2 < -yp2)
                     goto skipitaddwall;
 
-                pvWalls[numscans].screenSpaceCoo[0][VEC_COL] = 0;
+                pvWalls[*numscans].screenSpaceCoo[0][VEC_COL] = 0;
                 tempint = yp1-yp2+xp1-xp2;
                 
                 if (tempint == 0)
                     goto skipitaddwall;
                 
-                pvWalls[numscans].screenSpaceCoo[0][VEC_DIST] = yp1 + scale(yp2-yp1,xp1+yp1,tempint);
+                pvWalls[*numscans].screenSpaceCoo[0][VEC_DIST] = yp1 + scale(yp2-yp1,xp1+yp1,tempint);
             }
             
-            if (pvWalls[numscans].screenSpaceCoo[0][VEC_DIST] < 256)
+            if (pvWalls[*numscans].screenSpaceCoo[0][VEC_DIST] < 256)
                 goto skipitaddwall;
 
             if (xp2 <= yp2){
                 
                 if ((xp2 < -yp2) || (yp2 == 0)) goto skipitaddwall;
-                pvWalls[numscans].screenSpaceCoo[1][VEC_COL] = halfxdimen + scale(xp2,halfxdimen,yp2) - 1;
-                if (xp2 >= 0) pvWalls[numscans].screenSpaceCoo[1][VEC_COL]++;   /* Fix for SIGNED divide */
-                if (pvWalls[numscans].screenSpaceCoo[1][VEC_COL] >= xdimen) pvWalls[numscans].screenSpaceCoo[1][VEC_COL] = xdimen-1;
-                pvWalls[numscans].screenSpaceCoo[1][VEC_DIST] = yp2;
+                pvWalls[*numscans].screenSpaceCoo[1][VEC_COL] = halfxdimen + scale(xp2,halfxdimen,yp2) - 1;
+                if (xp2 >= 0) pvWalls[*numscans].screenSpaceCoo[1][VEC_COL]++;   /* Fix for SIGNED divide */
+                if (pvWalls[*numscans].screenSpaceCoo[1][VEC_COL] >= xdimen) pvWalls[*numscans].screenSpaceCoo[1][VEC_COL] = xdimen-1;
+                pvWalls[*numscans].screenSpaceCoo[1][VEC_DIST] = yp2;
             }
             else{
                 
                 if (xp1 > yp1) goto skipitaddwall;
-                pvWalls[numscans].screenSpaceCoo[1][VEC_COL] = xdimen-1;
+                pvWalls[*numscans].screenSpaceCoo[1][VEC_COL] = xdimen-1;
                 tempint = xp2-xp1+yp1-yp2;
                 if (tempint == 0) goto skipitaddwall;
-                pvWalls[numscans].screenSpaceCoo[1][VEC_DIST] = yp1 + scale(yp2-yp1,yp1-xp1,tempint);
+                pvWalls[*numscans].screenSpaceCoo[1][VEC_DIST] = yp1 + scale(yp2-yp1,yp1-xp1,tempint);
             }
-            if ((pvWalls[numscans].screenSpaceCoo[1][VEC_DIST] < 256) || (pvWalls[numscans].screenSpaceCoo[0][VEC_COL] > pvWalls[numscans].screenSpaceCoo[1][VEC_COL])) goto skipitaddwall;
+            if ((pvWalls[*numscans].screenSpaceCoo[1][VEC_DIST] < 256) || (pvWalls[*numscans].screenSpaceCoo[0][VEC_COL] > pvWalls[*numscans].screenSpaceCoo[1][VEC_COL])) goto skipitaddwall;
 
             // Made it all the way!
             // Time to add this wall information to the stack of wall potentially visible.
-            pvWalls[numscans].sectorId = sectnum;
-            pvWalls[numscans].worldWallId = z;
+            pvWalls[*numscans].sectorId = sectnum;
+            pvWalls[*numscans].worldWallId = z;
 
             //Save the camera space wall endpoints coordinate (camera origin at player location + rotated according to player orientation).
-            pvWalls[numscans].cameraSpaceCoo[0][VEC_X] = xp1;
-            pvWalls[numscans].cameraSpaceCoo[0][VEC_Y] = yp1;
-            pvWalls[numscans].cameraSpaceCoo[1][VEC_X] = xp2;
-            pvWalls[numscans].cameraSpaceCoo[1][VEC_Y] = yp2;
+            pvWalls[*numscans].cameraSpaceCoo[0][VEC_X] = xp1;
+            pvWalls[*numscans].cameraSpaceCoo[0][VEC_Y] = yp1;
+            pvWalls[*numscans].cameraSpaceCoo[1][VEC_X] = xp2;
+            pvWalls[*numscans].cameraSpaceCoo[1][VEC_Y] = yp2;
             
 
-            bunchWallsList[numscans] = numscans+1;
-            numscans++;
+            bunchWallsList[*numscans] = (*numscans)+1;
+            (*numscans)++;
             
 skipitaddwall:
 
-            if ((wall[z].point2 < z) && (scanfirst < numscans))
+            if ((wall[z].point2 < z) && (scanfirst < *numscans))
             {
-                bunchWallsList[numscans-1] = scanfirst;
-                scanfirst = numscans;
+                bunchWallsList[(*numscans) - 1] = scanfirst;
+                scanfirst = *numscans;
             }
         }
 
@@ -524,7 +521,7 @@ skipitaddwall:
         
         //Break down the list of walls for this sector into bunchs. Since a bunch is a
         // continuously visible list of wall: A sector can generate many bunches.
-        for(z=numscansbefore; z<numscans; z++)
+        for(z=numscansbefore; z < *numscans; z++)
         {
             if ((wall[pvWalls[z].worldWallId].point2 !=
                  pvWalls[bunchWallsList[z]].worldWallId) || (pvWalls[z].screenSpaceCoo[1][VEC_COL] >= pvWalls[bunchWallsList[z]].screenSpaceCoo[0][VEC_COL]))
@@ -2185,7 +2182,7 @@ static int wallmost(short *mostbuf, int32_t w, int32_t sectnum, uint8_t  dastat)
 }
 
 
-static void drawalls(int32_t bunch)
+static void drawalls(int32_t bunch, short *numscans)
 {
     sectortype *sec, *nextsec;
     walltype *wal;
@@ -2487,12 +2484,12 @@ static void drawalls(int32_t bunch)
             if (numhits < 0) return;
             if ((!(wal->cstat&32)) && ((visitedSectors[nextsectnum>>3]&pow2char[nextsectnum&7]) == 0)){
                 if (umost[x2] < dmost[x2])
-                    scansector((short) nextsectnum);
+                    scansector((short) nextsectnum, numscans);
                 else
                 {
                     for(x=x1; x<x2; x++)
                         if (umost[x] < dmost[x]){
-                            scansector((short) nextsectnum);
+                            scansector((short) nextsectnum, numscans);
                             break;
                         }
 
@@ -2784,6 +2781,9 @@ void drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daang, int32
 	int32_t cz, fz;
     short *shortptr1, *shortptr2;
 
+    //FCS: Num walls to potentially render.
+    short numscans;
+
 	// When visualizing the rendering process, part of the screen
 	// are not updated: In order to avoid the "ghost effect", we
 	// clear the framebuffer to black.
@@ -2928,7 +2928,7 @@ void drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daang, int32
     if (globalposz > fz) globparaflorclip = 0;
 
 	//Build the list of potentially visible wall in to "bunches".
-    scansector(globalcursectnum);
+    scansector(globalcursectnum, &numscans);
 
     if (inpreparemirror)
     {
@@ -2963,7 +2963,7 @@ void drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daang, int32
                 numhits--;
             }
 
-        drawalls(0L);
+        drawalls(0L, &numscans);
         numbunches--;
         bunchfirst[0] = bunchfirst[numbunches];
         bunchlast[0] = bunchlast[numbunches];
@@ -3011,7 +3011,7 @@ void drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daang, int32
         }
 
         //Draw every solid walls with ceiling/floor in the bunch "closest"
-        drawalls(closest);
+        drawalls(closest, &numscans);
 
         if (automapping)
         {
