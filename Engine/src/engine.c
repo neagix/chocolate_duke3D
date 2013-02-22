@@ -253,9 +253,6 @@ static int32_t permhead = 0, permtail = 0;
 
 short numbunches;
 
-//FCS: Number of colums to draw. ALWAYS set to the screen dimension width.
-short numhits;
-
 short editstatus = 0;
 short searchit;
 int32_t searchx = -1, searchy;                     /* search input  */
@@ -2182,7 +2179,7 @@ static int wallmost(short *mostbuf, int32_t w, int32_t sectnum, uint8_t  dastat)
 }
 
 
-static void drawalls(int32_t bunch, short *numscans)
+static void drawalls(int32_t bunch, short *numscans, short *numhits)
 {
     sectortype *sec, *nextsec;
     walltype *wal;
@@ -2287,7 +2284,7 @@ static void drawalls(int32_t bunch, short *numscans)
                             if (uplc[x] > umost[x])
                                 if (umost[x] <= dmost[x]){
                                     umost[x] = uplc[x];
-                                    if (umost[x] > dmost[x]) numhits--;
+                                    if (umost[x] > dmost[x]) (*numhits)--;
                                 }
                 }
                 else{
@@ -2339,7 +2336,7 @@ static void drawalls(int32_t bunch, short *numscans)
                             if (dwall[x] > umost[x])
                                 if (umost[x] <= dmost[x]){
                                     umost[x] = dwall[x];
-                                    if (umost[x] > dmost[x]) numhits--;
+                                    if (umost[x] > dmost[x]) (*numhits)--;
                                 }
                     }
                     else
@@ -2349,7 +2346,7 @@ static void drawalls(int32_t bunch, short *numscans)
                                 i = max(uplc[x],dwall[x]);
                                 if (i > umost[x]){
                                     umost[x] = i;
-                                    if (umost[x] > dmost[x]) numhits--;
+                                    if (umost[x] > dmost[x]) (*numhits)--;
                                 }
                             }
                     }
@@ -2373,7 +2370,7 @@ static void drawalls(int32_t bunch, short *numscans)
                             if (dplc[x] < dmost[x])
                                 if (umost[x] <= dmost[x]){
                                     dmost[x] = dplc[x];
-                                    if (umost[x] > dmost[x]) numhits--;
+                                    if (umost[x] > dmost[x]) (*numhits)--;
                                 }
                 }
                 else{
@@ -2453,7 +2450,7 @@ static void drawalls(int32_t bunch, short *numscans)
                             if (uwall[x] < dmost[x])
                                 if (umost[x] <= dmost[x]){
                                     dmost[x] = uwall[x];
-                                    if (umost[x] > dmost[x]) numhits--;
+                                    if (umost[x] > dmost[x]) (*numhits)--;
                                 }
                     }
                     else
@@ -2464,7 +2461,7 @@ static void drawalls(int32_t bunch, short *numscans)
                                 if (i < dmost[x])
                                 {
                                     dmost[x] = i;
-                                    if (umost[x] > dmost[x]) numhits--;
+                                    if (umost[x] > dmost[x]) (*numhits)--;
                                 }
                             }
                     }
@@ -2481,7 +2478,7 @@ static void drawalls(int32_t bunch, short *numscans)
                     }
                 }
             }
-            if (numhits < 0) return;
+            if (*numhits < 0) return;
             if ((!(wal->cstat&32)) && ((visitedSectors[nextsectnum>>3]&pow2char[nextsectnum&7]) == 0)){
                 if (umost[x2] < dmost[x2])
                     scansector((short) nextsectnum, numscans);
@@ -2569,7 +2566,7 @@ static void drawalls(int32_t bunch, short *numscans)
                 {
                     umost[x] = 1;
                     dmost[x] = 0;
-                    numhits--;
+                    (*numhits)--;
                 }
             smostwall[smostwallcnt] = z;
             smostwalltype[smostwallcnt] = 0;
@@ -2784,6 +2781,9 @@ void drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daang, int32
     //FCS: Num walls to potentially render.
     short numscans;
 
+    //FCS: Number of colums to draw. ALWAYS set to the screen dimension width.
+    short numhits;
+    
 	// When visualizing the rendering process, part of the screen
 	// are not updated: In order to avoid the "ghost effect", we
 	// clear the framebuffer to black.
@@ -2963,7 +2963,7 @@ void drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daang, int32
                 numhits--;
             }
 
-        drawalls(0L, &numscans);
+        drawalls(0L, &numscans, &numhits);
         numbunches--;
         bunchfirst[0] = bunchfirst[numbunches];
         bunchlast[0] = bunchlast[numbunches];
@@ -3011,7 +3011,7 @@ void drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daang, int32
         }
 
         //Draw every solid walls with ceiling/floor in the bunch "closest"
-        drawalls(closest, &numscans);
+        drawalls(closest, &numscans, &numhits);
 
         if (automapping)
         {
