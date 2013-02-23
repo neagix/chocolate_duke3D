@@ -7968,7 +7968,10 @@ void getzrange(int32_t x, int32_t y, int32_t z, short sectnum,
     }
 }
 
-
+/*
+ * Sets the viewing window to a given rectangle of the screen.
+ * Example: For full screen 320*200, call like this: setview(0L,0L,319L,199L);
+ */
 void setview(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
 {
     int32_t i;
