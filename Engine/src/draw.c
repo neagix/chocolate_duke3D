@@ -843,7 +843,6 @@ void setupslopevlin(int32_t i1, int32_t i2, int32_t i3)
 
 extern int32_t reciptable[2048];
 extern int32_t globalx3, globaly3;
-extern int32_t fpuasm;
 #define low32(a) ((a&0xffffffff))
 #define high32(a) ((int)(((__int64)a&(__int64)0xffffffff00000000)>>32))
 
@@ -866,7 +865,7 @@ void slopevlin(int32_t i1, uint32_t i2, int32_t i3, int32_t i4, int32_t i5, int3
 	    // -------------
 	    // All this is calculating a fixed point approx. of 1/a
 	    c.f = a;
-	    fpuasm = eax = c.i;
+	    eax = c.i;
 	    edx = (((int32_t)eax) < 0) ? 0xffffffff : 0;
 	    eax = eax << 1;
 	    ecx = (eax>>24);	//  exponent
