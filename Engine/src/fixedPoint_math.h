@@ -22,32 +22,6 @@ static __inline void swapchar2(uint8_t  *p1, uint8_t  *p2, int xsiz)
     swapchar(p1 + 1, p2 + xsiz);
 }
 
-static __inline int32_t msqrtasm(uint32_t input)
-{
-	uint32_t a,b;
-
-	a = 0x40000000l;		// mov eax, 0x40000000
-	b = 0x20000000l;		// mov ebx, 0x20000000
-    
-	do {				// begit:
-		if (input >= a) {		// cmp ecx, eax	 /  jl skip
-			input -= a;		// sub ecx, eax
-			a += b*4;	// lea eax, [eax+ebx*4]
-		}			// skip:
-		a -= b;			// sub eax, ebx
-		a >>= 1;		// shr eax, 1
-		b >>= 2;		// shr ebx, 2
-	}
-    while (b);			// jnz begit
-    
-	if (input >= a)			// cmp ecx, eax
-		a++;			// sbb eax, -1
-    
-	a >>= 1;			// shr eax, 1
-    
-	return a;
-}
-
 void vlin16first (int32_t i1, int32_t i2);
 
 static inline int32_t sqr (int32_t input1) { return input1*input1; }

@@ -3474,7 +3474,7 @@ static void initksqrt(void)
             j <<= 2;
             k++;
         }
-        sqrtable[i] = (uint16_t)(msqrtasm((i<<18)+131072)<<1);
+	sqrtable[i] = ((uint16_t)floor(sqrt((i<<18) + 131072))) << 1;
         shlookup[i] = (k<<1)+((10-k)<<8);
         if (i < 256) shlookup[i+4096] = ((k+6)<<1)+((10-(k+6))<<8);
     }
