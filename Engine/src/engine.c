@@ -78,7 +78,6 @@ int32_t tilefileoffs[MAXTILES];
 int32_t artsize = 0, cachesize = 0;
 
 static short radarang[1280], radarang2[MAXXDIM+1];
-static uint16_t sqrtable[4096], shlookup[4096+256];
 uint8_t  pow2char[8] = {1,2,4,8,16,32,64,-128};
 int32_t pow2long[32] =
 {
@@ -267,22 +266,9 @@ uint16_t mapCRC;
 
 #include "draw.h"
 
-static __inline int32_t nsqrtasm(uint32_t  param)
+int32_t nsqrtasm(uint32_t radicand)
 {
-    uint16_t *shlookup_a = (uint16_t*)shlookup;
-    uint16_t *sqrtable_a = (uint16_t*)sqrtable;
-    uint16_t cx;
-
-    if (param & 0xff000000)
-        cx = shlookup_a[(param>>24)+4096];
-    else
-        cx = shlookup_a[param>>12];
-
-    param = param >> (cx&0xff);
-    param = ((param&0xffff0000)|sqrtable_a[param]);
-    param = param >> ((cx&0xff00)>>8);
-
-    return param;
+    return (int32_t)floor(sqrt(radicand));
 }
 
 static __inline int32_t krecipasm(int32_t i)
@@ -3462,33 +3448,12 @@ int saveboard(char  *filename, int32_t *daposx, int32_t *daposy,
 }
 
 
-static void initksqrt(void)
-{
-    int32_t i, j, k;
-
-    j = 1;
-    k = 0;
-    for(i=0; i<4096; i++)
-    {
-        if (i >= j) {
-            j <<= 2;
-            k++;
-        }
-	sqrtable[i] = ((uint16_t)floor(sqrt((i<<18) + 131072))) << 1;
-        shlookup[i] = (k<<1)+((10-k)<<8);
-        if (i < 256) shlookup[i+4096] = ((k+6)<<1)+((10-(k+6))<<8);
-    }
-}
-
-
 static void loadtables(void)
 {
     int32_t i, fil;
 
     if (tablesloaded == 0)
     {
-        initksqrt();
-
         for(i=0; i<2048; i++) reciptable[i] = divscale30(2048L,i+2048);
 
         if ((fil = TCkopen4load("tables.dat",0)) != -1)
