@@ -266,7 +266,7 @@ uint16_t mapCRC;
 
 #include "draw.h"
 
-int32_t nsqrtasm(uint32_t radicand)
+int32_t fixedPointSqrt(uint32_t radicand)
 {
     return (int32_t)floor(sqrt(radicand));
 }
@@ -740,7 +740,7 @@ static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum)
         j = sec->wallptr;
         ox = wall[wall[j].point2].x - wall[j].x;
         oy = wall[wall[j].point2].y - wall[j].y;
-        i = nsqrtasm(ox*ox+oy*oy);
+        i = fixedPointSqrt(ox*ox+oy*oy);
         
         if (i == 0)
             i = 1024;
@@ -984,7 +984,7 @@ static void florscan (int32_t x1, int32_t x2, int32_t sectnum)
         j = sec->wallptr;
         ox = wall[wall[j].point2].x - wall[j].x;
         oy = wall[wall[j].point2].y - wall[j].y;
-        i = nsqrtasm(ox*ox+oy*oy);
+        i = fixedPointSqrt(ox*ox+oy*oy);
         if (i == 0)
             i = 1024;
         else
@@ -1744,7 +1744,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
     wal = &wall[sec->wallptr];
     wx = wall[wal->point2].x - wal->x;
     wy = wall[wal->point2].y - wal->y;
-    dasqr = krecipasm(nsqrtasm(wx*wx+wy*wy));
+    dasqr = krecipasm(fixedPointSqrt(wx*wx+wy*wy));
     i = mulscale21(daslope,dasqr);
     wx *= i;
     wy *= i;
@@ -1765,7 +1765,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
         dx = mulscale14(wall[wal->point2].x-wal->x,dasqr);
         dy = mulscale14(wall[wal->point2].y-wal->y,dasqr);
 
-        i = nsqrtasm(daslope*daslope+16777216);
+        i = fixedPointSqrt(daslope*daslope+16777216);
 
         x = globalx;
         y = globaly;
@@ -2018,7 +2018,7 @@ static int wallmost(short *mostbuf, int32_t w, int32_t sectnum, uint8_t  dastat)
     i = wall[fw].point2;
     dx = wall[i].x-wall[fw].x;
     dy = wall[i].y-wall[fw].y;
-    dasqr = krecipasm(nsqrtasm(dx*dx+dy*dy));
+    dasqr = krecipasm(fixedPointSqrt(dx*dx+dy*dy));
 
     if (pvWalls[w].screenSpaceCoo[0][VEC_COL] == 0){
         xv = cosglobalang+sinviewingrangeglobalang;
@@ -2912,6 +2912,7 @@ void drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daang, int32
 	//Build the list of potentially visible wall in to "bunches".
     scansector(globalcursectnum, &numscans, &numbunches);
 
+    // Are we drawing a mirror?
     if (inpreparemirror)
     {
         inpreparemirror = 0;
@@ -4576,7 +4577,7 @@ int getangle(int32_t xvect, int32_t yvect)
 
 int ksqrt(int32_t num)
 {
-    return(nsqrtasm(num));
+    return(fixedPointSqrt(num));
 }
 
 
@@ -6229,7 +6230,7 @@ int hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum,
             wal2 = &wall[wal->point2];
             dax = wal2->x-wal->x;
             day = wal2->y-wal->y;
-            i = nsqrtasm(dax*dax+day*day);
+            i = fixedPointSqrt(dax*dax+day*day);
             if (i == 0) continue;
             i = divscale15(sec->ceilingheinum,i);
             dax *= i;
@@ -6277,7 +6278,7 @@ int hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum,
             wal2 = &wall[wal->point2];
             dax = wal2->x-wal->x;
             day = wal2->y-wal->y;
-            i = nsqrtasm(dax*dax+day*day);
+            i = fixedPointSqrt(dax*dax+day*day);
             if (i == 0) continue;
             i = divscale15(sec->floorheinum,i);
             dax *= i;
@@ -6847,7 +6848,7 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
     /* Extra walldist for sprites on sector lines */
     gx = goalx-(*x);
     gy = goaly-(*y);
-    rad = nsqrtasm(gx*gx + gy*gy) + MAXCLIPDIST+walldist + 8;
+    rad = fixedPointSqrt(gx*gx + gy*gy) + MAXCLIPDIST+walldist + 8;
     xmin = cx-rad;
     ymin = cy-rad;
     xmax = cx+rad;
@@ -8724,7 +8725,7 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang)
             {
                 ox = wall[wall[startwall].point2].x - wall[startwall].x;
                 oy = wall[wall[startwall].point2].y - wall[startwall].y;
-                i = nsqrtasm(ox*ox+oy*oy);
+                i = fixedPointSqrt(ox*ox+oy*oy);
                 
                 if (i == 0)
                     continue;
@@ -8740,7 +8741,7 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang)
                 globaly2 = -globaly1;
 
                 daslope = sector[s].floorheinum;
-                i = nsqrtasm(daslope*daslope+16777216);
+                i = fixedPointSqrt(daslope*daslope+16777216);
                 globalposy = mulscale12(globalposy,i);
                 globalx2 = mulscale12(globalx2,i);
                 globaly2 = mulscale12(globaly2,i);
@@ -9124,7 +9125,7 @@ int getceilzofslope(short sectnum, int32_t dax, int32_t day)
     wal = &wall[sector[sectnum].wallptr];
     dx = wall[wal->point2].x-wal->x;
     dy = wall[wal->point2].y-wal->y;
-    i = (nsqrtasm(dx*dx+dy*dy)<<5);
+    i = (fixedPointSqrt(dx*dx+dy*dy)<<5);
     if (i == 0) return(sector[sectnum].ceilingz);
     j = dmulscale3(dx,day-wal->y,-dy,dax-wal->x);
     return(sector[sectnum].ceilingz+scale(sector[sectnum].ceilingheinum,j,i));
@@ -9142,7 +9143,7 @@ int getflorzofslope(short sectnum, int32_t dax, int32_t day)
     wal = &wall[sector[sectnum].wallptr];
     dx = wall[wal->point2].x-wal->x;
     dy = wall[wal->point2].y-wal->y;
-    i = (nsqrtasm(dx*dx+dy*dy)<<5);
+    i = (fixedPointSqrt(dx*dx+dy*dy)<<5);
     
     if (i == 0)
         return(sector[sectnum].floorz);
@@ -9179,7 +9180,7 @@ void getzsofslope(short sectnum, int32_t dax, int32_t day, int32_t *ceilz, int32
         wal2 = &wall[wal->point2];
         dx = wal2->x-wal->x;
         dy = wal2->y-wal->y;
-        i = (nsqrtasm(dx*dx+dy*dy)<<5);
+        i = (fixedPointSqrt(dx*dx+dy*dy)<<5);
         if (i == 0) return;
         j = dmulscale3(dx,day-wal->y,-dy,dax-wal->x);
         
@@ -9203,7 +9204,7 @@ void alignceilslope(short dasect, int32_t x, int32_t y, int32_t z)
     i = (y-wal->y)*dax - (x-wal->x)*day;
     if (i == 0) return;
     sector[dasect].ceilingheinum = scale((z-sector[dasect].ceilingz)<<8,
-                                         nsqrtasm(dax*dax+day*day),i);
+                                         fixedPointSqrt(dax*dax+day*day),i);
 
     if (sector[dasect].ceilingheinum == 0) sector[dasect].ceilingstat &= ~2;
     else sector[dasect].ceilingstat |= 2;
@@ -9222,7 +9223,7 @@ void alignflorslope(short dasect, int32_t x, int32_t y, int32_t z)
     i = (y-wal->y)*dax - (x-wal->x)*day;
     if (i == 0) return;
     sector[dasect].floorheinum = scale((z-sector[dasect].floorz)<<8,
-                                       nsqrtasm(dax*dax+day*day),i);
+                                       fixedPointSqrt(dax*dax+day*day),i);
 
     if (sector[dasect].floorheinum == 0) sector[dasect].floorstat &= ~2;
     else sector[dasect].floorstat |= 2;
