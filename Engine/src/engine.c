@@ -59,8 +59,6 @@ int32_t curbrightness = 0;
 static uint8_t  globalpolytype;
 static short *dotp1[MAXYDIM], *dotp2[MAXYDIM];
 
-static char  tempbuf[MAXWALLS];
-
 int32_t ebpbak, espbak;
 int32_t slopalookup[16384];
 
@@ -2769,6 +2767,8 @@ void drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daang, int32
 
     short numbunches;
     
+    char  buffer[MAXWALLS];
+    
 	// When visualizing the rendering process, part of the screen
 	// are not updated: In order to avoid the "ghost effect", we
 	// clear the framebuffer to black.
@@ -2960,20 +2960,20 @@ void drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daang, int32
     // When every bunches have been tested for rendition.
     while ((numbunches > 0) && (numhits > 0))
     {
-        // tempbuf is used to mark which bunches have been elected as "closest".
+        // buffer is used to mark which bunches have been elected as "closest".
         // if tempbug[x] == 1 then it should be skipped.
-        clearbuf(&tempbuf[0],(int32_t)((numbunches+3)>>2),0L);
+        clearbuf(&buffer[0],(int32_t)((numbunches+3)>>2),0L);
 
 		/* Almost works, but not quite :( */
 		closest = 0; 
-        tempbuf[closest] = 1;       
+        buffer[closest] = 1;       
         for(i=1; i<numbunches; i++)
         {
             if ((j = bunchfront(i,closest)) < 0) 
 				continue;
-            tempbuf[i] = 1;
+            buffer[i] = 1;
             if (j == 0){
-				tempbuf[closest] = 1;
+				buffer[closest] = 1;
 				closest = i;
 			}
         }
@@ -2981,13 +2981,13 @@ void drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daang, int32
 		/* Double-check */
         for(i=0; i<numbunches; i++) 
         {
-            if (tempbuf[i]) 
+            if (buffer[i]) 
 				continue;
             if ((j = bunchfront(i,closest)) < 0) 
 				continue;
-            tempbuf[i] = 1;
+            buffer[i] = 1;
             if (j == 0){
-				tempbuf[closest] = 1;
+				buffer[closest] = 1;
 				closest = i, i = 0;
 			}
         }
@@ -9066,6 +9066,7 @@ void preparemirror(int32_t dax, int32_t day, int32_t daz,
 void completemirror(void)
 {
     int32_t i, dy, p;
+    char buffer[MAXWALLS];
 
     /* Can't reverse with uninitialized data */
     if (inpreparemirror) {
@@ -9084,9 +9085,9 @@ void completemirror(void)
     // FIX_00085: Optimized Video driver. FPS increases by +20%.
     for(dy=mirrorsy2-mirrorsy1-1; dy>=0; dy--)
     {
-        copybufbyte((void *)(p),tempbuf,mirrorsx2+1);
-        tempbuf[mirrorsx2] = tempbuf[mirrorsx2-1];
-        copybufreverse(&tempbuf[mirrorsx2],(void *)(p+i),mirrorsx2+1);
+        copybufbyte((void *)(p), buffer, mirrorsx2 + 1);
+        buffer[mirrorsx2] = buffer[mirrorsx2 - 1];
+        copybufreverse(&buffer[mirrorsx2], (void *)(p+i), mirrorsx2 + 1);
         p += ylookup[1];
         faketimerhandler();
     }
