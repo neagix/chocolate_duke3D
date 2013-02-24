@@ -213,7 +213,6 @@ int32_t globalx, globaly, globalz;
 //static short sectorborder[256], sectorbordercnt;
 //FCS: Moved this on the stack
 
-static uint8_t  tablesloaded = 0;
 int32_t pageoffset, ydim16, qsetmode = 0;
 int32_t startposx, startposy, startposz;
 int16_t startang, startsectnum;
@@ -3452,6 +3451,7 @@ int saveboard(char  *filename, int32_t *daposx, int32_t *daposy,
 static void loadtables(void)
 {
     int32_t i, fil;
+    static uint8_t  tablesloaded = 0;
 
     if (tablesloaded == 0)
     {
