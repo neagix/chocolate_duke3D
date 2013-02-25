@@ -400,7 +400,7 @@ void setupvlineasm(int32_t i1)
 }
 
 //FCS This is used to fill the inside of a wall (so it draws VERTICAL column, always).
-void vlineasm4(int32_t columnIndex, int32_t framebuffer, int32_t *buffer)
+void vlineasm4(int32_t columnIndex, int32_t framebuffer, int32_t *buffer, int32_t *vplce)
 {
 
 	if (!RENDER_DRAW_WALL_INSIDE)
@@ -440,7 +440,7 @@ void setupmvlineasm(int32_t i1)
 } 
 
 
-void mvlineasm4(int32_t column, int32_t framebufferOffset, int32_t *buffer)
+void mvlineasm4(int32_t column, int32_t framebufferOffset, int32_t *buffer, int32_t *vplce)
 {
     int i;
     uint32_t temp;
