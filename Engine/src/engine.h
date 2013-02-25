@@ -22,11 +22,13 @@ extern "C" {
 #endif
 
 //#define SUPERBUILD  /* don't touch this. */
-    
+
+#define MAXWALLSB 2048
     
 typedef struct EngineState {
     int32_t spritesortcnt;
     short maskwallcnt;
+    short maskwall[MAXWALLSB];
 } EngineState;
 
 
