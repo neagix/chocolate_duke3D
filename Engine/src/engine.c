@@ -3017,7 +3017,7 @@ static int spritewallfront (spritetype *s, int32_t w)
 
 static void transmaskvline(int32_t x)
 {
-    int32_t vplc, vinc, p, i, palookupoffs, bufplc;
+    int32_t vplc, vinc, i;
     short y1v, y2v;
 
     if ((x < 0) || (x >= xdimen)) return;
@@ -3027,8 +3027,6 @@ static void transmaskvline(int32_t x)
     y2v--;
     if (y2v < y1v) return;
 
-    palookupoffs = (int32_t)FP_OFF(palookup[globalpal]) + (getpalookup((int32_t)mulscale16(swall[x],globvis),globalshade)<<8);
-
     vinc = swall[x]*globalyscale;
     vplc = globalzd + vinc*(y1v-globalhoriz+1);
 
@@ -3036,12 +3034,13 @@ static void transmaskvline(int32_t x)
     
     if (i >= tiles[globalpicnum].dim.width)
         i %= tiles[globalpicnum].dim.width;
-    
-    bufplc = tiles[globalpicnum].data+i*tiles[globalpicnum].dim.height;
 
-    p = ylookup[y1v]+x+frameoffset;
-
-    tvlineasm1(vinc,palookupoffs,y2v-y1v,vplc,bufplc,p);
+    tvlineasm1(vinc,
+               FP_OFF(palookup[globalpal]) + (getpalookup((int32_t)mulscale16(swall[x],globvis),globalshade)<<8),  // palookupoffs
+               y2v-y1v,
+               vplc,
+               tiles[globalpicnum].data + i * tiles[globalpicnum].dim.height,
+               ylookup[y1v] + x + frameoffset);
 
     transarea += y2v-y1v;
 }
