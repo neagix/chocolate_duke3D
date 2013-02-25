@@ -26,6 +26,7 @@ extern "C" {
     
 typedef struct EngineState {
     int32_t spritesortcnt;
+    short maskwallcnt;
 } EngineState;
 
 

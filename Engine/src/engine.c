@@ -149,7 +149,7 @@ static short smoststart[MAXWALLSB];
 static uint8_t  smostwalltype[MAXWALLSB];
 static int32_t smostwall[MAXWALLSB], smostwallcnt = -1L;
 
-static short maskwall[MAXWALLSB], maskwallcnt;
+static short maskwall[MAXWALLSB];
 static spritetype *tspriteptr[MAXSPRITESONSCREEN];
 
 //FCS: (up-most pixel on column x that can still be drawn to)
@@ -2239,7 +2239,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
             getzsofslope((short)nextsectnum,globalposx,globalposy,&cz[4],&fz[4]);
 
             if ((wal->cstat&48) == 16)
-                maskwall[maskwallcnt++] = z;
+                maskwall[engine_state->maskwallcnt++] = z;
 
             if (((sec->ceilingstat&1) == 0) || ((nextsec->ceilingstat&1) == 0)){
                 if ((cz[2] <= cz[0]) && (cz[3] <= cz[1])){
@@ -2867,7 +2867,7 @@ EngineState* drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daan
     numscans = 0;
 
     numbunches = 0;
-    maskwallcnt = 0;
+    engine_state.maskwallcnt = 0;
     smostwallcnt = 0;
     smostcnt = 0;
     engine_state.spritesortcnt = 0;
@@ -5747,9 +5747,9 @@ void drawmasks(EngineState *engine_state)
         i = j;
     }
 
-    while ((engine_state->spritesortcnt > 0) && (maskwallcnt > 0))  /* While BOTH > 0 */
+    while ((engine_state->spritesortcnt > 0) && (engine_state->maskwallcnt > 0))  /* While BOTH > 0 */
     {
-        j = maskwall[maskwallcnt-1];
+        j = maskwall[engine_state->maskwallcnt-1];
         if (spritewallfront(tspriteptr[engine_state->spritesortcnt-1],pvWalls[j].worldWallId) == 0)
             drawsprite(--engine_state->spritesortcnt, spritesx, spritesy);
         else
@@ -5783,11 +5783,11 @@ void drawmasks(EngineState *engine_state)
             }
 
             /* finally safe to draw the masked wall */
-            drawmaskwall(--maskwallcnt);
+            drawmaskwall(--engine_state->maskwallcnt);
         }
     }
     while (engine_state->spritesortcnt > 0) drawsprite(--engine_state->spritesortcnt, spritesx, spritesy);
-    while (maskwallcnt > 0) drawmaskwall(--maskwallcnt);
+    while (engine_state->maskwallcnt > 0) drawmaskwall(--engine_state->maskwallcnt);
 }
 
 
