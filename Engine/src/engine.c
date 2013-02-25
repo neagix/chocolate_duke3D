@@ -3042,6 +3042,7 @@ static void transmaskvline2 (int32_t x)
     int32_t i, y1, y2, x2;
     short y1ve[2], y2ve[2];
     int32_t bufplce[4], vplce[4], vince[4];
+    int32_t asm1l, asm2l;
 
     if ((x < 0) || (x >= xdimen)) return;
     if (x == xdimen-1) {
@@ -3100,21 +3101,21 @@ static void transmaskvline2 (int32_t x)
 
     if (y2 > y1)
     {
-        asm1 = vince[1];
-        asm2 = ylookup[y2]+i+1;
-        tvlineasm2(vplce[1],vince[0],bufplce[0],bufplce[1],vplce[0],ylookup[y1]+i);
+        asm1l = vince[1];
+        asm2l = ylookup[y2]+i+1;
+        tvlineasm2(vplce[1],vince[0],bufplce[0],bufplce[1],vplce[0],ylookup[y1]+i, &asm1l, &asm2l);
         transarea += ((y2-y1)<<1);
     }
     else
     {
-        asm1 = vplce[0];
-        asm2 = vplce[1];
+        asm1l = vplce[0];
+        asm2l = vplce[1];
     }
 
     if (y2ve[0] > y2ve[1])
-        tvlineasm1(vince[0],palookupoffse[0],y2ve[0]-y2-1,asm1,bufplce[0],ylookup[y2+1]+i);
+        tvlineasm1(vince[0],palookupoffse[0],y2ve[0]-y2-1,asm1l,bufplce[0],ylookup[y2+1]+i);
     else if (y2ve[0] < y2ve[1])
-        tvlineasm1(vince[1],palookupoffse[1],y2ve[1]-y2-1,asm2,bufplce[1],ylookup[y2+1]+i+1);
+        tvlineasm1(vince[1],palookupoffse[1],y2ve[1]-y2-1,asm2l,bufplce[1],ylookup[y2+1]+i+1);
 
     faketimerhandler();
 }

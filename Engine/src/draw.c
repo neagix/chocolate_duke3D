@@ -305,17 +305,17 @@ void setuptvlineasm2(int32_t i1, int32_t i2, int32_t i3)
 } /* */
 
 
-void tvlineasm2(uint32_t i1, uint32_t i2, uint32_t i3, uint32_t i4, uint32_t i5, uint32_t i6)
+void tvlineasm2(uint32_t i1, uint32_t i2, uint32_t i3, uint32_t i4, uint32_t i5, uint32_t i6, int32_t *asm1, int32_t *asm2)
 {
 	uint32_t ebp = i1;
 	uint32_t tran2inca = i2;
-	uint32_t tran2incb = asm1;
+	uint32_t tran2incb = *asm1;
 	uint32_t tran2bufa = i3;
 	uint32_t tran2bufb = i4;
-	uint32_t tran2edi = asm2;
-	uint32_t tran2edi1 = asm2 + 1;
+	uint32_t tran2edi = *asm2;
+	uint32_t tran2edi1 = *asm2 + 1;
 
-	i6 -= asm2;
+	i6 -= *asm2;
 
 	do {
 		
@@ -365,8 +365,8 @@ void tvlineasm2(uint32_t i1, uint32_t i2, uint32_t i3, uint32_t i4, uint32_t i5,
 		}
 		i6 += bytesperline;
 	} while (i6 > i6 - bytesperline);
-	asm1 = i5;
-	asm2 = ebp;
+	*asm1 = i5;
+	*asm2 = ebp;
 } 
 
 
