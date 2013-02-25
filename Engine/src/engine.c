@@ -189,9 +189,6 @@ int32_t xyaspect, viewingrangerecip;
 
 int32_t asm1, asm2, asm3, asm4;
 
-
-int32_t vince[4];
-
 uint8_t*  palookupoffse[4];
 
 uint8_t  globalxshift, globalyshift;
@@ -1202,9 +1199,8 @@ static void wallscan(int32_t x1, int32_t x2,
     uint8_t* fpalookup;
     int32_t y1ve[4], y2ve[4], u4, d4, z, tileWidth, tsizy;
     uint8_t  bad;
-    int32_t bufplce[4];
-    int32_t vplce[4];
-
+    int32_t bufplce[4], vplce[4], vince[4];
+    
     tileWidth = tiles[globalpicnum].dim.width;
     tsizy = tiles[globalpicnum].dim.height;
     
@@ -1340,7 +1336,7 @@ static void wallscan(int32_t x1, int32_t x2,
             vplce[3] = prevlineasm1(vince[3],palookupoffse[3],u4-y1ve[3]-1,vplce[3],bufplce[3],ylookup[y1ve[3]]+x+frameoffset+3);
 
         if (d4 >= u4) 
-            vlineasm4(d4-u4+1,ylookup[u4]+x+frameoffset,bufplce,vplce);
+            vlineasm4(d4-u4+1,ylookup[u4]+x+frameoffset,bufplce,vplce,vince);
 
         i = x+frameoffset+ylookup[d4+1];
         
@@ -1394,7 +1390,7 @@ static void maskwallscan(int32_t x1, int32_t x2,
     int32_t y1ve[4], y2ve[4], u4, d4, dax, z, tileWidth, tileHeight;
     uint8_t*  p;
     uint8_t  bad;
-    int32_t bufplce_2[4], vplce[4];
+    int32_t bufplce_2[4], vplce[4], vince[4];
 
     tileWidth = tiles[globalpicnum].dim.width;
     tileHeight = tiles[globalpicnum].dim.height;
@@ -1512,7 +1508,7 @@ static void maskwallscan(int32_t x1, int32_t x2,
         if (u4 > y1ve[2]) vplce[2] = mvlineasm1(vince[2],palookupoffse[2],u4-y1ve[2]-1,vplce[2],bufplce_2[2],ylookup[y1ve[2]]+p+2);
         if (u4 > y1ve[3]) vplce[3] = mvlineasm1(vince[3],palookupoffse[3],u4-y1ve[3]-1,vplce[3],bufplce_2[3],ylookup[y1ve[3]]+p+3);
 
-        if (d4 >= u4) mvlineasm4(d4-u4+1,ylookup[u4]+p,bufplce_2,vplce);
+        if (d4 >= u4) mvlineasm4(d4-u4+1,ylookup[u4]+p,bufplce_2,vplce,vince);
 
         i = p+ylookup[d4+1];
         if (y2ve[0] > d4) mvlineasm1(vince[0],palookupoffse[0],y2ve[0]-d4-1,vplce[0],bufplce_2[0],i+0);
@@ -3066,7 +3062,7 @@ static void transmaskvline2 (int32_t x)
 {
     int32_t i, y1, y2, x2;
     short y1ve[2], y2ve[2];
-    int32_t bufplce[4], vplce[4];
+    int32_t bufplce[4], vplce[4], vince[4];
 
     if ((x < 0) || (x >= xdimen)) return;
     if (x == xdimen-1) {
@@ -3758,7 +3754,7 @@ static void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short pi
     int32_t xoff, yoff, npoints, yplc, yinc, lx, rx, xx, xend;
     int32_t xv, yv, xv2, yv2, obuffermode=0, qlinemode=0, y1ve[4], y2ve[4], u4, d4;
     uint8_t  bad;
-    int32_t bufplce[4], vplce[4];
+    int32_t bufplce[4], vplce[4], vince[4];
 
     short tileWidht, tileHeight;
     
@@ -4027,7 +4023,7 @@ static void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short pi
                     if (u4 > y1ve[3]) 
                         vplce[3] = prevlineasm1(vince[3],palookupoffse[3],u4-y1ve[3]-1,vplce[3],bufplce[3],ylookup[y1ve[3]]+p+3);
 
-                    if (d4 >= u4) vlineasm4(d4-u4+1,ylookup[u4]+p, bufplce,vplce);
+                    if (d4 >= u4) vlineasm4(d4-u4+1,ylookup[u4]+p, bufplce,vplce,vince);
 
                     i = p+ylookup[d4+1];
                     if (y2ve[0] > d4) 
@@ -4055,7 +4051,7 @@ static void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short pi
                     if (u4 > y1ve[2]) vplce[2] = mvlineasm1(vince[2],palookupoffse[2],u4-y1ve[2]-1,vplce[2],bufplce[2],ylookup[y1ve[2]]+p+2);
                     if (u4 > y1ve[3]) vplce[3] = mvlineasm1(vince[3],palookupoffse[3],u4-y1ve[3]-1,vplce[3],bufplce[3],ylookup[y1ve[3]]+p+3);
 
-                    if (d4 >= u4) mvlineasm4(d4-u4+1,ylookup[u4]+p,bufplce,vplce);
+                    if (d4 >= u4) mvlineasm4(d4-u4+1,ylookup[u4]+p,bufplce,vplce,vince);
 
                     i = p+ylookup[d4+1];
                     if (y2ve[0] > d4) mvlineasm1(vince[0],palookupoffse[0],y2ve[0]-d4-1,vplce[0],bufplce[0],i+0);
