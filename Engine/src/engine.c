@@ -55,10 +55,6 @@ int32_t oxdimen = -1, oviewingrange = -1, oxyaspect = -1;
 /* used to be static. --ryan. */
 int32_t curbrightness = 0;
 
-/* Textured Map variables */
-static uint8_t  globalpolytype;
-static short *dotp1[MAXYDIM], *dotp2[MAXYDIM];
-
 int32_t ebpbak, espbak;
 int32_t slopalookup[16384];
 
@@ -8218,12 +8214,13 @@ void setbrightness(uint8_t  dabrightness, uint8_t  *dapal)
 }
 
 //This is only used by drawmapview.
-static void fillpolygon(int32_t npoints)
+static void fillpolygon(int32_t npoints, uint8_t polyType)
 {
     int32_t z, zz, x1, y1, x2, y2, miny, maxy, y, xinc, cnt;
     int32_t ox, oy, bx, by, p, day1, day2;
     short *ptr, *ptr2;
-
+    short *dotp1[MAXYDIM], *dotp2[MAXYDIM];
+    
     miny = 0x7fffffff;
     maxy = 0x80000000;
     for(z=npoints-1; z>=0; z--)
@@ -8304,7 +8301,7 @@ static void fillpolygon(int32_t npoints)
             ptr2[day2] = ptr2[z];
             if (x1 > x2) continue;
 
-            if (globalpolytype < 1)
+            if (polyType < 1)
             {
                 /* maphline */
                 ox = x2+1-(xdim>>1);
@@ -8322,7 +8319,7 @@ static void fillpolygon(int32_t npoints)
                 by = ox*asm2 - globalposy;
 
                 p = ylookup[y]+x1+frameplace;
-                if (globalpolytype == 1)
+                if (polyType == 1)
                     mhline(globalbufplc,bx,(x2-x1)<<16,0L,by,p);
                 else
                 {
@@ -8617,6 +8614,8 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang)
     int32_t s, w, ox, oy, startwall, cx1, cy1, cx2, cy2;
     int32_t bakgxvect, bakgyvect, sortnum, gap, npoints;
     int32_t xvect, yvect, xvect2, yvect2, daslope;
+    
+    static uint8_t  polyType;
 
     beforedrawrooms = 0;
    
@@ -8703,7 +8702,7 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang)
             globalshade = max(min(sec->floorshade,numpalookups-1),0);
             globvis = globalhisibility;
             if (sec->visibility != 0) globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
-            globalpolytype = 0;
+            polyType = 0;
             if ((globalorientation&64) == 0)
             {
                 globalposx = dax;
@@ -8768,7 +8767,7 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang)
             globalposx = (globalposx<<(20+globalxshift))+(((int32_t)sec->floorxpanning)<<24);
             globalposy = (globalposy<<(20+globalyshift))-(((int32_t)sec->floorypanning)<<24);
 
-            fillpolygon(npoints);
+            fillpolygon(npoints, polyType);
         }
 
     /* Sort sprite list */
@@ -8891,7 +8890,7 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang)
             asm3 = (int32_t) FP_OFF(palookup[spr->pal]+(globalshade<<8));
             globvis = globalhisibility;
             if (sec->visibility != 0) globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
-            globalpolytype = ((spr->cstat&2)>>1)+1;
+            polyType = ((spr->cstat&2)>>1)+1;
 
             /* relative alignment stuff */
             ox = x2-x1;
@@ -8937,7 +8936,7 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang)
             globaly2 <<= 2;
             globalposy <<= (20+2);
 
-            fillpolygon(npoints);
+            fillpolygon(npoints, polyType);
         }
     }
 }
