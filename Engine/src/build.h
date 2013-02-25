@@ -142,7 +142,6 @@ EXTERN spritetype sprite[MAXSPRITES];
 
 EXTERN uint16_t mapCRC;
 
-EXTERN int32_t spritesortcnt;
 EXTERN spritetype tsprite[MAXSPRITESONSCREEN];
 
 EXTERN uint8_t  vidoption;

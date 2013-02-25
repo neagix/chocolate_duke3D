@@ -306,7 +306,7 @@ unsigned int _swap32(unsigned int D)
  Scan through sectors using portals (a portal is wall with a nextsector attribute >= 0).
  Flood is prevented if a portal does not face the POV.
  */
-static void scansector (short sectnum, short *numscans, short *numbunches)
+static void scansector (short sectnum, short *numscans, short *numbunches, EngineState *engine_state)
 {
     walltype *wal, *wal2;
     spritetype *spr;
@@ -336,14 +336,14 @@ static void scansector (short sectnum, short *numscans, short *numbunches)
             spr = &sprite[z];
             if ((((spr->cstat&0x8000) == 0) || (showinvisibility)) &&
                     (spr->xrepeat > 0) && (spr->yrepeat > 0) &&
-                    (spritesortcnt < MAXSPRITESONSCREEN))
+                    (engine_state->spritesortcnt < MAXSPRITESONSCREEN))
             {
                 xs = spr->x-globalposx;
                 ys = spr->y-globalposy;
                 if ((spr->cstat&48) || (xs*cosglobalang+ys*singlobalang > 0))
                 {
-                    copybufbyte(spr,&tsprite[spritesortcnt],sizeof(spritetype));
-                    tsprite[spritesortcnt++].owner = z;
+                    copybufbyte(spr,&tsprite[engine_state->spritesortcnt],sizeof(spritetype));
+                    tsprite[engine_state->spritesortcnt++].owner = z;
                 }
             }
         }
@@ -2160,7 +2160,7 @@ static int wallmost(short *mostbuf, int32_t w, int32_t sectnum, uint8_t  dastat)
 }
 
 
-static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numbunches)
+static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numbunches, EngineState *engine_state)
 {
     sectortype *sec, *nextsec;
     walltype *wal;
@@ -2462,12 +2462,12 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
             if (*numhits < 0) return;
             if ((!(wal->cstat&32)) && ((visitedSectors[nextsectnum>>3]&pow2char[nextsectnum&7]) == 0)){
                 if (umost[x2] < dmost[x2])
-                    scansector((short) nextsectnum, numscans, numbunches);
+                    scansector((short) nextsectnum, numscans, numbunches, engine_state);
                 else
                 {
                     for(x=x1; x<x2; x++)
                         if (umost[x] < dmost[x]){
-                            scansector((short) nextsectnum, numscans, numbunches);
+                            scansector((short) nextsectnum, numscans, numbunches, engine_state);
                             break;
                         }
 
@@ -2745,14 +2745,15 @@ static int bunchfront(int32_t firstBunchID, int32_t secondBunchID)
 	}
 }
 
+
 int pixelRenderable = 0;
 //#include "keyboard.h"
 //void WriteLastPaletteToFile(void);
 //void WriteTranslucToFile(void);
-/*  
+/*
       FCS: Draw every walls in Front to Back Order.
 */
-void drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daang, int32_t dahoriz, short dacursectnum)
+EngineState* drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daang, int32_t dahoriz, short dacursectnum)
 {
     int32_t i, j, z, closest;
 	//Ceiling and Floor height at the player position.
@@ -2768,6 +2769,8 @@ void drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daang, int32
     short numbunches;
     
     char  buffer[MAXWALLS];
+    
+    static EngineState engine_state;
     
 	// When visualizing the rendering process, part of the screen
 	// are not updated: In order to avoid the "ghost effect", we
@@ -2884,7 +2887,7 @@ void drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daang, int32
     maskwallcnt = 0;
     smostwallcnt = 0;
     smostcnt = 0;
-    spritesortcnt = 0;
+    engine_state.spritesortcnt = 0;
 
     if (globalcursectnum >= MAXSECTORS)
         globalcursectnum -= MAXSECTORS;
@@ -2909,7 +2912,7 @@ void drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daang, int32
     if (globalposz > fz) globparaflorclip = 0;
 
 	//Build the list of potentially visible wall in to "bunches".
-    scansector(globalcursectnum, &numscans, &numbunches);
+    scansector(globalcursectnum, &numscans, &numbunches, &engine_state);
 
     // Are we drawing a mirror?
     if (inpreparemirror)
@@ -2945,7 +2948,7 @@ void drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daang, int32
                 numhits--;
             }
 
-        drawalls(0L, &numscans, &numhits, &numbunches);
+        drawalls(0L, &numscans, &numhits, &numbunches, &engine_state);
         numbunches--;
         bunchfirst[0] = bunchfirst[numbunches];
         bunchlast[0] = bunchlast[numbunches];
@@ -2993,7 +2996,7 @@ void drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daang, int32
         }
 
         //Draw every solid walls with ceiling/floor in the bunch "closest"
-        drawalls(closest, &numscans, &numhits, &numbunches);
+        drawalls(closest, &numscans, &numhits, &numbunches, &engine_state);
 
         if (automapping)
         {
@@ -3008,6 +3011,8 @@ void drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daang, int32
         bunchfirst[closest] = bunchfirst[numbunches];
         bunchlast[closest] = bunchlast[numbunches];
     }
+    
+    return &engine_state;
 }
 
 
@@ -5653,18 +5658,18 @@ static void drawsprite (int32_t snum)
 /*
      FCS: Draw every transparent sprites in Back To Front Order. Also draw decals on the walls...
  */
-void drawmasks(void)
+void drawmasks(EngineState *engine_state)
 {
     int32_t i, j, k, l, gap, xs, ys, xp, yp, yoff, yspan;
     /* int32_t zs, zp; */
 
     //Copy sprite address in a sprite proxy structure (pointers are easier to re-arrange than structs).
-    for(i=spritesortcnt-1; i>=0; i--)
+    for(i=(engine_state->spritesortcnt)-1; i>=0; i--)
         tspriteptr[i] = &tsprite[i];
     
     
     //Generate screenspace coordinate (X column and Y distance).
-    for(i=spritesortcnt-1; i>=0; i--)
+    for(i=(engine_state->spritesortcnt)-1; i>=0; i--)
     {
         //Translate and rotate the sprite in Camera space coordinate.
         xs = tspriteptr[i]->x-globalposx;
@@ -5678,13 +5683,13 @@ void drawmasks(void)
         }
         else if ((tspriteptr[i]->cstat&48) == 0)
         {
-            spritesortcnt--;  /* Delete face sprite if on wrong side! */
+            engine_state->spritesortcnt--;  /* Delete face sprite if on wrong side! */
             //Move the sprite at the end of the array and decrease array length.
-            if (i != spritesortcnt)
+            if (i != engine_state->spritesortcnt)
             {
-                tspriteptr[i] = tspriteptr[spritesortcnt];
-                spritesx[i] = spritesx[spritesortcnt];
-                spritesy[i] = spritesy[spritesortcnt];
+                tspriteptr[i] = tspriteptr[engine_state->spritesortcnt];
+                spritesx[i] = spritesx[engine_state->spritesortcnt];
+                spritesy[i] = spritesy[engine_state->spritesortcnt];
             }
             continue;
         }
@@ -5693,9 +5698,9 @@ void drawmasks(void)
 
     //FCS: Bubble sort ?! REally ?!?!?
     gap = 1;
-    while (gap < spritesortcnt) gap = (gap<<1)+1;
+    while (gap < engine_state->spritesortcnt) gap = (gap<<1)+1;
     for(gap>>=1; gap>0; gap>>=1)    /* Sort sprite list */
-        for(i=0; i<spritesortcnt-gap; i++)
+        for(i=0; i<engine_state->spritesortcnt-gap; i++)
             for(l=i; l>=0; l-=gap)
             {
                 if (spritesy[l] <= spritesy[l+gap])
@@ -5706,12 +5711,12 @@ void drawmasks(void)
                 swaplong(&spritesy[l],&spritesy[l+gap]);
             }
 
-    if (spritesortcnt > 0)
-        spritesy[spritesortcnt] = (spritesy[spritesortcnt-1]^1);
+    if (engine_state->spritesortcnt > 0)
+        spritesy[engine_state->spritesortcnt] = (spritesy[engine_state->spritesortcnt-1]^1);
 
     ys = spritesy[0];
     i = 0;
-    for(j=1; j<=spritesortcnt; j++)
+    for(j=1; j<=engine_state->spritesortcnt; j++)
     {
         if (spritesy[j] == ys)
             continue;
@@ -5754,17 +5759,17 @@ void drawmasks(void)
         i = j;
     }
 
-    while ((spritesortcnt > 0) && (maskwallcnt > 0))  /* While BOTH > 0 */
+    while ((engine_state->spritesortcnt > 0) && (maskwallcnt > 0))  /* While BOTH > 0 */
     {
         j = maskwall[maskwallcnt-1];
-        if (spritewallfront(tspriteptr[spritesortcnt-1],pvWalls[j].worldWallId) == 0)
-            drawsprite(--spritesortcnt);
+        if (spritewallfront(tspriteptr[engine_state->spritesortcnt-1],pvWalls[j].worldWallId) == 0)
+            drawsprite(--engine_state->spritesortcnt);
         else
         {
             /* Check to see if any sprites behind the masked wall... */
             k = -1;
             gap = 0;
-            for(i=spritesortcnt-2; i>=0; i--)
+            for(i=engine_state->spritesortcnt-2; i>=0; i--)
                 if ((pvWalls[j].screenSpaceCoo[0][VEC_COL] <= (spritesx[i]>>8)) && ((spritesx[i]>>8) <= pvWalls[j].screenSpaceCoo[1][VEC_COL]))
                     if (spritewallfront(tspriteptr[i],pvWalls[j].worldWallId) == 0)
                     {
@@ -5775,7 +5780,7 @@ void drawmasks(void)
                     }
             if (k >= 0)       /* remove holes in sprite list */
             {
-                for(i=k; i<spritesortcnt; i++)
+                for(i=k; i<engine_state->spritesortcnt; i++)
                     if (tspriteptr[i]->owner >= 0)
                     {
                         if (i > k)
@@ -5786,14 +5791,14 @@ void drawmasks(void)
                         }
                         k++;
                     }
-                spritesortcnt -= gap;
+                engine_state->spritesortcnt -= gap;
             }
 
             /* finally safe to draw the masked wall */
             drawmaskwall(--maskwallcnt);
         }
     }
-    while (spritesortcnt > 0) drawsprite(--spritesortcnt);
+    while (engine_state->spritesortcnt > 0) drawsprite(--engine_state->spritesortcnt);
     while (maskwallcnt > 0) drawmaskwall(--maskwallcnt);
 }
 

@@ -396,7 +396,7 @@ extern uint8_t  wallswitchcheck(short i);
 //#line "game.c" 2588
 extern short spawn(short j,short pn);
 //#line "game.c" 4181
-extern void animatesprites(int32_t x,int32_t y,short a,int32_t smoothratio);
+extern void animatesprites(int32_t x,int32_t y,short a,int32_t smoothratio, EngineState * engine_state);
 //#line "game.c" 4859
 extern void cheats(void );
 //#line "game.c" 5303

@@ -22,6 +22,12 @@ extern "C" {
 #endif
 
 //#define SUPERBUILD  /* don't touch this. */
+    
+    
+typedef struct EngineState {
+    int32_t spritesortcnt;
+} EngineState;
+
 
 /*
  * this must be implemented by every program that uses the BUILD engine.
@@ -56,9 +62,9 @@ void loadtile(int16_t tilenume);
 
 
 void nextpage(void);
-void drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,int16_t daang, int32_t dahoriz, int16_t dacursectnum);
+EngineState* drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,int16_t daang, int32_t dahoriz, int16_t dacursectnum);
 int loadboard(char  *filename, int32_t *daposx, int32_t *daposy,int32_t *daposz, int16_t *daang, int16_t *dacursectnum);
-void drawmasks(void);
+void drawmasks(EngineState *engine_state);
 void printext256(int32_t xpos, int32_t ypos, int16_t col, int16_t backcol,char  name[82], uint8_t  fontsize);
 
 void initengine(void);

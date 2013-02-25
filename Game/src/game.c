@@ -3175,9 +3175,9 @@ static void SE40_Draw(int spnum,int32_t x,int32_t y,int32_t z,short a,short h,in
  offx=x-sprite[i].x;
  offy=y-sprite[i].y;
  i=floor2;
- drawrooms(offx+sprite[i].x,offy+sprite[i].y,z,a,h,sprite[i].sectnum);
- animatesprites(x,y,a,smoothratio);
- drawmasks();
+ EngineState *engine_state = drawrooms(offx+sprite[i].x,offy+sprite[i].y,z,a,h,sprite[i].sectnum);
+ animatesprites(x,y,a,smoothratio, engine_state);
+ drawmasks(engine_state);
 
  for(j=0;j<MAXSPRITES;j++)  // restore ceiling or floor
  {
@@ -3274,9 +3274,9 @@ void displayrooms(short snum,int32_t smoothratio)
 
         se40code(s->x,s->y,s->z,cang,s->yvel,smoothratio);
 
-        drawrooms(s->x,s->y,s->z-(4<<8),cang,s->yvel,s->sectnum);
-        animatesprites(s->x,s->y,cang,smoothratio);
-        drawmasks();
+        EngineState *engine_state = drawrooms(s->x,s->y,s->z-(4<<8),cang,s->yvel,s->sectnum);
+        animatesprites(s->x, s->y, cang, smoothratio, engine_state);
+        drawmasks(engine_state);
     }
     else
     {
@@ -3405,22 +3405,22 @@ void displayrooms(short snum,int32_t smoothratio)
                 j = visibility;
                 visibility = (j>>1) + (j>>2);
 
-                drawrooms(tposx,tposy,cposz,tang,choriz,mirrorsector[i]+MAXSECTORS);
+                EngineState *engine_state = drawrooms(tposx,tposy,cposz,tang,choriz,mirrorsector[i]+MAXSECTORS);
 
                 display_mirror = 1;
-                animatesprites(tposx,tposy,tang,smoothratio);
+                animatesprites(tposx, tposy, tang, smoothratio, engine_state);
                 display_mirror = 0;
 
-                drawmasks();
+                drawmasks(engine_state);
                 completemirror();   //Reverse screen x-wise in this function
                 visibility = j;
             }
             gotpic[MIRROR>>3] &= ~(1<<(MIRROR&7));
         }
 
-        drawrooms(cposx,cposy,cposz,cang,choriz,sect);
-        animatesprites(cposx,cposy,cang,smoothratio);
-        drawmasks();
+        EngineState *engine_state = drawrooms(cposx,cposy,cposz,cang,choriz,sect);
+        animatesprites(cposx, cposy, cang,smoothratio, engine_state);
+        drawmasks(engine_state);
 
         if(screencapt == 1)
         {
@@ -5399,13 +5399,13 @@ short spawn( short j, short pn )
 }
 
 
-void animatesprites(int32_t x,int32_t y,short a,int32_t smoothratio)
+void animatesprites(int32_t x, int32_t y, short a, int32_t smoothratio, EngineState *engine_state)
 {
     short i, j, k, p, sect;
     int32_t l, t1,t3,t4;
     spritetype *s,*t;
 
-    for(j=0;j < spritesortcnt; j++)
+    for(j=0;j < engine_state->spritesortcnt; j++)
     {
         t = &tsprite[j];
         i = t->owner;
@@ -5487,7 +5487,7 @@ void animatesprites(int32_t x,int32_t y,short a,int32_t smoothratio)
     }
 
 
-    for(j=0;j < spritesortcnt; j++ )  //Between drawrooms() and drawmasks()
+    for(j=0;j < engine_state->spritesortcnt; j++ )  //Between drawrooms() and drawmasks()
     {                             //is the perfect time to animate sprites
         t = &tsprite[j];
         i = t->owner;
@@ -5730,46 +5730,46 @@ void animatesprites(int32_t x,int32_t y,short a,int32_t smoothratio)
 
                 if( ( display_mirror == 1 || screenpeek != p || s->owner == -1 ) && ud.multimode > 1 && ud.showweapons && sprite[ps[p].i].extra > 0 && ps[p].curr_weapon > 0 )
                 {
-                    memcpy((spritetype *)&tsprite[spritesortcnt],(spritetype *)t,sizeof(spritetype));
+                    memcpy((spritetype *)&tsprite[(engine_state->spritesortcnt)],(spritetype *)t,sizeof(spritetype));
 
-                    tsprite[spritesortcnt].statnum = 99;
+                    tsprite[engine_state->spritesortcnt].statnum = 99;
 
-                    tsprite[spritesortcnt].yrepeat = ( t->yrepeat>>3 );
+                    tsprite[engine_state->spritesortcnt].yrepeat = ( t->yrepeat>>3 );
                     if(t->yrepeat < 4) t->yrepeat = 4;
 
-                    tsprite[spritesortcnt].shade = t->shade;
-                    tsprite[spritesortcnt].cstat = 0;
+                    tsprite[engine_state->spritesortcnt].shade = t->shade;
+                    tsprite[engine_state->spritesortcnt].cstat = 0;
 
                     switch(ps[p].curr_weapon)
                     {
-                        case PISTOL_WEAPON:      tsprite[spritesortcnt].picnum = FIRSTGUNSPRITE;       break;
-                        case SHOTGUN_WEAPON:     tsprite[spritesortcnt].picnum = SHOTGUNSPRITE;        break;
-                        case CHAINGUN_WEAPON:    tsprite[spritesortcnt].picnum = CHAINGUNSPRITE;       break;
-                        case RPG_WEAPON:         tsprite[spritesortcnt].picnum = RPGSPRITE;            break;
+                        case PISTOL_WEAPON:      tsprite[engine_state->spritesortcnt].picnum = FIRSTGUNSPRITE;       break;
+                        case SHOTGUN_WEAPON:     tsprite[engine_state->spritesortcnt].picnum = SHOTGUNSPRITE;        break;
+                        case CHAINGUN_WEAPON:    tsprite[engine_state->spritesortcnt].picnum = CHAINGUNSPRITE;       break;
+                        case RPG_WEAPON:         tsprite[engine_state->spritesortcnt].picnum = RPGSPRITE;            break;
                         case HANDREMOTE_WEAPON:
-                        case HANDBOMB_WEAPON:    tsprite[spritesortcnt].picnum = HEAVYHBOMB;           break;
-                        case TRIPBOMB_WEAPON:    tsprite[spritesortcnt].picnum = TRIPBOMBSPRITE;       break;
-                        case GROW_WEAPON:        tsprite[spritesortcnt].picnum = GROWSPRITEICON;       break;
-                        case SHRINKER_WEAPON:    tsprite[spritesortcnt].picnum = SHRINKERSPRITE;       break;
-                        case FREEZE_WEAPON:      tsprite[spritesortcnt].picnum = FREEZESPRITE;         break;
-                        case DEVISTATOR_WEAPON:  tsprite[spritesortcnt].picnum = DEVISTATORSPRITE;     break;
+                        case HANDBOMB_WEAPON:    tsprite[engine_state->spritesortcnt].picnum = HEAVYHBOMB;           break;
+                        case TRIPBOMB_WEAPON:    tsprite[engine_state->spritesortcnt].picnum = TRIPBOMBSPRITE;       break;
+                        case GROW_WEAPON:        tsprite[engine_state->spritesortcnt].picnum = GROWSPRITEICON;       break;
+                        case SHRINKER_WEAPON:    tsprite[engine_state->spritesortcnt].picnum = SHRINKERSPRITE;       break;
+                        case FREEZE_WEAPON:      tsprite[engine_state->spritesortcnt].picnum = FREEZESPRITE;         break;
+                        case DEVISTATOR_WEAPON:  tsprite[engine_state->spritesortcnt].picnum = DEVISTATORSPRITE;     break;
                     }
 
                     if(s->owner >= 0)
-                        tsprite[spritesortcnt].z = ps[p].posz-(12<<8);
-                    else tsprite[spritesortcnt].z = s->z-(51<<8);
+                        tsprite[engine_state->spritesortcnt].z = ps[p].posz-(12<<8);
+                    else tsprite[engine_state->spritesortcnt].z = s->z-(51<<8);
                     if(ps[p].curr_weapon == HANDBOMB_WEAPON)
                     {
-                        tsprite[spritesortcnt].xrepeat = 10;
-                        tsprite[spritesortcnt].yrepeat = 10;
+                        tsprite[engine_state->spritesortcnt].xrepeat = 10;
+                        tsprite[engine_state->spritesortcnt].yrepeat = 10;
                     }
                     else
                     {
-                        tsprite[spritesortcnt].xrepeat = 16;
-                        tsprite[spritesortcnt].yrepeat = 16;
+                        tsprite[engine_state->spritesortcnt].xrepeat = 16;
+                        tsprite[engine_state->spritesortcnt].yrepeat = 16;
                     }
-                    tsprite[spritesortcnt].pal = 0;
-                    spritesortcnt++;
+                    tsprite[engine_state->spritesortcnt].pal = 0;
+                    engine_state->spritesortcnt++;
                 }
 
                 if(s->owner == -1)
@@ -5971,7 +5971,7 @@ void animatesprites(int32_t x,int32_t y,short a,int32_t smoothratio)
                 hittype[i].dispicnum++;
                 continue;
             }
-            else if( ud.shadows && spritesortcnt < (MAXSPRITESONSCREEN-2))
+            else if( ud.shadows && engine_state->spritesortcnt < (MAXSPRITESONSCREEN-2))
             {
                 int32_t daz,xrep,yrep;
 
@@ -5983,24 +5983,24 @@ void animatesprites(int32_t x,int32_t y,short a,int32_t smoothratio)
                 if( (s->z-daz) < (8<<8) )
                     if( ps[screenpeek].posz < daz )
                 {
-                    memcpy((spritetype *)&tsprite[spritesortcnt],(spritetype *)t,sizeof(spritetype));
+                    memcpy((spritetype *)&tsprite[engine_state->spritesortcnt],(spritetype *)t,sizeof(spritetype));
 
-                    tsprite[spritesortcnt].statnum = 99;
+                    tsprite[engine_state->spritesortcnt].statnum = 99;
 
-                    tsprite[spritesortcnt].yrepeat = ( t->yrepeat>>3 );
+                    tsprite[engine_state->spritesortcnt].yrepeat = ( t->yrepeat>>3 );
                     if(t->yrepeat < 4) t->yrepeat = 4;
 
-                    tsprite[spritesortcnt].shade = 127;
-                    tsprite[spritesortcnt].cstat |= 2;
+                    tsprite[engine_state->spritesortcnt].shade = 127;
+                    tsprite[engine_state->spritesortcnt].cstat |= 2;
 
-                    tsprite[spritesortcnt].z = daz;
-                    xrep = tsprite[spritesortcnt].xrepeat;// - (klabs(daz-t->z)>>11);
-                    tsprite[spritesortcnt].xrepeat = xrep;
-                    tsprite[spritesortcnt].pal = 4;
+                    tsprite[engine_state->spritesortcnt].z = daz;
+                    xrep = tsprite[engine_state->spritesortcnt].xrepeat;// - (klabs(daz-t->z)>>11);
+                    tsprite[engine_state->spritesortcnt].xrepeat = xrep;
+                    tsprite[engine_state->spritesortcnt].pal = 4;
 
-                    yrep = tsprite[spritesortcnt].yrepeat;// - (klabs(daz-t->z)>>11);
-                    tsprite[spritesortcnt].yrepeat = yrep;
-                    spritesortcnt++;
+                    yrep = tsprite[engine_state->spritesortcnt].yrepeat;// - (klabs(daz-t->z)>>11);
+                    tsprite[engine_state->spritesortcnt].yrepeat = yrep;
+                    engine_state->spritesortcnt++;
                 }
             }
 
