@@ -150,9 +150,6 @@ static uint8_t  smostwalltype[MAXWALLSB];
 static int32_t smostwall[MAXWALLSB], smostwallcnt = -1L;
 
 static short maskwall[MAXWALLSB], maskwallcnt;
-static int32_t spritesx[MAXSPRITESONSCREEN];
-static int32_t spritesy[MAXSPRITESONSCREEN+1];
-static int32_t spritesz[MAXSPRITESONSCREEN];
 static spritetype *tspriteptr[MAXSPRITESONSCREEN];
 
 //FCS: (up-most pixel on column x that can still be drawn to)
@@ -4771,7 +4768,7 @@ static void ceilspritescan (int32_t x1, int32_t x2)
     faketimerhandler();
 }
 
-static void drawsprite (int32_t snum)
+static void drawsprite (int32_t snum, int32_t *spritesx, int32_t *spritesy)
 {
     spritetype *tspr;
     sectortype *sec;
@@ -5649,7 +5646,11 @@ void drawmasks(EngineState *engine_state)
 {
     int32_t i, j, k, l, gap, xs, ys, xp, yp, yoff, yspan;
     /* int32_t zs, zp; */
-
+    
+    static int32_t spritesx[MAXSPRITESONSCREEN];
+    static int32_t spritesy[MAXSPRITESONSCREEN+1];
+    static int32_t spritesz[MAXSPRITESONSCREEN];
+    
     //Copy sprite address in a sprite proxy structure (pointers are easier to re-arrange than structs).
     for(i=(engine_state->spritesortcnt)-1; i>=0; i--)
         tspriteptr[i] = &tsprite[i];
@@ -5750,7 +5751,7 @@ void drawmasks(EngineState *engine_state)
     {
         j = maskwall[maskwallcnt-1];
         if (spritewallfront(tspriteptr[engine_state->spritesortcnt-1],pvWalls[j].worldWallId) == 0)
-            drawsprite(--engine_state->spritesortcnt);
+            drawsprite(--engine_state->spritesortcnt, spritesx, spritesy);
         else
         {
             /* Check to see if any sprites behind the masked wall... */
@@ -5760,7 +5761,7 @@ void drawmasks(EngineState *engine_state)
                 if ((pvWalls[j].screenSpaceCoo[0][VEC_COL] <= (spritesx[i]>>8)) && ((spritesx[i]>>8) <= pvWalls[j].screenSpaceCoo[1][VEC_COL]))
                     if (spritewallfront(tspriteptr[i],pvWalls[j].worldWallId) == 0)
                     {
-                        drawsprite(i);
+                        drawsprite(i, spritesx, spritesy);
                         tspriteptr[i]->owner = -1;
                         k = i;
                         gap++;
@@ -5785,7 +5786,7 @@ void drawmasks(EngineState *engine_state)
             drawmaskwall(--maskwallcnt);
         }
     }
-    while (engine_state->spritesortcnt > 0) drawsprite(--engine_state->spritesortcnt);
+    while (engine_state->spritesortcnt > 0) drawsprite(--engine_state->spritesortcnt, spritesx, spritesy);
     while (maskwallcnt > 0) drawmaskwall(--maskwallcnt);
 }
 
