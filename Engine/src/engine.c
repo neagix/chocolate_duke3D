@@ -179,7 +179,7 @@ uint8_t  globparaceilclip, globparaflorclip;
 
 int32_t xyaspect, viewingrangerecip;
 
-int32_t asm1, asm2, asm3, asm4;
+int32_t asm1, asm2, asm3;
 
 uint8_t*  palookupoffse[4];
 
