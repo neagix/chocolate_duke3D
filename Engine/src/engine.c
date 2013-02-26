@@ -1813,8 +1813,6 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
         globaly1 += (((int32_t)sec->floorypanning)<<24);
     }
 
-    //asm1 = -(globalzd>>(16-BITSOFPRECISION));
-
     globvis = globalvisibility;
     if (sec->visibility != 0) globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
     globvis = mulscale13(globvis,daz);
@@ -4714,7 +4712,7 @@ static void drawmaskwall(short damaskwallcnt, short *maskwall)
 
 static void ceilspritehline (int32_t x2, int32_t y)
 {
-    int32_t x1, v, bx, by;
+    int32_t x1, v, bx, by, a1, a2, a3;
 
     /*
      * x = x1 + (x2-x1)t + (y1-y2)u  ³  x = 160v
@@ -4726,18 +4724,19 @@ static void ceilspritehline (int32_t x2, int32_t y)
     if (x2 < x1) return;
 
     v = mulscale20(globalzd,horizlookup[y-globalhoriz+horizycent]);
+    
     bx = mulscale14(globalx2*x1+globalx1,v) + globalxpanning;
     by = mulscale14(globaly2*x1+globaly1,v) + globalypanning;
-    asm1 = mulscale14(globalx2,v);
-    asm2 = mulscale14(globaly2,v);
-
-    asm3 = (int32_t)FP_OFF(palookup[globalpal]) + (getpalookup((int32_t)mulscale28(klabs(v),globvis),globalshade)<<8);
+    
+    a1 = mulscale14(globalx2,v);
+    a2 = mulscale14(globaly2,v);
+    a3 = (int32_t)FP_OFF(palookup[globalpal]) + (getpalookup((int32_t)mulscale28(klabs(v),globvis),globalshade)<<8);
 
     if ((globalorientation&2) == 0)
-        mhline(globalbufplc,bx,(x2-x1)<<16,0L,by,ylookup[y]+x1+frameoffset,asm1,asm2,asm3);
+        mhline(globalbufplc,bx,(x2-x1)<<16,0L,by,ylookup[y]+x1+frameoffset,a1,a2,a3);
     else
     {
-        thline(globalbufplc,bx,(x2-x1)<<16,0L,by,ylookup[y]+x1+frameoffset,asm1,asm2,asm3);
+        thline(globalbufplc,bx,(x2-x1)<<16,0L,by,ylookup[y]+x1+frameoffset,a1,a2,a3);
         transarea += (x2-x1);
     }
 }
