@@ -718,7 +718,7 @@ static uint8_t  * mmach_asm3;
 static int32_t mmach_asm1;
 static int32_t mmach_asm2;
 
-void mhline(uint8_t  * texture, int32_t i2, int32_t numPixels, int32_t i4, int32_t i5, uint8_t* dest)
+void mhline(uint8_t  * texture, int32_t i2, int32_t numPixels, int32_t i4, int32_t i5, uint8_t* dest, int32_t asm1, int32_t asm2, int32_t asm3)
 {
     textureData = texture;
     mmach_asm3 = asm3;

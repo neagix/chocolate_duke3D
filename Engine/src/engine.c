@@ -656,7 +656,7 @@ static void slowhline (int32_t xr, int32_t yp)
     if (!(globalorientation&256))
     {
         mhline(globalbufplc,globaly1*r+globalxpanning-asm1*(xr-xl),(xr-xl)<<16,0L,
-               globalx2*r+globalypanning-asm2*(xr-xl),ylookup[yp]+xl+frameoffset);
+               globalx2*r+globalypanning-asm2*(xr-xl),ylookup[yp]+xl+frameoffset,asm1,asm2,asm3);
         return;
     }
     thline(globalbufplc,globaly1*r+globalxpanning-asm1*(xr-xl),(xr-xl)<<16,0L,globalx2*r+globalypanning-asm2*(xr-xl),ylookup[yp]+xl+frameoffset);
@@ -4718,7 +4718,7 @@ static void ceilspritehline (int32_t x2, int32_t y)
     asm3 = (int32_t)FP_OFF(palookup[globalpal]) + (getpalookup((int32_t)mulscale28(klabs(v),globvis),globalshade)<<8);
 
     if ((globalorientation&2) == 0)
-        mhline(globalbufplc,bx,(x2-x1)<<16,0L,by,ylookup[y]+x1+frameoffset);
+        mhline(globalbufplc,bx,(x2-x1)<<16,0L,by,ylookup[y]+x1+frameoffset,asm1,asm2,asm3);
     else
     {
         thline(globalbufplc,bx,(x2-x1)<<16,0L,by,ylookup[y]+x1+frameoffset);
@@ -8321,7 +8321,7 @@ static void fillpolygon(int32_t npoints, uint8_t polyType)
 
                 p = ylookup[y]+x1+frameplace;
                 if (polyType == 1)
-                    mhline(globalbufplc,bx,(x2-x1)<<16,0L,by,p);
+                    mhline(globalbufplc,bx,(x2-x1)<<16,0L,by,p,asm1,asm2,asm3);
                 else
                 {
                     thline(globalbufplc,bx,(x2-x1)<<16,0L,by,p);
