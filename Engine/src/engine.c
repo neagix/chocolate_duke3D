@@ -8230,7 +8230,7 @@ void setbrightness(uint8_t  dabrightness, uint8_t  *dapal)
 }
 
 //This is only used by drawmapview.
-static void fillpolygon(int32_t npoints, uint8_t polyType)
+static void fillpolygon(int32_t npoints, uint8_t polyType, int32_t a1, int32_t a2)
 {
     int32_t z, zz, x1, y1, x2, y2, miny, maxy, y, xinc, cnt;
     int32_t ox, oy, bx, by, p, day1, day2;
@@ -8321,25 +8321,25 @@ static void fillpolygon(int32_t npoints, uint8_t polyType)
             {
                 /* maphline */
                 ox = x2+1-(xdim>>1);
-                bx = ox*asm1 + globalposx;
-                by = ox*asm2 - globalposy;
+                bx = ox*a1 + globalposx;
+                by = ox*a2 - globalposy;
 
                 p = ylookup[y]+x2+frameplace;
-                hlineasm4(x2-x1,globalshade<<8,by,bx,p,asm1,asm2);
+                hlineasm4(x2-x1,globalshade<<8,by,bx,p,a1,a2);
             }
             else
             {
                 /* maphline */
                 ox = x1+1-(xdim>>1);
-                bx = ox*asm1 + globalposx;
-                by = ox*asm2 - globalposy;
+                bx = ox*a1 + globalposx;
+                by = ox*a2 - globalposy;
 
                 p = ylookup[y]+x1+frameplace;
                 if (polyType == 1)
-                    mhline(globalbufplc,bx,(x2-x1)<<16,0L,by,p,asm1,asm2,asm3);
+                    mhline(globalbufplc,bx,(x2-x1)<<16,0L,by,p,a1,a2,asm3);
                 else
                 {
-                    thline(globalbufplc,bx,(x2-x1)<<16,0L,by,p,asm1,asm2,asm3);
+                    thline(globalbufplc,bx,(x2-x1)<<16,0L,by,p,a1,a2,asm3);
                     transarea += (x2-x1);
                 }
             }
@@ -8776,14 +8776,13 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang)
             }
             if ((globalorientation&0x10) > 0) globalx1 = -globalx1, globaly1 = -globaly1, globalposx = -globalposx;
             if ((globalorientation&0x20) > 0) globalx2 = -globalx2, globaly2 = -globaly2, globalposy = -globalposy;
-            asm1 = (globaly1<<globalxshift);
-            asm2 = (globalx2<<globalyshift);
+
             globalx1 <<= globalxshift;
             globaly2 <<= globalyshift;
             globalposx = (globalposx<<(20+globalxshift))+(((int32_t)sec->floorxpanning)<<24);
             globalposy = (globalposy<<(20+globalyshift))-(((int32_t)sec->floorypanning)<<24);
 
-            fillpolygon(npoints, polyType);
+            fillpolygon(npoints, polyType, (globaly1<<globalxshift), (globalx2<<globalyshift));
         }
 
     /* Sort sprite list */
@@ -8945,14 +8944,12 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang)
                 tsethlineshift(ox,oy);
 
             if ((spr->cstat&0x4) > 0) globalx1 = -globalx1, globaly1 = -globaly1, globalposx = -globalposx;
-            asm1 = (globaly1<<2);
             globalx1 <<= 2;
             globalposx <<= (20+2);
-            asm2 = (globalx2<<2);
             globaly2 <<= 2;
             globalposy <<= (20+2);
 
-            fillpolygon(npoints, polyType);
+            fillpolygon(npoints, polyType, (globaly1<<2), (globalx2<<2));
         }
     }
 }
