@@ -35,9 +35,6 @@ static int transrev = 0;
 
 
 /* ---------------  WALLS RENDERING METHOD (USED TO BE HIGHLY OPTIMIZED ASSEMBLY) ----------------------------*/
-extern int32_t asm1;
-extern int32_t asm2;
-extern uint8_t *asm3;
 extern int32_t asm4;
 
 static uint8_t machxbits_al;
@@ -828,7 +825,7 @@ static uint8_t  slopemach_ah1;
 static uint8_t  slopemach_ah2;
 static float asm2_f;
 typedef union { unsigned int i; float f; } bitwisef2i;
-void setupslopevlin(int32_t i1, int32_t i2, int32_t i3, int32_t asm1)
+void setupslopevlin(int32_t i1, int32_t i2, int32_t i3, int32_t asm1, int32_t *asm2)
 {
     bitwisef2i c;
     slopemach_ebx = i2;
@@ -847,7 +844,7 @@ extern int32_t globalx3, globaly3;
 #define high32(a) ((int)(((__int64)a&(__int64)0xffffffff00000000)>>32))
 
 //FCS: Render RENDER_SLOPPED_CEILING_AND_FLOOR
-void slopevlin(int32_t i1, uint32_t i2, int32_t i3, int32_t i4, int32_t i5, int32_t i6)
+void slopevlin(int32_t i1, uint32_t i2, int32_t i3, int32_t i4, int32_t i5, int32_t i6, int32_t asm3)
 {
     bitwisef2i c;
     uint32_t ecx,eax,ebx,edx,esi,edi;

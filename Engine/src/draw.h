@@ -63,10 +63,10 @@ void msethlineshift(int32_t,int32_t);
 void thline(uint8_t*,int32_t,int32_t,int32_t,int32_t,uint8_t *,int32_t,int32_t,int32_t);
 void thlineskipmodify(int32_t,uint32_t,uint32_t,int32_t,int32_t,uint8_t *);
 void tsethlineshift(int32_t,int32_t);
-void setupslopevlin(int32_t,int32_t,int32_t,int32_t);
-void slopevlin(int32_t,uint32_t,int32_t,int32_t,int32_t,int32_t);
-    
-    
+void setupslopevlin(int32_t,int32_t,int32_t,int32_t, int32_t *);
+void slopevlin(int32_t,uint32_t,int32_t,int32_t,int32_t,int32_t, int32_t);
+
+        
 #define TRANS_NORMAL  0
 #define TRANS_REVERSE 1
 void settrans(int32_t type);

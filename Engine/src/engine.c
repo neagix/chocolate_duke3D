@@ -1822,7 +1822,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
     setupslopevlin(((int32_t)(picsiz[globalpicnum]&15))+(((int32_t)(picsiz[globalpicnum]>>4))<<8),
                    tiles[globalpicnum].data,
                    -ylookup[1],
-                   asm1);
+                   asm1, &asm2);
 
     l = (globalzd>>16);
 
@@ -1869,7 +1869,12 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
             globalx3 = (globalx2>>10);
             globaly3 = (globaly2>>10);
             asm3 = mulscale16(y2,globalzd) + (globalzx>>6);
-            slopevlin(ylookup[y2]+x+frameoffset,krecipasm(asm3>>3),(int32_t)nptr2,y2-y1+1,globalx1,globaly1);
+            slopevlin(ylookup[y2]+x+frameoffset,
+                      krecipasm(asm3>>3),
+                      (int32_t)nptr2,y2-y1+1,
+                      globalx1,
+                      globaly1,
+                      asm3);
 
             if ((x&15) == 0) faketimerhandler();
         }
