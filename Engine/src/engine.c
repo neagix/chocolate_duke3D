@@ -659,7 +659,12 @@ static void slowhline (int32_t xr, int32_t yp)
                globalx2*r+globalypanning-asm2*(xr-xl),ylookup[yp]+xl+frameoffset,asm1,asm2,asm3);
         return;
     }
-    thline(globalbufplc,globaly1*r+globalxpanning-asm1*(xr-xl),(xr-xl)<<16,0L,globalx2*r+globalypanning-asm2*(xr-xl),ylookup[yp]+xl+frameoffset);
+    thline(globalbufplc,
+           globaly1*r+globalxpanning-asm1*(xr-xl),
+           (xr-xl)<<16,0L,
+           globalx2*r+globalypanning-asm2*(xr-xl),
+           ylookup[yp]+xl+frameoffset,
+           asm1, asm2, asm3);
     transarea += (xr-xl);
 }
 
@@ -4721,7 +4726,7 @@ static void ceilspritehline (int32_t x2, int32_t y)
         mhline(globalbufplc,bx,(x2-x1)<<16,0L,by,ylookup[y]+x1+frameoffset,asm1,asm2,asm3);
     else
     {
-        thline(globalbufplc,bx,(x2-x1)<<16,0L,by,ylookup[y]+x1+frameoffset);
+        thline(globalbufplc,bx,(x2-x1)<<16,0L,by,ylookup[y]+x1+frameoffset,asm1,asm2,asm3);
         transarea += (x2-x1);
     }
 }
@@ -8324,7 +8329,7 @@ static void fillpolygon(int32_t npoints, uint8_t polyType)
                     mhline(globalbufplc,bx,(x2-x1)<<16,0L,by,p,asm1,asm2,asm3);
                 else
                 {
-                    thline(globalbufplc,bx,(x2-x1)<<16,0L,by,p);
+                    thline(globalbufplc,bx,(x2-x1)<<16,0L,by,p,asm1,asm2,asm3);
                     transarea += (x2-x1);
                 }
             }

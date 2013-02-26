@@ -769,7 +769,7 @@ static uint8_t * tmach_asm3;
 static int32_t tmach_asm1;
 static int32_t tmach_asm2;
 
-void thline(uint8_t  * i1, int32_t i2, int32_t i3, int32_t i4, int32_t i5, uint8_t * i6)
+void thline(uint8_t  * i1, int32_t i2, int32_t i3, int32_t i4, int32_t i5, uint8_t * i6, int32_t asm1, int32_t asm2, int32_t asm3)
 {
     tmach_eax = i1;
     tmach_asm3 = asm3;
