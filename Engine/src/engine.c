@@ -1869,13 +1869,13 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
 
             globalx3 = (globalx2>>10);
             globaly3 = (globaly2>>10);
-            asm3 = mulscale16(y2,globalzd) + (globalzx>>6);
+	    int32_t a3 = mulscale16(y2,globalzd) + (globalzx>>6);
             slopevlin(ylookup[y2]+x+frameoffset,
-                      krecipasm(asm3>>3),
+		      krecipasm(a3>>3),
                       (int32_t)nptr2,y2-y1+1,
                       globalx1,
                       globaly1,
-                      asm3);
+		      a3);
 
             if ((x&15) == 0) faketimerhandler();
         }
