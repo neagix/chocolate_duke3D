@@ -254,14 +254,6 @@ int32_t fixedPointSqrt(uint32_t radicand)
     return (int32_t)floor(sqrt(radicand));
 }
 
-static __inline int32_t krecipasm(int32_t i)
-{   // Ken did this
-    float f = (float)i;
-    i = *(int32_t *)&f;
-    return((reciptable[(i>>12)&2047]>>(((i-0x3f800000)>>23)&31))^(i>>31));
-}
-
-
 
 static __inline int32_t getclipmask(int32_t a, int32_t b, int32_t c, int32_t d)
 {   // Ken did this
@@ -269,12 +261,16 @@ static __inline int32_t getclipmask(int32_t a, int32_t b, int32_t c, int32_t d)
     return(((d<<4)^0xf0)|d);
 }
 
-//
-// krecip
-//
-int32_t krecip(int32_t num)
+
+//CC: Returns 1/denominator shifted 30
+int32_t krecipasm(int32_t denominator)
 {
-    return(krecipasm(num));
+    return(int32_t)(1073741824.0/denominator);
+}
+
+int32_t krecip(int32_t denominator)
+{
+    return krecipasm(denominator);
 }
 
 uint16_t _swap16(uint16_t D)
