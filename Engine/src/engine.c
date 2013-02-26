@@ -638,7 +638,7 @@ static void hline (int32_t xr, int32_t yp)
     asm2 = globaly2*r;
     s = (getpalookup(mulscale16(r,globvis),globalshade)<<8);
 
-    hlineasm4(xr-xl,s,globalx2*r+globalypanning,globaly1*r+globalxpanning,ylookup[yp]+xr+frameoffset);
+    hlineasm4(xr-xl,s,globalx2*r+globalypanning,globaly1*r+globalxpanning,ylookup[yp]+xr+frameoffset,asm1,asm2);
 }
 
 
@@ -8310,7 +8310,7 @@ static void fillpolygon(int32_t npoints, uint8_t polyType)
                 by = ox*asm2 - globalposy;
 
                 p = ylookup[y]+x2+frameplace;
-                hlineasm4(x2-x1,globalshade<<8,by,bx,p);
+                hlineasm4(x2-x1,globalshade<<8,by,bx,p,asm1,asm2);
             }
             else
             {
