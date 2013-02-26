@@ -179,8 +179,6 @@ uint8_t  globparaceilclip, globparaflorclip;
 
 int32_t xyaspect, viewingrangerecip;
 
-int32_t asm3;
-
 uint8_t*  palookupoffse[4];
 
 uint8_t  globalxshift, globalyshift;
@@ -8229,7 +8227,7 @@ void setbrightness(uint8_t  dabrightness, uint8_t  *dapal)
 }
 
 //This is only used by drawmapview.
-static void fillpolygon(int32_t npoints, uint8_t polyType, int32_t a1, int32_t a2)
+static void fillpolygon(int32_t npoints, uint8_t polyType, int32_t a1, int32_t a2, int32_t asm3)
 {
     int32_t z, zz, x1, y1, x2, y2, miny, maxy, y, xinc, cnt;
     int32_t ox, oy, bx, by, p, day1, day2;
@@ -8629,6 +8627,7 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang)
     int32_t s, w, ox, oy, startwall, cx1, cy1, cx2, cy2;
     int32_t bakgxvect, bakgyvect, sortnum, gap, npoints;
     int32_t xvect, yvect, xvect2, yvect2, daslope;
+    int32_t a3;
     
     static uint8_t  polyType;
 
@@ -8781,7 +8780,8 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang)
             globalposx = (globalposx<<(20+globalxshift))+(((int32_t)sec->floorxpanning)<<24);
             globalposy = (globalposy<<(20+globalyshift))-(((int32_t)sec->floorypanning)<<24);
 
-            fillpolygon(npoints, polyType, (globaly1<<globalxshift), (globalx2<<globalyshift));
+            // At this point polyType is 0, so the asm3 will not be used by fillpolygon. Therefore we set it to 0
+            fillpolygon(npoints, polyType, (globaly1<<globalxshift), (globalx2<<globalyshift), 0);
         }
 
     /* Sort sprite list */
@@ -8901,7 +8901,7 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang)
             else
                 globalshade = ((int32_t)sector[spr->sectnum].floorshade);
             globalshade = max(min(globalshade+spr->shade+6,numpalookups-1),0);
-            asm3 = (int32_t) FP_OFF(palookup[spr->pal]+(globalshade<<8));
+            a3 = (int32_t) FP_OFF(palookup[spr->pal]+(globalshade<<8));
             globvis = globalhisibility;
             if (sec->visibility != 0) globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
             polyType = ((spr->cstat&2)>>1)+1;
@@ -8948,7 +8948,7 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang)
             globaly2 <<= 2;
             globalposy <<= (20+2);
 
-            fillpolygon(npoints, polyType, (globaly1<<2), (globalx2<<2));
+            fillpolygon(npoints, polyType, (globaly1<<2), (globalx2<<2), a3);
         }
     }
 }
