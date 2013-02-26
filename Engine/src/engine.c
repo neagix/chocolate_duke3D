@@ -634,37 +634,39 @@ static void hline (int32_t xr, int32_t yp)
         return;
     
     r = horizlookup2[yp-globalhoriz+horizycent];
-    asm1 = globalx1*r;
-    asm2 = globaly2*r;
     s = (getpalookup(mulscale16(r,globvis),globalshade)<<8);
 
-    hlineasm4(xr-xl,s,globalx2*r+globalypanning,globaly1*r+globalxpanning,ylookup[yp]+xr+frameoffset,asm1,asm2);
+    hlineasm4(xr-xl,s,
+              globalx2*r+globalypanning,
+              globaly1*r+globalxpanning,
+              ylookup[yp]+xr+frameoffset,
+              globalx1*r,
+              globaly2*r);
 }
 
 
 static void slowhline (int32_t xr, int32_t yp)
 {
-    int32_t xl, r;
+    int32_t xl, r, a1, a2, a3;
 
     xl = lastx[yp];
     if (xl > xr) return;
     r = horizlookup2[yp-globalhoriz+horizycent];
-    asm1 = globalx1*r;
-    asm2 = globaly2*r;
-
-    asm3 = (int32_t)globalpalwritten + (getpalookup(mulscale16(r,globvis),globalshade)<<8);
-    if (!(globalorientation&256))
-    {
-        mhline(globalbufplc,globaly1*r+globalxpanning-asm1*(xr-xl),(xr-xl)<<16,0L,
-               globalx2*r+globalypanning-asm2*(xr-xl),ylookup[yp]+xl+frameoffset,asm1,asm2,asm3);
+    a1 = globalx1*r;
+    a2 = globaly2*r;
+    a3 = (int32_t)globalpalwritten + (getpalookup(mulscale16(r,globvis),globalshade)<<8);
+    
+    if (!(globalorientation&256)) {
+        mhline(globalbufplc,globaly1*r+globalxpanning-a1*(xr-xl),(xr-xl)<<16,0L,
+               globalx2*r+globalypanning-a2*(xr-xl),ylookup[yp]+xl+frameoffset,a1,a2,a3);
         return;
     }
     thline(globalbufplc,
-           globaly1*r+globalxpanning-asm1*(xr-xl),
+           globaly1*r+globalxpanning-a1*(xr-xl),
            (xr-xl)<<16,0L,
-           globalx2*r+globalypanning-asm2*(xr-xl),
+           globalx2*r+globalypanning-a2*(xr-xl),
            ylookup[yp]+xl+frameoffset,
-           asm1, asm2, asm3);
+           a1, a2, a3);
     transarea += (xr-xl);
 }
 
@@ -1811,7 +1813,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
         globaly1 += (((int32_t)sec->floorypanning)<<24);
     }
 
-    asm1 = -(globalzd>>(16-BITSOFPRECISION));
+    //asm1 = -(globalzd>>(16-BITSOFPRECISION));
 
     globvis = globalvisibility;
     if (sec->visibility != 0) globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
@@ -1822,7 +1824,8 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
     setupslopevlin(((int32_t)(picsiz[globalpicnum]&15))+(((int32_t)(picsiz[globalpicnum]>>4))<<8),
                    tiles[globalpicnum].data,
                    -ylookup[1],
-                   asm1, &asm2);
+                   -(globalzd>>(16-BITSOFPRECISION)),
+                   &asm2);
 
     l = (globalzd>>16);
 
