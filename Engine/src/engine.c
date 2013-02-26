@@ -179,7 +179,7 @@ uint8_t  globparaceilclip, globparaflorclip;
 
 int32_t xyaspect, viewingrangerecip;
 
-int32_t asm1, asm2, asm3;
+int32_t asm3;
 
 uint8_t*  palookupoffse[4];
 
@@ -1822,8 +1822,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
     setupslopevlin(((int32_t)(picsiz[globalpicnum]&15))+(((int32_t)(picsiz[globalpicnum]>>4))<<8),
                    tiles[globalpicnum].data,
                    -ylookup[1],
-                   -(globalzd>>(16-BITSOFPRECISION)),
-                   &asm2);
+                   -(globalzd>>(16-BITSOFPRECISION)));
 
     l = (globalzd>>16);
 
