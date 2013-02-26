@@ -828,7 +828,7 @@ static uint8_t  slopemach_ah1;
 static uint8_t  slopemach_ah2;
 static float asm2_f;
 typedef union { unsigned int i; float f; } bitwisef2i;
-void setupslopevlin(int32_t i1, int32_t i2, int32_t i3)
+void setupslopevlin(int32_t i1, int32_t i2, int32_t i3, int32_t asm1)
 {
     bitwisef2i c;
     slopemach_ebx = i2;

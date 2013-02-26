@@ -1819,7 +1819,10 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
     globvis = mulscale16(globvis,xdimscale);
     j =(int32_t) FP_OFF(palookup[globalpal]);
 
-    setupslopevlin(((int32_t)(picsiz[globalpicnum]&15))+(((int32_t)(picsiz[globalpicnum]>>4))<<8),tiles[globalpicnum].data,-ylookup[1]);
+    setupslopevlin(((int32_t)(picsiz[globalpicnum]&15))+(((int32_t)(picsiz[globalpicnum]>>4))<<8),
+                   tiles[globalpicnum].data,
+                   -ylookup[1],
+                   asm1);
 
     l = (globalzd>>16);
 
