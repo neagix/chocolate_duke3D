@@ -261,16 +261,10 @@ static __inline int32_t getclipmask(int32_t a, int32_t b, int32_t c, int32_t d)
     return(((d<<4)^0xf0)|d);
 }
 
-
 //CC: Returns 1/denominator shifted 30
-int32_t krecipasm(int32_t denominator)
-{
-    return(int32_t)(1073741824.0/denominator);
-}
-
 int32_t krecip(int32_t denominator)
 {
-    return krecipasm(denominator);
+    return(int32_t)(1073741824.0/denominator);
 }
 
 uint16_t _swap16(uint16_t D)
@@ -1720,7 +1714,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
     wal = &wall[sec->wallptr];
     wx = wall[wal->point2].x - wal->x;
     wy = wall[wal->point2].y - wal->y;
-    dasqr = krecipasm(fixedPointSqrt(wx*wx+wy*wy));
+    dasqr = krecip(fixedPointSqrt(wx*wx+wy*wy));
     i = mulscale21(daslope,dasqr);
     wx *= i;
     wy *= i;
@@ -1851,12 +1845,12 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
             nptr2 = (int32_t *)&slopalookup[y2+(shoffs>>15)];
             while (nptr1 <= mptr1)
             {
-                *mptr1-- = j + (getpalookup((int32_t)mulscale24(krecipasm(m1),globvis),globalshade)<<8);
+                *mptr1-- = j + (getpalookup((int32_t)mulscale24(krecip(m1),globvis),globalshade)<<8);
                 m1 -= l;
             }
             while (nptr2 >= mptr2)
             {
-                *mptr2++ = j + (getpalookup((int32_t)mulscale24(krecipasm(m2),globvis),globalshade)<<8);
+                *mptr2++ = j + (getpalookup((int32_t)mulscale24(krecip(m2),globvis),globalshade)<<8);
                 m2 += l;
             }
 
@@ -1864,7 +1858,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
             globaly3 = (globaly2>>10);
 	    int32_t a3 = mulscale16(y2,globalzd) + (globalzx>>6);
             slopevlin(ylookup[y2]+x+frameoffset,
-		      krecipasm(a3>>3),
+                      krecip(a3>>3),
                       (int32_t)nptr2,y2-y1+1,
                       globalx1,
                       globaly1,
@@ -2000,7 +1994,7 @@ static int wallmost(short *mostbuf, int32_t w, int32_t sectnum, uint8_t  dastat)
     i = wall[fw].point2;
     dx = wall[i].x-wall[fw].x;
     dy = wall[i].y-wall[fw].y;
-    dasqr = krecipasm(fixedPointSqrt(dx*dx+dy*dy));
+    dasqr = krecip(fixedPointSqrt(dx*dx+dy*dy));
 
     if (pvWalls[w].screenSpaceCoo[0][VEC_COL] == 0){
         xv = cosglobalang+sinviewingrangeglobalang;
@@ -5094,14 +5088,14 @@ static void drawsprite (int32_t snum, int32_t *spritesx, int32_t *spritesy)
         bot = mulscale11(xp1-xp2,xdimen) + mulscale2(pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL]-halfxdimen,botinc);
 
         j = pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL]+3;
-        z = mulscale20(top,krecipasm(bot));
+        z = mulscale20(top,krecip(bot));
         lwall[pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL]] = (z>>8);
         for(x=pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL]+4; x<=j; x+=4)
         {
             top += topinc;
             bot += botinc;
             zz = z;
-            z = mulscale20(top,krecipasm(bot));
+            z = mulscale20(top,krecip(bot));
             lwall[x] = (z>>8);
             i = ((z+zz)>>1);
             lwall[x-2] = (i>>8);
@@ -5164,7 +5158,7 @@ static void drawsprite (int32_t snum, int32_t *spritesx, int32_t *spritesy)
         owallmost(dwall,(int32_t)(MAXWALLSB-1),z2-globalposz);
         for(i=pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL]; i<=pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL]; i++)
         {
-            swall[i] = (krecipasm(hplc)<<2);
+            swall[i] = (krecip(hplc)<<2);
             hplc += hinc;
         }
 
