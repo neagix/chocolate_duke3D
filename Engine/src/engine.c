@@ -152,7 +152,7 @@ short umost[MAXXDIM+1];
 //FCS: (down-most pixel +1 on column x that can still be drawn to)
 short dmost[MAXXDIM+1];
 
-int16_t bakumost[MAXXDIM+1], bakdmost[MAXXDIM+1];
+
 short uplc[MAXXDIM+1], dplc[MAXXDIM+1];
 static int16_t uwall[MAXXDIM+1], dwall[MAXXDIM+1];
 static int32_t swplc[MAXXDIM+1], lplc[MAXXDIM+1];
@@ -9009,6 +9009,7 @@ int32_t bakwindowx2[4], bakwindowy2[4];
 void setviewback(void)
 {
     int32_t i, j, k;
+    int16_t bakumost[MAXXDIM+1], bakdmost[MAXXDIM+1];
 
     if (setviewcnt <= 0) return;
     setviewcnt--;

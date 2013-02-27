@@ -26,6 +26,7 @@ uint8_t  gotpic[(MAXTILES+7)>>3];
 void setviewtotile(short tilenume, int32_t tileWidth, int32_t tileHeight)
 {
     int32_t i, j;
+    int16_t bakumost[MAXXDIM+1], bakdmost[MAXXDIM+1];
     
     /* DRAWROOMS TO TILE BACKUP&SET CODE */
     tiles[tilenume].dim.width = tileWidth;
