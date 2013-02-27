@@ -2723,7 +2723,7 @@ static int bunchfront(int32_t firstBunchID, int32_t secondBunchID)
 }
 
 
-int pixelRenderable = 0;
+
 //#include "keyboard.h"
 //void WriteLastPaletteToFile(void);
 //void WriteTranslucToFile(void);
@@ -2736,6 +2736,7 @@ EngineState* drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daan
 	//Ceiling and Floor height at the player position.
 	int32_t cz, fz;
     short *shortptr1, *shortptr2;
+    static int pixelRenderable = 0;
 
     //FCS: Num walls to potentially render.
     short numscans;
