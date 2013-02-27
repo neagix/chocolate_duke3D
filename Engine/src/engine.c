@@ -135,11 +135,6 @@ static short bunchfirst[MAXWALLSB], bunchlast[MAXWALLSB];
 
 
 
-
-
-
-
-static short smost[MAXYSAVES], smostcnt;
 static short smoststart[MAXWALLSB];
 static uint8_t  smostwalltype[MAXWALLSB];
 static int32_t smostwall[MAXWALLSB], smostwallcnt = -1L;
@@ -2208,7 +2203,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
         gotswall = 0;
 
         startsmostwallcnt = smostwallcnt;
-        startsmostcnt = smostcnt;
+        startsmostcnt = engine_state->smostcnt;
 
         if ((searchit == 2) && (searchx >= x1) && (searchx <= x2))
         {
@@ -2312,13 +2307,15 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                 }
                 if ((cz[2] < cz[0]) || (cz[3] < cz[1]) || (globalposz < cz[4])){
                     i = x2-x1+1;
-                    if (smostcnt+i < MAXYSAVES){
-                        smoststart[smostwallcnt] = smostcnt;
+                    if (engine_state->smostcnt+i < MAXYSAVES){
+                        smoststart[smostwallcnt] = engine_state->smostcnt;
                         smostwall[smostwallcnt] = z;
                         smostwalltype[smostwallcnt] = 1;   /* 1 for umost */
                         smostwallcnt++;
-                        copybufbyte((int32_t *)&umost[x1],(int32_t *)&smost[smostcnt],i*sizeof(smost[0]));
-                        smostcnt += i;
+                        copybufbyte((int32_t *)&umost[x1],
+                                    (int32_t *)&(engine_state->smost[engine_state->smostcnt]),
+                                    i*sizeof(engine_state->smost[0]));
+                        engine_state->smostcnt += i;
                     }
                 }
             }
@@ -2427,13 +2424,15 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                 }
                 if ((fz[2] > fz[0]) || (fz[3] > fz[1]) || (globalposz > fz[4])){
                     i = x2-x1+1;
-                    if (smostcnt+i < MAXYSAVES){
-                        smoststart[smostwallcnt] = smostcnt;
+                    if (engine_state->smostcnt+i < MAXYSAVES){
+                        smoststart[smostwallcnt] = engine_state->smostcnt;
                         smostwall[smostwallcnt] = z;
                         smostwalltype[smostwallcnt] = 2;   /* 2 for dmost */
                         smostwallcnt++;
-                        copybufbyte((int32_t *)&dmost[x1],(int32_t *)&smost[smostcnt],i*sizeof(smost[0]));
-                        smostcnt += i;
+                        copybufbyte((int32_t *)&dmost[x1],
+                                    (int32_t *)&(engine_state->smost[engine_state->smostcnt]),
+                                    i*sizeof(engine_state->smost[0]));
+                        engine_state->smostcnt += i;
                     }
                 }
             }
@@ -2455,7 +2454,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                      */
                     if (x == x2){
                         smostwallcnt = startsmostwallcnt;
-                        smostcnt = startsmostcnt;
+                        engine_state->smostcnt = startsmostcnt;
                         smostwall[smostwallcnt] = z;
                         smostwalltype[smostwallcnt] = 0;
                         smostwallcnt++;
@@ -2864,7 +2863,7 @@ EngineState* drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daan
     numbunches = 0;
     engine_state.maskwallcnt = 0;
     smostwallcnt = 0;
-    smostcnt = 0;
+    engine_state.smostcnt = 0;
     engine_state.spritesortcnt = 0;
 
     if (globalcursectnum >= MAXSECTORS)
@@ -4568,14 +4567,16 @@ int ksqrt(int32_t num)
 
 
 
-static void drawmaskwall(short damaskwallcnt, short *maskwall)
+static void drawmaskwall(EngineState *engine_state)
 {
     int32_t i, j, k, x, z, sectnum, z1, z2, lx, rx;
     sectortype *sec, *nsec;
     walltype *wal;
+    
+    engine_state->maskwallcnt--;
 
     //Retrive pvWall ID.
-    z = maskwall[damaskwallcnt];
+    z = engine_state->maskwall[engine_state->maskwallcnt];
     
     //Retrive world wall ID.
     wal = &wall[pvWalls[z].worldWallId];
@@ -4656,12 +4657,16 @@ static void drawmaskwall(short damaskwallcnt, short *maskwall)
         case 1:
             k = smoststart[i] - pvWalls[j].screenSpaceCoo[0][VEC_COL];
             for(x=lx; x<=rx; x++)
-                if (smost[k+x] > uwall[x]) uwall[x] = smost[k+x];
+                if (engine_state->smost[k+x] > uwall[x]) {
+                    uwall[x] = engine_state->smost[k+x];
+                }
             break;
         case 2:
             k = smoststart[i] - pvWalls[j].screenSpaceCoo[0][VEC_COL];
             for(x=lx; x<=rx; x++)
-                if (smost[k+x] < dwall[x]) dwall[x] = smost[k+x];
+                if (engine_state->smost[k+x] < dwall[x]) {
+                    dwall[x] = engine_state->smost[k+x];
+                }
             break;
         }
     }
@@ -4764,7 +4769,7 @@ static void ceilspritescan (int32_t x1, int32_t x2)
     faketimerhandler();
 }
 
-static void drawsprite (int32_t snum, int32_t *spritesx, int32_t *spritesy)
+static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *spritesy)
 {
     spritetype *tspr;
     sectortype *sec;
@@ -4778,11 +4783,13 @@ static void drawsprite (int32_t snum, int32_t *spritesx, int32_t *spritesy)
     int32_t npoints, npoints2, zz, t, zsgn, zzsgn;
     short tilenum, spritenum;
     uint8_t  swapped, daclip;
+    
+    engine_state->spritesortcnt--;
 
-    tspr = tspriteptr[snum];
+    tspr = tspriteptr[engine_state->spritesortcnt];
 
-    xb = spritesx[snum];
-    yp = spritesy[snum];
+    xb = spritesx[engine_state->spritesortcnt];
+    yp = spritesy[engine_state->spritesortcnt];
     tilenum = tspr->picnum;
     spritenum = tspr->owner;
     cstat = tspr->cstat;
@@ -4936,13 +4943,17 @@ static void drawsprite (int32_t snum, int32_t *spritesx, int32_t *spritesy)
             case 1:
                 k = smoststart[i] - pvWalls[j].screenSpaceCoo[0][VEC_COL];
                 for(x=dalx2; x<=darx2; x++)
-                    if (smost[k+x] > uwall[x]) uwall[x] = smost[k+x];
+                    if (engine_state->smost[k+x] > uwall[x]) {
+                        uwall[x] = engine_state->smost[k+x];
+                    }
                 if ((dalx2 == lx) && (darx2 == rx)) daclip |= 1;
                 break;
             case 2:
                 k = smoststart[i] - pvWalls[j].screenSpaceCoo[0][VEC_COL];
                 for(x=dalx2; x<=darx2; x++)
-                    if (smost[k+x] < dwall[x]) dwall[x] = smost[k+x];
+                    if (engine_state->smost[k+x] < dwall[x]) {
+                        dwall[x] = engine_state->smost[k+x];
+                    }
                 if ((dalx2 == lx) && (darx2 == rx)) daclip |= 2;
                 break;
             }
@@ -5248,12 +5259,16 @@ static void drawsprite (int32_t snum, int32_t *spritesx, int32_t *spritesy)
                     case 1:
                         k = smoststart[i] - pvWalls[j].screenSpaceCoo[0][VEC_COL];
                         for(x=dalx2; x<=darx2; x++)
-                            if (smost[k+x] > uwall[x]) uwall[x] = smost[k+x];
+                            if (engine_state->smost[k+x] > uwall[x]) {
+                                uwall[x] = engine_state->smost[k+x];
+                            }
                         break;
                     case 2:
                         k = smoststart[i] - pvWalls[j].screenSpaceCoo[0][VEC_COL];
                         for(x=dalx2; x<=darx2; x++)
-                            if (smost[k+x] < dwall[x]) dwall[x] = smost[k+x];
+                            if (engine_state->smost[k+x] < dwall[x]) {
+                                dwall[x] = engine_state->smost[k+x];
+                            }
                         break;
                     }
                 }
@@ -5568,12 +5583,16 @@ static void drawsprite (int32_t snum, int32_t *spritesx, int32_t *spritesy)
             case 1:
                 k = smoststart[i] - pvWalls[j].screenSpaceCoo[0][VEC_COL];
                 for(x=dalx2; x<=darx2; x++)
-                    if (smost[k+x] > uwall[x]) uwall[x] = smost[k+x];
+                    if (engine_state->smost[k+x] > uwall[x]) {
+                        uwall[x] = engine_state->smost[k+x];
+                    }
                 break;
             case 2:
                 k = smoststart[i] - pvWalls[j].screenSpaceCoo[0][VEC_COL];
                 for(x=dalx2; x<=darx2; x++)
-                    if (smost[k+x] < dwall[x]) dwall[x] = smost[k+x];
+                    if (engine_state->smost[k+x] < dwall[x]) {
+                        dwall[x] = engine_state->smost[k+x];
+                    }
                 break;
             }
         }
@@ -5747,22 +5766,25 @@ void drawmasks(EngineState *engine_state)
     {
         j = engine_state->maskwall[engine_state->maskwallcnt-1];
         if (spritewallfront(tspriteptr[engine_state->spritesortcnt-1],pvWalls[j].worldWallId) == 0)
-            drawsprite(--engine_state->spritesortcnt, spritesx, spritesy);
+            drawsprite(engine_state, spritesx, spritesy);
         else
         {
-            /* Check to see if any sprites behind the masked wall... */
+            /*
+            // Check to see if any sprites behind the masked wall... 
             k = -1;
             gap = 0;
-            for(i=engine_state->spritesortcnt-2; i>=0; i--)
-                if ((pvWalls[j].screenSpaceCoo[0][VEC_COL] <= (spritesx[i]>>8)) && ((spritesx[i]>>8) <= pvWalls[j].screenSpaceCoo[1][VEC_COL]))
-                    if (spritewallfront(tspriteptr[i],pvWalls[j].worldWallId) == 0)
-                    {
+            for(i=engine_state->spritesortcnt-2; i>=0; i--) {
+                if ((pvWalls[j].screenSpaceCoo[0][VEC_COL] <= (spritesx[i]>>8)) && ((spritesx[i]>>8) <= pvWalls[j].screenSpaceCoo[1][VEC_COL])) {
+                    if (spritewallfront(tspriteptr[i],pvWalls[j].worldWallId) == 0) {
                         drawsprite(i, spritesx, spritesy);
                         tspriteptr[i]->owner = -1;
                         k = i;
                         gap++;
                     }
-            if (k >= 0)       /* remove holes in sprite list */
+                }
+            }
+            
+            if (k >= 0)  // remove holes in sprite list
             {
                 for(i=k; i<engine_state->spritesortcnt; i++)
                     if (tspriteptr[i]->owner >= 0)
@@ -5777,13 +5799,14 @@ void drawmasks(EngineState *engine_state)
                     }
                 engine_state->spritesortcnt -= gap;
             }
+            */
 
             /* finally safe to draw the masked wall */
-            drawmaskwall(--engine_state->maskwallcnt, engine_state->maskwall);
+            drawmaskwall(engine_state);
         }
     }
-    while (engine_state->spritesortcnt > 0) drawsprite(--engine_state->spritesortcnt, spritesx, spritesy);
-    while (engine_state->maskwallcnt > 0) drawmaskwall(--engine_state->maskwallcnt, engine_state->maskwall);
+    while (engine_state->spritesortcnt > 0) drawsprite(engine_state, spritesx, spritesy);
+    while (engine_state->maskwallcnt > 0) drawmaskwall(engine_state);
 }
 
 
@@ -8221,6 +8244,7 @@ static void fillpolygon(int32_t npoints, uint8_t polyType, int32_t a1, int32_t a
     int32_t ox, oy, bx, by, p, day1, day2;
     short *ptr, *ptr2;
     short *dotp1[MAXYDIM], *dotp2[MAXYDIM];
+    static short smost[MAXYSAVES];
     
     miny = 0x7fffffff;
     maxy = 0x80000000;

@@ -24,11 +24,14 @@ extern "C" {
 //#define SUPERBUILD  /* don't touch this. */
 
 #define MAXWALLSB 2048
+#define MAXYSAVES ((MAXXDIM*MAXSPRITES)>>7)
     
 typedef struct EngineState {
     int32_t spritesortcnt;
     short maskwallcnt;
     short maskwall[MAXWALLSB];
+    short smost[MAXYSAVES];
+    short smostcnt;
 } EngineState;
 
 
