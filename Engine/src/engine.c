@@ -84,7 +84,6 @@ int32_t pow2long[32] =
     16777216L,33554432L,67108864L,134217728L,
     268435456L,536870912L,1073741824L,2147483647L,
 };
-int32_t reciptable[2048];
 
 char  kensmessage[128];
 
@@ -3440,7 +3439,6 @@ static void loadtables(void)
 
     if (tablesloaded == 0)
     {
-        for(i=0; i<2048; i++) reciptable[i] = divscale30(2048L,i+2048);
 
         if ((fil = TCkopen4load("tables.dat",0)) != -1)
         {

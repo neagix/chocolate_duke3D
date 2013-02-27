@@ -835,7 +835,6 @@ void setupslopevlin(int32_t i1, int32_t i2, int32_t i3, int32_t asm1)
     c.f = asm2_f = (float)asm1;
 }
 
-extern int32_t reciptable[2048];
 extern int32_t globalx3, globaly3;
 #define low32(a) ((a&0xffffffff))
 #define high32(a) ((int)(((__int64)a&(__int64)0xffffffff00000000)>>32))
@@ -843,7 +842,6 @@ extern int32_t globalx3, globaly3;
 //FCS: Render RENDER_SLOPPED_CEILING_AND_FLOOR
 void slopevlin(int32_t i1, uint32_t i2, int32_t i3, int32_t i4, int32_t i5, int32_t i6, int32_t asm3)
 {
-    bitwisef2i c;
     uint32_t ecx,eax,ebx,edx,esi,edi, asm4;
 #pragma This is so bad to cast asm3 to int then float :( !!!
     float a = (float)(int32_t) asm3 + asm2_f;
@@ -856,19 +854,8 @@ void slopevlin(int32_t i1, uint32_t i2, int32_t i3, int32_t i4, int32_t i5, int3
 		return;
 
     do {
-	    // -------------
-	    // All this is calculating a fixed point approx. of 1/a
-	    c.f = a;
-	    eax = c.i;
-	    edx = (((int32_t)eax) < 0) ? 0xffffffff : 0;
-	    eax = eax << 1;
-	    ecx = (eax>>24);	//  exponent
-	    eax = ((eax&0xffe000)>>11);
-	    ecx = ((ecx&0xffffff00)|((ecx-2)&0xff));
-	    eax = reciptable[eax/4];
-	    eax >>= (ecx&0x1f);
-	    eax ^= edx;
-	    // -------------
+        eax = (uint32_t)(8589934592.0/a);  // (1<<33)/a
+
 	    edx = i2;
 	    i2 = eax;
 	    eax -= edx;
