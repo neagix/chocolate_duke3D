@@ -162,7 +162,6 @@ int clipinsidebox(int32_t x, int32_t y, int16_t wallnum, int32_t walldist);
     extern uint8_t  picsiz[MAXTILES], tilefilenum[MAXTILES];
     extern int32_t numtilefiles, artfil , artfilnum, artfilplc;
     extern int32_t pow2long[32];
-    extern int32_t cachesize;
     extern int32_t tilefileoffs[MAXTILES];
     extern int32_t totalclocklock;
 
