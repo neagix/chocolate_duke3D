@@ -198,6 +198,7 @@ uint8_t* allocatepermanenttile(short tilenume, int32_t width, int32_t height)
 int loadpics(char  *filename, char * gamedir)
 
 {
+    int32_t artsize = 0L;
     int32_t offscount, localtilestart, localtileend, dasiz;
     short fil, i, j, k;
     
@@ -210,8 +211,6 @@ int loadpics(char  *filename, char * gamedir)
         tiles[i].dim.height = 0;
         tiles[i].animFlags = 0L;
     }
-    
-    artsize = 0L;
     
     numtilefiles = 0;
     do

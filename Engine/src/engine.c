@@ -69,7 +69,7 @@ uint8_t  picsiz[MAXTILES], tilefilenum[MAXTILES];
 int32_t lastageclock;
 int32_t tilefileoffs[MAXTILES];
 
-int32_t artsize = 0, cachesize = 0;
+int32_t cachesize = 0;
 
 static short radarang[1280], radarang2[MAXXDIM+1];
 uint8_t  pow2char[8] = {1,2,4,8,16,32,64,-128};
