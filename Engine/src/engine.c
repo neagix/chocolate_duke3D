@@ -3166,7 +3166,6 @@ int loadboard(char  *filename, int32_t *daposx, int32_t *daposy,
     initspritelists();
 
     clearbuf(&show2dsector[0],(int32_t)((MAXSECTORS+3)>>5),0L);
-    clearbuf(&show2dsprite[0],(int32_t)((MAXSPRITES+3)>>5),0L);
     clearbuf(&show2dwall[0],(int32_t)((MAXWALLS+3)>>5),0L);
 
     kread32(fil,daposx);
@@ -3579,7 +3578,6 @@ void initengine(void)
         tiles[i].data = NULL;
 
     clearbuf(&show2dsector[0],(int32_t)((MAXSECTORS+3)>>5),0L);
-    clearbuf(&show2dsprite[0],(int32_t)((MAXSPRITES+3)>>5),0L);
     clearbuf(&show2dwall[0],(int32_t)((MAXWALLS+3)>>5),0L);
 
     validmodecnt = 0;

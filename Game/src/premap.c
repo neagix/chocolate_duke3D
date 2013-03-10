@@ -675,7 +675,6 @@ void prelevel(uint8_t  g)
 
     clearbufbyte(show2dsector,sizeof(show2dsector),0L);
     clearbufbyte(show2dwall,sizeof(show2dwall),0L);
-    clearbufbyte(show2dsprite,sizeof(show2dsprite),0L);
 
     resetprestat(0,g);
     numclouds = 0;

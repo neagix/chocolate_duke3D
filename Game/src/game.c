@@ -3537,8 +3537,6 @@ short EGS(short whatsect,int32_t s_x,int32_t s_y,int32_t s_z,short s_pn,int8_t s
         s->hitag = 0;
     }
 
-    if (show2dsector[SECT>>3]&(1<<(SECT&7))) show2dsprite[i>>3] |= (1<<(i&7));
-    else show2dsprite[i>>3] &= ~(1<<(i&7));
 /*
     if(s->sectnum < 0)
     {
