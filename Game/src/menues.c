@@ -352,7 +352,6 @@ int loadplayer(int8_t spot)
          kdfread(&mirrorcnt,sizeof(short),1,fil);
          kdfread(&mirrorwall[0],sizeof(short),64,fil);
      kdfread(&mirrorsector[0],sizeof(short),64,fil);
-     kdfread(&show2dsector[0],sizeof(uint8_t ),MAXSECTORS>>3,fil);
      kdfread(&actortype[0],sizeof(uint8_t ),MAXTILES,fil);
      kdfread(&boardfilename[0],sizeof(boardfilename),1,fil);
 
@@ -637,7 +636,6 @@ int saveplayer(int8_t spot)
          dfwrite(&mirrorcnt,sizeof(short),1,fil);
          dfwrite(&mirrorwall[0],sizeof(short),64,fil);
          dfwrite(&mirrorsector[0],sizeof(short),64,fil);
-     dfwrite(&show2dsector[0],sizeof(uint8_t ),MAXSECTORS>>3,fil);
      dfwrite(&actortype[0],sizeof(uint8_t ),MAXTILES,fil);
      dfwrite(&boardfilename[0],sizeof(boardfilename),1,fil);
 
@@ -4181,11 +4179,9 @@ void drawoverheadmap(int32_t cposx, int32_t cposy, int32_t czoom, short cang)
         xvect2 = mulscale16(xvect,yxaspect);
         yvect2 = mulscale16(yvect,yxaspect);
 
-                //Draw red lines
+        //Draw red lines
         for(i=0;i<numsectors;i++)
         {
-                if (!(show2dsector[i>>3]&(1<<(i&7)))) continue;
-
                 startwall = sector[i].wallptr;
                 endwall = sector[i].wallptr + sector[i].wallnum;
 
@@ -4202,10 +4198,6 @@ void drawoverheadmap(int32_t cposx, int32_t cposy, int32_t czoom, short cang)
                         col = 139; //red
                         if ((wal->cstat|wall[wal->nextwall].cstat)&1) col = 234; //magenta
 
-                        if (!(show2dsector[wal->nextsector>>3]&(1<<(wal->nextsector&7))))
-                                col = 24;
-            else continue;
-
                         ox = wal->x-cposx; oy = wal->y-cposy;
                         x1 = dmulscale16(ox,xvect,-oy,yvect)+(xdim<<11);
                         y1 = dmulscale16(oy,xvect2,ox,yvect2)+(ydim<<11);
@@ -4219,11 +4211,10 @@ void drawoverheadmap(int32_t cposx, int32_t cposy, int32_t czoom, short cang)
                 }
         }
 
-                //Draw sprites
+        //Draw sprites
         k = ps[screenpeek].i;
         for(i=0;i<numsectors;i++)
         {
-                if (!(show2dsector[i>>3]&(1<<(i&7)))) continue;
                 for(j=headspritesect[i];j>=0;j=nextspritesect[j])
                         //if ((show2dsprite[j>>3]&(1<<(j&7))) > 0)
                         {
@@ -4350,11 +4341,9 @@ void drawoverheadmap(int32_t cposx, int32_t cposy, int32_t czoom, short cang)
                         }
         }
 
-                //Draw white lines
+        //Draw white lines
         for(i=0;i<numsectors;i++)
         {
-                if (!(show2dsector[i>>3]&(1<<(i&7)))) continue;
-
                 startwall = sector[i].wallptr;
                 endwall = sector[i].wallptr + sector[i].wallnum;
 

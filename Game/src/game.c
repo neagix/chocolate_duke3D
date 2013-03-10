@@ -2736,7 +2736,6 @@ void displayrest(int32_t smoothratio)
 
     i = pp->cursectnum;
 
-    show2dsector[i>>3] |= (1<<(i&7));
     wal = &wall[sector[i].wallptr];
     for(j=sector[i].wallnum;j>0;j--,wal++)
     {
@@ -2746,7 +2745,6 @@ void displayrest(int32_t smoothratio)
         if (wall[wal->nextwall].cstat&0x0071) continue;
         if (sector[i].lotag == 32767) continue;
         if (sector[i].ceilingz >= sector[i].floorz) continue;
-        show2dsector[i>>3] |= (1<<(i&7));
     }
 
     if(ud.camerasprite == -1)
@@ -6483,16 +6481,10 @@ void cheats(void)
                         ud.showallmap = 1-ud.showallmap;
                         if(ud.showallmap)
                         {
-                            for(i=0;i<(MAXSECTORS>>3);i++)
-                                show2dsector[i] = 255;
-
                             FTA(111,&ps[myconnectindex],1);
                         }
                         else
                         {
-                            for(i=0;i<(MAXSECTORS>>3);i++)
-                                show2dsector[i] = 0;
-
                             FTA(1,&ps[myconnectindex],1);
                         }
                         ps[myconnectindex].cheat_phase = 0;

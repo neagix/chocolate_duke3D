@@ -3165,8 +3165,6 @@ int loadboard(char  *filename, int32_t *daposx, int32_t *daposy,
 
     initspritelists();
 
-    clearbuf(&show2dsector[0],(int32_t)((MAXSECTORS+3)>>5),0L);
-
     kread32(fil,daposx);
     kread32(fil,daposy);
     kread32(fil,daposz);
@@ -3575,8 +3573,6 @@ void initengine(void)
 
     for(i=0 ; i < MAXTILES ; i++)
         tiles[i].data = NULL;
-
-    clearbuf(&show2dsector[0],(int32_t)((MAXSECTORS+3)>>5),0L);
 
     validmodecnt = 0;
 
@@ -8369,21 +8365,19 @@ static int clippoly (int32_t npoints, int32_t clipstat)
 
 void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang)
 {
-    walltype *wal;
     sectortype *sec;
     spritetype *spr;
     int32_t tilenum, xoff, yoff, i, j, k, l, cosang, sinang, xspan, yspan;
     int32_t xrepeat, yrepeat, x, y, x1, y1, x2, y2, x3, y3, x4, y4, bakx1, baky1;
-    int32_t s, w, ox, oy, startwall, cx1, cy1, cx2, cy2;
+    int32_t s, ox, oy, cx1, cy1, cx2, cy2;
     int32_t bakgxvect, bakgyvect, sortnum, gap, npoints;
-    int32_t xvect, yvect, xvect2, yvect2, daslope;
+    int32_t xvect, yvect, xvect2, yvect2;
     int32_t a3;
     
     static uint8_t  polyType;
 
     beforedrawrooms = 0;
    
-
     //This seems to be dead code.
     //clearbuf(visitedSectors,(int32_t)((numsectors+31)>>5),0L);
 
@@ -8400,139 +8394,7 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang)
     yvect2 = mulscale16(yvect,yxaspect);
 
     sortnum = 0;
-    for(s=0,sec=&sector[s]; s<numsectors; s++,sec++)
-        if (show2dsector[s>>3]&pow2char[s&7])
-        {
-            npoints = 0;
-            i = 0;
-            startwall = sec->wallptr;
-            for(w=sec->wallnum,wal=&wall[startwall]; w>0; w--,wal++)
-            {
-                ox = wal->x - dax;
-                oy = wal->y - day;
-                x = dmulscale16(ox,xvect,-oy,yvect) + (xdim<<11);
-                y = dmulscale16(oy,xvect2,ox,yvect2) + (ydim<<11);
-                i |= getclipmask(x-cx1,cx2-x,y-cy1,cy2-y);
-                pvWalls[npoints].cameraSpaceCoo[0][VEC_X] = x;
-                pvWalls[npoints].cameraSpaceCoo[0][VEC_Y] = y;
-                pvWalls[npoints].screenSpaceCoo[0][VEC_COL] = wal->point2 - startwall;
-                npoints++;
-            }
-            
-            if ((i&0xf0) != 0xf0)
-                continue;
-            
-            bakx1 = pvWalls[0].cameraSpaceCoo[0][VEC_X];
-            baky1 = mulscale16(pvWalls[0].cameraSpaceCoo[0][VEC_Y]-(ydim<<11),xyaspect)+(ydim<<11);
-            if (i&0x0f)
-            {
-                npoints = clippoly(npoints,i);
-                if (npoints < 3) continue;
-            }
-
-            /* Collect floor sprites to draw */
-            for(i=headspritesect[s]; i>=0; i=nextspritesect[i])
-                if ((sprite[i].cstat&48) == 32)
-                {
-                    if ((sprite[i].cstat&(64+8)) == (64+8)) continue;
-                    tsprite[sortnum++].owner = i;
-                }
-
-            //This seems to be dead code.
-            //visitedSectors[s>>3] |= pow2char[s&7];
-
-            globalorientation = (int32_t)sec->floorstat;
-            if ((globalorientation&1) != 0) continue;
-
-            if (palookup[sec->floorpal] != globalpalwritten)
-            {
-                globalpalwritten = palookup[sec->floorpal];
-               
-            }
-            globalpicnum = sec->floorpicnum;
-            if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) globalpicnum = 0;
-            setgotpic(globalpicnum);
-            
-            if ((tiles[globalpicnum].dim.width <= 0) ||
-                (tiles[globalpicnum].dim.height <= 0)) continue;
-            
-            if ((tiles[globalpicnum].animFlags&192) != 0) 
-                globalpicnum += animateoffs(globalpicnum);
-            
-            TILE_MakeAvailable(globalpicnum);
-            
-            globalbufplc = tiles[globalpicnum].data;
-            
-            globalshade = max(min(sec->floorshade,numpalookups-1),0);
-            globvis = globalhisibility;
-            if (sec->visibility != 0) globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
-            polyType = 0;
-            if ((globalorientation&64) == 0)
-            {
-                globalposx = dax;
-                globalx1 = bakgxvect;
-                globaly1 = bakgyvect;
-                globalposy = day;
-                globalx2 = bakgxvect;
-                globaly2 = bakgyvect;
-            }
-            else
-            {
-                ox = wall[wall[startwall].point2].x - wall[startwall].x;
-                oy = wall[wall[startwall].point2].y - wall[startwall].y;
-                i = fixedPointSqrt(ox*ox+oy*oy);
-                
-                if (i == 0)
-                    continue;
-                
-                i = 1048576/i;
-                globalx1 = mulscale10(dmulscale10(ox,bakgxvect,oy,bakgyvect),i);
-                globaly1 = mulscale10(dmulscale10(ox,bakgyvect,-oy,bakgxvect),i);
-                ox = (bakx1>>4)-(xdim<<7);
-                oy = (baky1>>4)-(ydim<<7);
-                globalposx = dmulscale28(-oy,globalx1,-ox,globaly1);
-                globalposy = dmulscale28(-ox,globalx1,oy,globaly1);
-                globalx2 = -globalx1;
-                globaly2 = -globaly1;
-
-                daslope = sector[s].floorheinum;
-                i = fixedPointSqrt(daslope*daslope+16777216);
-                globalposy = mulscale12(globalposy,i);
-                globalx2 = mulscale12(globalx2,i);
-                globaly2 = mulscale12(globaly2,i);
-            }
-            globalxshift = (8-(picsiz[globalpicnum]&15));
-            globalyshift = (8-(picsiz[globalpicnum]>>4));
-            if (globalorientation&8) {
-                globalxshift++;
-                globalyshift++;
-            }
-
-            sethlinesizes(picsiz[globalpicnum]&15,picsiz[globalpicnum]>>4,globalbufplc);
-
-            if ((globalorientation&0x4) > 0)
-            {
-                i = globalposx;
-                globalposx = -globalposy;
-                globalposy = -i;
-                i = globalx2;
-                globalx2 = globaly1;
-                globaly1 = i;
-                i = globalx1;
-                globalx1 = -globaly2;
-                globaly2 = -i;
-            }
-            if ((globalorientation&0x10) > 0) globalx1 = -globalx1, globaly1 = -globaly1, globalposx = -globalposx;
-            if ((globalorientation&0x20) > 0) globalx2 = -globalx2, globaly2 = -globaly2, globalposy = -globalposy;
-
-            globalx1 <<= globalxshift;
-            globaly2 <<= globalyshift;
-            globalposx = (globalposx<<(20+globalxshift))+(((int32_t)sec->floorxpanning)<<24);
-            globalposy = (globalposy<<(20+globalyshift))-(((int32_t)sec->floorypanning)<<24);
-
-            // At this point polyType is 0, so the asm3 will not be used by fillpolygon. Therefore we set it to 0
-            fillpolygon(npoints, polyType, (globaly1<<globalxshift), (globalx2<<globalyshift), 0);
-        }
+    for(s=0,sec=&sector[s]; s<numsectors; s++,sec++) { }
 
     /* Sort sprite list */
     gap = 1;

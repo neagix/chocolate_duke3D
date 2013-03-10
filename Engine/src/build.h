@@ -178,25 +178,6 @@ EXTERN short nextspritesect[MAXSPRITES], nextspritestat[MAXSPRITES];
 
 
 
-    /*
-	 * These variables are for auto-mapping with the draw2dscreen function.
-	 * When you load a new board, these bits are all set to 0 - since
-	 * you haven't mapped out anything yet.  Note that these arrays are
-	 * bit-mapped.
-	 * If you want draw2dscreen() to show sprite #54 then you say:
-	 *    spritenum = 54;
-	 *    show2dsprite[spritenum>>3] |= (1<<(spritenum&7));
-	 * And if you want draw2dscreen() to not show sprite #54 then you say:
-	 *    spritenum = 54;
-	 *    show2dsprite[spritenum>>3] &= ~(1<<(spritenum&7));
-	 * Automapping defaults to 0 (do nothing).  If you set automapping to 1,
-	 *    then in 3D mode, the walls and sprites that you see will show up the
-	 *    next time you flip to 2D mode.
-     */
-EXTERN uint8_t  show2dsector[(MAXSECTORS+7)>>3];
-
-
-
 //This is the bit vector that marks visited sector during portal flooding. Size is hence (MAXSECTORS / 8)
 EXTERN uint8_t  visitedSectors[(MAXSECTORS+7)>>3];
 
