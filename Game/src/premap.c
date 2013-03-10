@@ -672,10 +672,8 @@ void prelevel(uint8_t  g)
     short i, nexti, j, startwall, endwall, lotaglist;
     short lotags[65];
 
-
     clearbufbyte(show2dsector,sizeof(show2dsector),0L);
-    clearbufbyte(show2dwall,sizeof(show2dwall),0L);
-
+    
     resetprestat(0,g);
     numclouds = 0;
 

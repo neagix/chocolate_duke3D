@@ -6485,16 +6485,14 @@ void cheats(void)
                         {
                             for(i=0;i<(MAXSECTORS>>3);i++)
                                 show2dsector[i] = 255;
-                            for(i=0;i<(MAXWALLS>>3);i++)
-                                show2dwall[i] = 255;
+
                             FTA(111,&ps[myconnectindex],1);
                         }
                         else
                         {
                             for(i=0;i<(MAXSECTORS>>3);i++)
                                 show2dsector[i] = 0;
-                            for(i=0;i<(MAXWALLS>>3);i++)
-                                show2dwall[i] = 0;
+
                             FTA(1,&ps[myconnectindex],1);
                         }
                         ps[myconnectindex].cheat_phase = 0;

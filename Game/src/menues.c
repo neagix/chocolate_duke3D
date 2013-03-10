@@ -4195,9 +4195,6 @@ void drawoverheadmap(int32_t cposx, int32_t cposy, int32_t czoom, short cang)
                 {
                         k = wal->nextwall; if (k < 0) continue;
 
-                        //if ((show2dwall[j>>3]&(1<<(j&7))) == 0) continue;
-                        //if ((k > j) && ((show2dwall[k>>3]&(1<<(k&7))) > 0)) continue;
-
                         if (sector[wal->nextsector].ceilingz == z1)
                                 if (sector[wal->nextsector].floorz == z2)
                                         if (((wal->cstat|wall[wal->nextwall].cstat)&(16+32)) == 0) continue;
@@ -4365,8 +4362,6 @@ void drawoverheadmap(int32_t cposx, int32_t cposy, int32_t czoom, short cang)
                 for(j=startwall,wal=&wall[startwall];j<endwall;j++,wal++)
                 {
                         if (wal->nextwall >= 0) continue;
-
-                        //if ((show2dwall[j>>3]&(1<<(j&7))) == 0) continue;
 
                         if (tiles[wal->picnum].dim.width == 0)
                             continue;

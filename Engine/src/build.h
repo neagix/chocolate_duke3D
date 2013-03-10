@@ -194,7 +194,6 @@ EXTERN short nextspritesect[MAXSPRITES], nextspritestat[MAXSPRITES];
 	 *    next time you flip to 2D mode.
      */
 EXTERN uint8_t  show2dsector[(MAXSECTORS+7)>>3];
-EXTERN uint8_t  show2dwall[(MAXWALLS+7)>>3];
 
 
 
