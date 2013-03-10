@@ -99,8 +99,6 @@ void rotatepoint(int32_t xpivot, int32_t ypivot, int32_t x, int32_t y, int16_t d
 int drawtilescreen(int32_t pictopleft, int32_t picbox);
 void clearview(int32_t dacol);
 void clearallviews(int32_t dacol);
-void draw2dgrid(int32_t posxe, int32_t posye, int16_t ange, int32_t zoome,int16_t gride);
-void draw2dscreen(int32_t posxe, int32_t posye, int16_t ange, int32_t zoome,int16_t gride);
 int sectorofwall(int16_t theline);
 int setsprite(int16_t spritenum, int32_t newx, int32_t newy, int32_t newz);
 void dragpoint(int16_t pointhighlight, int32_t dax, int32_t day);
