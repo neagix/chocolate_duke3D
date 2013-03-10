@@ -291,9 +291,6 @@ static void scansector (short sectnum, short *numscans, short *numbunches, Engin
     if (sectnum < 0)
         return;
 
-    if (automapping)
-        show2dsector[sectnum>>3] |= pow2char[sectnum&7];
-
     sectorsToVisit[0] = sectnum;
     numSectorsToVisit = 1;
     do
@@ -2732,7 +2729,7 @@ static int bunchfront(int32_t firstBunchID, int32_t secondBunchID)
 */
 EngineState* drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daang, int32_t dahoriz, short dacursectnum)
 {
-    int32_t i, j, z, closest;
+    int32_t i, j, closest;
 	//Ceiling and Floor height at the player position.
 	int32_t cz, fz;
     short *shortptr1, *shortptr2;
@@ -2975,13 +2972,6 @@ EngineState* drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daan
 
         //Draw every solid walls with ceiling/floor in the bunch "closest"
         drawalls(closest, &numscans, &numhits, &numbunches, &engine_state);
-
-        if (automapping)
-        {
-            for(z=bunchfirst[closest]; z>=0; z=bunchWallsList[z])
-                show2dwall[pvWalls[z].worldWallId>>3] |=
-                pow2char  [pvWalls[z].worldWallId&7];
-        }
 
         //Since we just rendered a bunch, lower the current stack element so we can treat the next item
         numbunches--;
@@ -3591,7 +3581,6 @@ void initengine(void)
     clearbuf(&show2dsector[0],(int32_t)((MAXSECTORS+3)>>5),0L);
     clearbuf(&show2dsprite[0],(int32_t)((MAXSPRITES+3)>>5),0L);
     clearbuf(&show2dwall[0],(int32_t)((MAXWALLS+3)>>5),0L);
-    automapping = 0;
 
     validmodecnt = 0;
 
@@ -5651,8 +5640,6 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         /* Draw it! */
         ceilspritescan(lx,rx-1);
     }
-
-    if (automapping == 1) show2dsprite[spritenum>>3] |= pow2char[spritenum&7];
 }
 
 /*

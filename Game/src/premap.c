@@ -1547,8 +1547,6 @@ if (!VOLUMEONE)
 #endif
 
 
-    automapping = 0;
-
     if(ud.recstat != 2) MUSIC_StopSong();
 
     cacheit();
