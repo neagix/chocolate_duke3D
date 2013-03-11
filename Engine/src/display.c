@@ -88,7 +88,7 @@ void TIMER_GetPlatformTicks(int64_t* t);
 
 
     /* !!! move these elsewhere? */
-int32_t xres, yres, bytesperline, imageSize, maxpages;
+int32_t bytesperline, imageSize, maxpages;
 uint8_t* frameplace;
 
 //The frambuffer address
@@ -226,6 +226,8 @@ void* get_framebuffer(void){
 static uint8_t  screenalloctype = 255;
 static void init_new_res_vars(int32_t davidoption)
 {
+    int32_t xres, yres;
+    
     int i = 0;
     int j = 0;
 
