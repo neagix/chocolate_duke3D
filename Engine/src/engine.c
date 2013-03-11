@@ -89,6 +89,9 @@ uint8_t  britable[16][64];
 uint8_t  textfont[1024], smalltextfont[1024];
 
 
+GameMode game_mode;
+
+
 
 
 
@@ -2817,7 +2820,7 @@ EngineState* drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daan
             for(; i<windowx2+1+(stereopixelwidth<<1); i++) {
                 startumost[i] = windowy1, startdmost[i] = windowy2+1;
             }
-            viewoffset = windowy1*bytesperline+windowx1-(stereopixelwidth<<1);
+            viewoffset = windowy1 * game_mode.bytesperline + windowx1 - (stereopixelwidth<<1);
             i = stereowidth;
         }
         else
@@ -2828,7 +2831,7 @@ EngineState* drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daan
             for(; i<windowx2+1+(stereopixelwidth<<1); i++) {
                 startumost[i] = 1, startdmost[i] = 0;
             }
-            viewoffset = windowy1*bytesperline+windowx1;
+            viewoffset = windowy1 * game_mode.bytesperline + windowx1;
             i = -stereowidth;
         }
         globalposx += mulscale24(singlobalang,i);
@@ -7715,7 +7718,7 @@ void setview(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
         startumost[i] = 1, startdmost[i] = 0;
     }
 
-    viewoffset = windowy1*bytesperline + windowx1;
+    viewoffset = windowy1 * game_mode.bytesperline + windowx1;
 
     if (stereomode)
     {
@@ -8649,8 +8652,8 @@ void setviewback(void)
     else
         k = max(bakxsiz[setviewcnt-1],bakxsiz[setviewcnt]);
     j = 0;
-    for(i=0; i<=k; i++) ylookup[i] = j, j += bytesperline;
-    setBytesPerLine(bytesperline);
+    for(i=0; i<=k; i++) ylookup[i] = j, j += game_mode.bytesperline;
+    setBytesPerLine(game_mode.bytesperline);
 }
 
 

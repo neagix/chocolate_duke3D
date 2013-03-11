@@ -35,6 +35,12 @@ typedef struct EngineState {
 } EngineState;
 
 
+typedef struct GameMode {
+    int32_t bytesperline;
+} GameMode;
+    
+extern GameMode game_mode;
+    
 /*
  * this must be implemented by every program that uses the BUILD engine.
  *  engine.c calls this function in several places.

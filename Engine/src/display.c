@@ -88,7 +88,7 @@ void TIMER_GetPlatformTicks(int64_t* t);
 
 
     /* !!! move these elsewhere? */
-int32_t bytesperline, imageSize, maxpages;
+int32_t imageSize, maxpages;
 uint8_t* frameplace;
 
 //The frambuffer address
@@ -240,7 +240,7 @@ static void init_new_res_vars(int32_t davidoption)
 
 	printf("init_new_res_vars %d %d\n",xdim,ydim);
 
-    bytesperline = surface->w;
+    game_mode.bytesperline = surface->w;
     vesachecked = 1;
     vgacompatible = 1;
     linearmode = 1;
@@ -282,7 +282,7 @@ static void init_new_res_vars(int32_t davidoption)
   	for(i = 0; i <= ydim; i++)
     {
         ylookup[i] = j;
-        j += bytesperline;
+        j += game_mode.bytesperline;
     }
 
    	horizycent = ((ydim*4)>>1);
@@ -291,7 +291,7 @@ static void init_new_res_vars(int32_t davidoption)
 	oxyaspect = oxdimen = oviewingrange = -1;
 
     //Let the Assembly module how many pixels to skip when drawing a column
-	setBytesPerLine(bytesperline);
+	setBytesPerLine(game_mode.bytesperline);
 
     
     setview(0L,0L,xdim-1,ydim-1);
