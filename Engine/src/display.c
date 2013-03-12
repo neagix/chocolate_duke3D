@@ -92,9 +92,7 @@ uint8_t* frameplace;
 
 //The frambuffer address
 uint8_t* frameoffset;
-uint8_t  *screen, vesachecked;
-int32_t buffermode, linearmode;
-uint8_t  permanentupdate = 0, vgacompatible;
+uint8_t  *screen;
 
 SDL_Surface *surface = NULL; /* This isn't static so that we can use it elsewhere AH */
 
@@ -240,9 +238,6 @@ static void init_new_res_vars(int32_t davidoption)
 	printf("init_new_res_vars %d %d\n",xdim,ydim);
 
     game_mode.bytesperline = surface->w;
-    vesachecked = 1;
-    vgacompatible = 1;
-    linearmode = 1;
 	qsetmode = surface->h;
 	activepage = visualpage = 0;
 

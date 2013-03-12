@@ -15,9 +15,7 @@ int _argc;
 char  **_argv;
 
 /* !!! gads, look at all the namespace polution... */
-extern uint8_t  *screen, vesachecked;
-extern int32_t buffermode, linearmode;
-extern uint8_t  permanentupdate, vgacompatible;
+extern uint8_t  *screen;
 extern uint8_t  moustat;
 extern int32_t *horizlookup, *horizlookup2, horizycent;
 extern int32_t oxdimen, oviewingrange, oxyaspect;

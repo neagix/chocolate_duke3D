@@ -3715,7 +3715,7 @@ static void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short pi
     uint8_t* palookupoffs;
     uint8_t* p;
     int32_t xoff, yoff, npoints, yplc, yinc, lx, rx, xx, xend;
-    int32_t xv, yv, xv2, yv2, obuffermode=0, qlinemode=0, y1ve[4], y2ve[4], u4, d4;
+    int32_t xv, yv, xv2, yv2, qlinemode=0, y1ve[4], y2ve[4], u4, d4;
     uint8_t  bad;
     int32_t bufplce[4], vplce[4], vince[4];
 
@@ -3896,23 +3896,12 @@ static void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short pi
     y = (oy<<16)+65535-gy1;
     bx = dmulscale16(x,xv2,y,xv);
     by = dmulscale16(x,yv2,y,yv);
+    
     if (dastat&4) {
         yv = -yv;
         yv2 = -yv2;
         by = (tileHeight<<16)-1-by;
     }
-
-    if (vidoption == 1)
-    {
-        if (dastat&128)
-        {
-            obuffermode = buffermode;
-            buffermode = 0;
-
-        }
-    }
-    else if (dastat&8)
-        permanentupdate = 1;
 
     if ((dastat&1) == 0)
     {
@@ -4247,12 +4236,6 @@ static void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short pi
             }
             faketimerhandler();
         }
-    }
-
-    if ((vidoption == 1) && (dastat&128))
-    {
-        buffermode = obuffermode;
-
     }
 }
 
