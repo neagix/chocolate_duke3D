@@ -163,7 +163,7 @@ static int32_t xsi[8], ysi[8];
 /* used to be static. --ryan. */
 int32_t *horizlookup=0, *horizlookup2=0, horizycent;
 
-int32_t globalposx, globalposy, globalposz, globalhoriz;
+int32_t globalhoriz;
 int16_t globalang, globalcursectnum;
 int32_t globalpal, cosglobalang, singlobalang;
 int32_t cosviewingrangeglobalang, sinviewingrangeglobalang;
@@ -305,8 +305,8 @@ static void scansector (short sectnum, short *numscans, short *numbunches, Engin
                     (spr->xrepeat > 0) && (spr->yrepeat > 0) &&
                     (engine_state->spritesortcnt < MAXSPRITESONSCREEN))
             {
-                xs = spr->x-globalposx;
-                ys = spr->y-globalposy;
+                xs = spr->x - engine_state->posx;
+                ys = spr->y - engine_state->posy;
                 if ((spr->cstat&48) || (xs*cosglobalang+ys*singlobalang > 0))
                 {
                     copybufbyte(spr,&tsprite[engine_state->spritesortcnt],sizeof(spritetype));
@@ -333,11 +333,11 @@ static void scansector (short sectnum, short *numscans, short *numbunches, Engin
             // In camera space the center is the player.
             // Tranform the 2 Wall endpoints (x,y) from worldspace to camera space.
             // After that we have two vectors starting from the camera and going to the endpoints (x1,y1) and (x2,y2).
-            x1 = wal->x-globalposx;
-            y1 = wal->y-globalposy;
+            x1 = wal->x - engine_state->posx;
+            y1 = wal->y - engine_state->posy;
 
-            x2 = wal2->x-globalposx;
-            y2 = wal2->y-globalposy;
+            x2 = wal2->x - engine_state->posx;
+            y2 = wal2->y - engine_state->posy;
 
             // If this is a portal...
             if ((nextsectnum >= 0) && ((wal->cstat&32) == 0))
@@ -654,7 +654,7 @@ static void slowhline (int32_t xr, int32_t yp)
 
 
 /* renders non-parallaxed ceilings. --ryan. */
-static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum)
+static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engine_state)
 {
     int32_t i, j, ox, oy, x, y1, y2, twall, bwall;
     sectortype *sec;
@@ -665,7 +665,7 @@ static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum)
         globalpalwritten = palookup[sec->ceilingpal];
 
     
-    globalzd = sec->ceilingz-globalposz;
+    globalzd = sec->ceilingz - engine_state->posz;
     
     
     if (globalzd > 0)
@@ -704,8 +704,8 @@ static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum)
         globalx2 = singlobalang;
         globaly1 = cosglobalang;
         globaly2 = cosglobalang;
-        globalxpanning = (globalposx<<20);
-        globalypanning = -(globalposy<<20);
+        globalxpanning = (engine_state->posx<<20);
+        globalypanning = -(engine_state->posy<<20);
     }
     else{
         j = sec->wallptr;
@@ -723,8 +723,8 @@ static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum)
         globalx2 = -globalx1;
         globaly2 = -globaly1;
 
-        ox = ((wall[j].x-globalposx)<<6);
-        oy = ((wall[j].y-globalposy)<<6);
+        ox = ((wall[j].x-engine_state->posx)<<6);
+        oy = ((wall[j].y-engine_state->posy)<<6);
         i = dmulscale14(oy,cosglobalang,-ox,singlobalang);
         j = dmulscale14(ox,cosglobalang,oy,singlobalang);
         ox = i;
@@ -888,7 +888,7 @@ static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum)
 
 
 /* renders non-parallaxed floors. --ryan. */
-static void florscan (int32_t x1, int32_t x2, int32_t sectnum)
+static void florscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engine_state)
 {
     int32_t i, j, ox, oy, x, y1, y2, twall, bwall;
     sectortype *sec;
@@ -900,7 +900,7 @@ static void florscan (int32_t x1, int32_t x2, int32_t sectnum)
     if (palookup[sec->floorpal] != globalpalwritten)
         globalpalwritten = palookup[sec->floorpal];
 
-    globalzd = globalposz-sec->floorz;
+    globalzd = engine_state->posz - sec->floorz;
     
     //We are UNDER the floor: Do NOT render anything.
     if (globalzd > 0)
@@ -947,8 +947,8 @@ static void florscan (int32_t x1, int32_t x2, int32_t sectnum)
         globalx2 = singlobalang;
         globaly1 = cosglobalang;
         globaly2 = cosglobalang;
-        globalxpanning = (globalposx<<20);
-        globalypanning = -(globalposy<<20);
+        globalxpanning = (engine_state->posx<<20);
+        globalypanning = -(engine_state->posy<<20);
     }
     else
     {
@@ -965,8 +965,8 @@ static void florscan (int32_t x1, int32_t x2, int32_t sectnum)
         globalx2 = -globalx1;
         globaly2 = -globaly1;
 
-        ox = ((wall[j].x-globalposx)<<6);
-        oy = ((wall[j].y-globalposy)<<6);
+        ox = ((wall[j].x - engine_state->posx)<<6);
+        oy = ((wall[j].y - engine_state->posy)<<6);
         i = dmulscale14(oy,cosglobalang,-ox,singlobalang);
         j = dmulscale14(ox,cosglobalang,oy,singlobalang);
         ox = i;
@@ -1658,7 +1658,7 @@ static void parascan(int32_t dax1, int32_t dax2, int32_t sectnum,uint8_t  dastat
 
 
 #define BITSOFPRECISION 3  /* Don't forget to change this in A.ASM also! */
-static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dastat)
+static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dastat, EngineState *engine_state)
 {
     int32_t i, j, l, x, y, dx, dy, wx, wy, y1, y2, daz;
     int32_t daslope, dasqr;
@@ -1670,7 +1670,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
 
     if (dastat == 0)
     {
-        if (globalposz <= getceilzofslope((short) sectnum,globalposx,globalposy))
+        if (engine_state->posz <= getceilzofslope((short) sectnum,engine_state->posx,engine_state->posy))
             return;  /* Back-face culling */
         globalorientation = sec->ceilingstat;
         globalpicnum = sec->ceilingpicnum;
@@ -1681,7 +1681,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
     }
     else
     {
-        if (globalposz >= getflorzofslope((short) sectnum,globalposx,globalposy))
+        if (engine_state->posz >= getflorzofslope((short) sectnum,engine_state->posx,engine_state->posy))
             return;  /* Back-face culling */
         globalorientation = sec->floorstat;
         globalpicnum = sec->floorpicnum;
@@ -1712,8 +1712,8 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
 
     globalx = -mulscale19(singlobalang,xdimenrecip);
     globaly = mulscale19(cosglobalang,xdimenrecip);
-    globalx1 = (globalposx<<8);
-    globaly1 = -(globalposy<<8);
+    globalx1 = (engine_state->posx << 8);
+    globaly1 = -(engine_state->posy << 8);
     i = (dax1-halfxdimen)*xdimenrecip;
     globalx2 = mulscale16(cosglobalang<<4,viewingrangerecip) - mulscale27(singlobalang,i);
     globaly2 = mulscale16(singlobalang<<4,viewingrangerecip) + mulscale27(cosglobalang,i);
@@ -1733,8 +1733,8 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
         globalx = dmulscale16(x,dx,y,dy);
         globaly = mulscale12(dmulscale16(-y,dx,x,dy),i);
 
-        x = ((wal->x-globalposx)<<8);
-        y = ((wal->y-globalposy)<<8);
+        x = ((wal->x - engine_state->posx)<<8);
+        y = ((wal->y - engine_state->posy)<<8);
         globalx1 = dmulscale16(-x,dx,-y,dy);
         globaly1 = mulscale12(dmulscale16(-y,dx,x,dy),i);
 
@@ -1762,7 +1762,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
         globaly1 = -globaly1, globaly2 = -globaly2, globaly = -globaly;
     }
 
-    daz = dmulscale9(wx,globalposy-wal->y,-wy,globalposx-wal->x) + ((daz-globalposz)<<8);
+    daz = dmulscale9(wx, engine_state->posy - wal->y, -wy, engine_state->posx - wal->x) + ((daz - engine_state->posz)<<8);
     globalx2 = mulscale20(globalx2,daz);
     globalx = mulscale28(globalx,daz);
     globaly2 = mulscale20(globaly2,-daz);
@@ -1955,19 +1955,19 @@ static int owallmost(short *mostbuf, int32_t w, int32_t z)
 }
 
 
-static int wallmost(short *mostbuf, int32_t w, int32_t sectnum, uint8_t  dastat)
+static int wallmost(short *mostbuf, int32_t w, int32_t sectnum, uint8_t  dastat, EngineState *engine_state)
 {
     int32_t bad, i, j, t, y, z, inty, intz, xcross, yinc, fw;
     int32_t x1, y1, z1, x2, y2, z2, xv, yv, dx, dy, dasqr, oz1, oz2;
     int32_t s1, s2, s3, s4, ix1, ix2, iy1, iy2;
 
     if (dastat == 0){
-        z = sector[sectnum].ceilingz-globalposz;
+        z = sector[sectnum].ceilingz - engine_state->posz;
         if ((sector[sectnum].ceilingstat&2) == 0)
             return(owallmost(mostbuf,w,z));
     }
     else{
-        z = sector[sectnum].floorz-globalposz;
+        z = sector[sectnum].floorz - engine_state->posz;
         if ((sector[sectnum].floorstat&2) == 0)
             return(owallmost(mostbuf,w,z));
     }
@@ -1992,11 +1992,11 @@ static int wallmost(short *mostbuf, int32_t w, int32_t sectnum, uint8_t  dastat)
         yv = singlobalang-cosviewingrangeglobalang;
     }
     else{
-        xv = x1-globalposx;
-        yv = y1-globalposy;
+        xv = x1 - engine_state->posx;
+        yv = y1 - engine_state->posy;
     }
-    i = xv*(y1-globalposy)-yv*(x1-globalposx);
-    j = yv*x2-xv*y2;
+    i = xv*(y1 - engine_state->posy) - yv*(x1 - engine_state->posx);
+    j = yv*x2 - xv*y2;
     
     if (klabs(j) > klabs(i>>3))
         i = divscale28(i,j);
@@ -2010,7 +2010,7 @@ static int wallmost(short *mostbuf, int32_t w, int32_t sectnum, uint8_t  dastat)
         z1 = sector[sectnum].floorz;
     }
     
-    z1 = dmulscale24(dx*t,mulscale20(y2,i)+((y1-wall[fw].y)<<8),-dy*t,mulscale20(x2,i)+((x1-wall[fw].x)<<8))+((z1-globalposz)<<7);
+    z1 = dmulscale24(dx*t, mulscale20(y2,i)+((y1-wall[fw].y)<<8), -dy*t,mulscale20(x2, i)+((x1-wall[fw].x)<<8))+((z1-engine_state->posz)<<7);
 
 
     if (pvWalls[w].screenSpaceCoo[1][VEC_COL] == xdimen-1){
@@ -2018,11 +2018,11 @@ static int wallmost(short *mostbuf, int32_t w, int32_t sectnum, uint8_t  dastat)
         yv = singlobalang+cosviewingrangeglobalang;
     }
     else{
-        xv = (x2+x1)-globalposx;
-        yv = (y2+y1)-globalposy;
+        xv = (x2+x1) - engine_state->posx;
+        yv = (y2+y1) - engine_state->posy;
     }
     
-    i = xv*(y1-globalposy)-yv*(x1-globalposx);
+    i = xv*(y1 - engine_state->posy) - yv*(x1-engine_state->posx);
     j = yv*x2-xv*y2;
     
     if (klabs(j) > klabs(i>>3))
@@ -2037,7 +2037,7 @@ static int wallmost(short *mostbuf, int32_t w, int32_t sectnum, uint8_t  dastat)
         z2 = sector[sectnum].floorz;
     }
     
-    z2 = dmulscale24(dx*t,mulscale20(y2,i)+((y1-wall[fw].y)<<8),-dy*t,mulscale20(x2,i)+((x1-wall[fw].x)<<8))+((z2-globalposz)<<7);
+    z2 = dmulscale24(dx*t,mulscale20(y2,i)+((y1-wall[fw].y)<<8),-dy*t,mulscale20(x2,i)+((x1-wall[fw].x)<<8))+((z2-engine_state->posz)<<7);
 
 
     s1 = mulscale20(globaluclip,pvWalls[w].screenSpaceCoo[0][VEC_DIST]);
@@ -2147,16 +2147,16 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
     andwstat2 = 0xff;
     for(; z>=0; z=bunchWallsList[z]){ /* uplc/dplc calculation */
     
-        andwstat1 &= wallmost(uplc,z,sectnum,(uint8_t )0);
-        andwstat2 &= wallmost(dplc,z,sectnum,(uint8_t )1);
+        andwstat1 &= wallmost(uplc,z,sectnum,(uint8_t )0, engine_state);
+        andwstat2 &= wallmost(dplc,z,sectnum,(uint8_t )1, engine_state);
     }
 
 	/* draw ceilings */
     if ((andwstat1&3) != 3){
         if ((sec->ceilingstat&3) == 2)
-            grouscan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],sectnum,0);
+            grouscan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],sectnum,0,engine_state);
         else if ((sec->ceilingstat&1) == 0)
-            ceilscan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],sectnum);
+            ceilscan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],sectnum,engine_state);
         else
             parascan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],sectnum,0,bunch);
     }
@@ -2164,9 +2164,9 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
 	/* draw floors */
     if ((andwstat2&12) != 12){
         if ((sec->floorstat&3) == 2)
-            grouscan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],sectnum,1);
+            grouscan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],sectnum,1,engine_state);
         else if ((sec->floorstat&1) == 0)
-            florscan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],sectnum);
+            florscan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],sectnum,engine_state);
         else
             parascan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],sectnum,1,bunch);
     }
@@ -2223,7 +2223,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
             getzsofslope((short)sectnum,wall[wal->point2].x,wall[wal->point2].y,&cz[1],&fz[1]);
             getzsofslope((short)nextsectnum,wal->x,wal->y,&cz[2],&fz[2]);
             getzsofslope((short)nextsectnum,wall[wal->point2].x,wall[wal->point2].y,&cz[3],&fz[3]);
-            getzsofslope((short)nextsectnum,globalposx,globalposy,&cz[4],&fz[4]);
+            getzsofslope((short)nextsectnum,engine_state->posx,engine_state->posy,&cz[4],&fz[4]);
 
             if ((wal->cstat&48) == 16)
                 engine_state->maskwall[engine_state->maskwallcnt++] = z;
@@ -2239,7 +2239,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                                 }
                 }
                 else{
-                    wallmost(dwall,z,nextsectnum,(uint8_t )0);
+                    wallmost(dwall,z,nextsectnum,(uint8_t )0,engine_state);
                     if ((cz[2] > fz[0]) || (cz[3] > fz[1]))
                         for(i=x1; i<=x2; i++) if (dwall[i] > dplc[i]) dwall[i] = dplc[i];
 
@@ -2270,9 +2270,9 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                     globalpal = (int32_t)wal->pal;
                     globalyscale = (wal->yrepeat<<(globalshiftval-19));
                     if ((globalorientation&4) == 0)
-                        globalzd = (((globalposz-nextsec->ceilingz)*globalyscale)<<8);
+                        globalzd = (((engine_state->posz-nextsec->ceilingz)*globalyscale)<<8);
                     else
-                        globalzd = (((globalposz-sec->ceilingz)*globalyscale)<<8);
+                        globalzd = (((engine_state->posz-sec->ceilingz)*globalyscale)<<8);
                     globalzd += (globalypanning<<24);
                     if (globalorientation&256) globalyscale = -globalyscale, globalzd = -globalzd;
 
@@ -2302,7 +2302,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                             }
                     }
                 }
-                if ((cz[2] < cz[0]) || (cz[3] < cz[1]) || (globalposz < cz[4])){
+                if ((cz[2] < cz[0]) || (cz[3] < cz[1]) || (engine_state->posz < cz[4])){
                     i = x2-x1+1;
                     if (engine_state->smostcnt+i < MAXYSAVES){
                         smoststart[smostwallcnt] = engine_state->smostcnt;
@@ -2327,7 +2327,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                                 }
                 }
                 else{
-                    wallmost(uwall,z,nextsectnum,(uint8_t )1);
+                    wallmost(uwall,z,nextsectnum,(uint8_t )1,engine_state);
                     if ((fz[2] < cz[0]) || (fz[3] < cz[1]))
                         for(i=x1; i<=x2; i++) if (uwall[i] < uplc[i]) uwall[i] = uplc[i];
 
@@ -2384,9 +2384,9 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                     globalyscale = (wal->yrepeat<<(globalshiftval-19));
                     
                     if ((globalorientation&4) == 0)
-                        globalzd = (((globalposz-nextsec->floorz)*globalyscale)<<8);
+                        globalzd = (((engine_state->posz-nextsec->floorz)*globalyscale)<<8);
                     else
-                        globalzd = (((globalposz-sec->ceilingz)*globalyscale)<<8);
+                        globalzd = (((engine_state->posz-sec->ceilingz)*globalyscale)<<8);
                     
                     globalzd += (globalypanning<<24);
                     if (globalorientation&256) globalyscale = -globalyscale, globalzd = -globalzd;
@@ -2419,7 +2419,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                             }
                     }
                 }
-                if ((fz[2] > fz[0]) || (fz[3] > fz[1]) || (globalposz > fz[4])){
+                if ((fz[2] > fz[0]) || (fz[3] > fz[1]) || (engine_state->posz > fz[4])){
                     i = x2-x1+1;
                     if (engine_state->smostcnt+i < MAXYSAVES){
                         smoststart[smostwallcnt] = engine_state->smostcnt;
@@ -2491,16 +2491,16 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
             if (nextsectnum >= 0)
             {
                 if ((globalorientation&4) == 0)
-                    globalzd = globalposz-nextsec->ceilingz;
+                    globalzd = engine_state->posz - nextsec->ceilingz;
                 else
-                    globalzd = globalposz-sec->ceilingz;
+                    globalzd = engine_state->posz - sec->ceilingz;
             }
             else
             {
                 if ((globalorientation&4) == 0)
-                    globalzd = globalposz-sec->ceilingz;
+                    globalzd = engine_state->posz - sec->ceilingz;
                 else
-                    globalzd = globalposz-sec->floorz;
+                    globalzd = engine_state->posz - sec->floorz;
             }
             globalzd = ((globalzd*globalyscale)<<8) + (globalypanning<<24);
             
@@ -2585,7 +2585,7 @@ static void dosetaspect(void)
 
   Return: pvWallID1 in the potentially visible wall list is in front of pvWallID2 (in the same potentially visible list)
 */
-int wallfront(int32_t pvWallID1, int32_t pvWallID2)
+int wallfront(int32_t pvWallID1, int32_t pvWallID2, EngineState *engine_state)
 {
     walltype *wal;
     int32_t x11, y11, x21, y21, x12, y12, x22, y22, dx, dy, t1, t2;
@@ -2637,7 +2637,7 @@ int wallfront(int32_t pvWallID1, int32_t pvWallID2)
 		//cross-product have the same sign: Both points of wall2 are on the same side of wall1 : An answer is possible !!
 
 		//Now is time to take into account the camera position and determine which of wall1 or wall2 is seen first.
-        t2 = dmulscale2(globalposx-x11,dy,-dx,globalposy-y11); /* pos vs. l1 */
+        t2 = dmulscale2(engine_state->posx - x11,dy,-dx,engine_state->posy-y11); /* pos vs. l1 */
 
 		//Test the cross product sign difference.
 		//If (t2^t1) >= 0 then  both cross product had different sign so wall1 is in front of wall2
@@ -2664,7 +2664,7 @@ int wallfront(int32_t pvWallID1, int32_t pvWallID2)
 		t2 = t1;
     if ((t1^t2) >= 0)
     {
-        t2 = dmulscale2(globalposx-x12,dy,-dx,globalposy-y12); /* pos vs. l2 */
+        t2 = dmulscale2(engine_state->posx - x12,dy,-dx,engine_state->posy-y12); /* pos vs. l2 */
         return((t2^t1) < 0);
     }
 
@@ -2674,7 +2674,7 @@ int wallfront(int32_t pvWallID1, int32_t pvWallID2)
 
 
 //Return 1 if bunch firstBunchID is in from of bunch secondBunchID.
-static int bunchfront(int32_t firstBunchID, int32_t secondBunchID)
+static int bunchfront(int32_t firstBunchID, int32_t secondBunchID, EngineState *engine_state)
 {
     int32_t x1b1, x2b1, x1b2, x2b2;
 
@@ -2705,7 +2705,7 @@ static int bunchfront(int32_t firstBunchID, int32_t secondBunchID)
 			pvWalls[lastWallID].screenSpaceCoo[1][VEC_COL]<x1b1; 
 			lastWallID=bunchWallsList[lastWallID]);
 
-        return(wallfront(bunchfirst[firstBunchID],lastWallID));
+        return(wallfront(bunchfirst[firstBunchID],lastWallID,engine_state));
     }
 	else
 	{
@@ -2715,7 +2715,7 @@ static int bunchfront(int32_t firstBunchID, int32_t secondBunchID)
 			pvWalls[lastWallID].screenSpaceCoo[1][VEC_COL]<x1b2; 
 			lastWallID=bunchWallsList[lastWallID]);
 
-		return(wallfront(lastWallID,bunchfirst[secondBunchID]));
+		return(wallfront(lastWallID,bunchfirst[secondBunchID],engine_state));
 	}
 }
 
@@ -2775,9 +2775,9 @@ EngineState* drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daan
 
     // FCS: What was the point of having those values as parameters of this function....if it is to overwrite the
     // values with the gloval variables ?!?!?
-    globalposx = daposx;
-    globalposy = daposy;
-    globalposz = daposz;
+    engine_state.posx = daposx;
+    engine_state.posy = daposy;
+    engine_state.posz = daposz;
     globalang = (daang&2047); //FCS: Mask and keep only 11 bits of angle value.
 
     globalhoriz = mulscale16(dahoriz-100,xdimenscale)+(ydimen>>1);
@@ -2833,7 +2833,7 @@ EngineState* drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daan
 		// Even if the player leaves the map, the engine will keep on rendering from the last visited sector.
 		// Save it.
         i = globalcursectnum;
-        updatesector(globalposx,globalposy,&globalcursectnum);
+        updatesector(engine_state.posx,engine_state.posy,&globalcursectnum);
 		//Seem the player has left the map since updatesector cannot locate him -> Restore to the last known sector.
         if (globalcursectnum < 0) 
 			globalcursectnum = i;
@@ -2843,10 +2843,10 @@ EngineState* drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daan
     globparaflorclip = 1;
 
 	//Update the ceiling and floor Z coordinate for the player's 2D position.
-    getzsofslope(globalcursectnum,globalposx,globalposy,&cz,&fz);
+    getzsofslope(globalcursectnum, engine_state.posx, engine_state.posy, &cz, &fz);
 
-    if (globalposz < cz) globparaceilclip = 0;
-    if (globalposz > fz) globparaflorclip = 0;
+    if (engine_state.posz < cz) globparaceilclip = 0;
+    if (engine_state.posz > fz) globparaflorclip = 0;
 
 	//Build the list of potentially visible wall in to "bunches".
     scansector(globalcursectnum, &numscans, &numbunches, &engine_state);
@@ -2903,7 +2903,7 @@ EngineState* drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daan
         buffer[closest] = 1;       
         for(i=1; i<numbunches; i++)
         {
-            if ((j = bunchfront(i,closest)) < 0) 
+            if ((j = bunchfront(i,closest,&engine_state)) < 0)
 				continue;
             buffer[i] = 1;
             if (j == 0){
@@ -2917,7 +2917,7 @@ EngineState* drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daan
         {
             if (buffer[i]) 
 				continue;
-            if ((j = bunchfront(i,closest)) < 0) 
+            if ((j = bunchfront(i,closest,&engine_state)) < 0)
 				continue;
             buffer[i] = 1;
             if (j == 0){
@@ -4513,14 +4513,14 @@ static void drawmaskwall(EngineState *engine_state)
     z1 = max(nsec->ceilingz,sec->ceilingz);
     z2 = min(nsec->floorz,sec->floorz);
 
-    wallmost(uwall,z,sectnum,(uint8_t )0);
-    wallmost(uplc,z,(int32_t)wal->nextsector,(uint8_t )0);
+    wallmost(uwall,z,sectnum,(uint8_t )0, engine_state);
+    wallmost(uplc,z,(int32_t)wal->nextsector,(uint8_t )0, engine_state);
     for(x=pvWalls[z].screenSpaceCoo[0][VEC_COL]; x<=pvWalls[z].screenSpaceCoo[1][VEC_COL]; x++)
         if (uplc[x] > uwall[x])
             uwall[x] = uplc[x];
     
-    wallmost(dwall,z,sectnum,(uint8_t )1);
-    wallmost(dplc,z,(int32_t)wal->nextsector,(uint8_t )1);
+    wallmost(dwall,z,sectnum,(uint8_t )1, engine_state);
+    wallmost(dplc,z,(int32_t)wal->nextsector,(uint8_t )1, engine_state);
     for(x=pvWalls[z].screenSpaceCoo[0][VEC_COL]; x<=pvWalls[z].screenSpaceCoo[1][VEC_COL]; x++)
         if (dplc[x] < dwall[x])
             dwall[x] = dplc[x];
@@ -4550,9 +4550,9 @@ static void drawmaskwall(EngineState *engine_state)
     globalshiftval = 32-globalshiftval;
     globalyscale = (wal->yrepeat<<(globalshiftval-19));
     if ((globalorientation&4) == 0)
-        globalzd = (((globalposz-z1)*globalyscale)<<8);
+        globalzd = (((engine_state->posz-z1)*globalyscale)<<8);
     else
-        globalzd = (((globalposz-z2)*globalyscale)<<8);
+        globalzd = (((engine_state->posz-z2)*globalyscale)<<8);
     globalzd += (globalypanning<<24);
     if (globalorientation&256) globalyscale = -globalyscale, globalzd = -globalzd;
 
@@ -4560,7 +4560,7 @@ static void drawmaskwall(EngineState *engine_state)
     {
         j = smostwall[i];
         if ((pvWalls[j].screenSpaceCoo[0][VEC_COL] > pvWalls[z].screenSpaceCoo[1][VEC_COL]) || (pvWalls[j].screenSpaceCoo[1][VEC_COL] < pvWalls[z].screenSpaceCoo[0][VEC_COL])) continue;
-        if (wallfront(j,z)) continue;
+        if (wallfront(j,z,engine_state)) continue;
 
         lx = max(pvWalls[j].screenSpaceCoo[0][VEC_COL],pvWalls[z].screenSpaceCoo[0][VEC_COL]);
         rx = min(pvWalls[j].screenSpaceCoo[1][VEC_COL],pvWalls[z].screenSpaceCoo[1][VEC_COL]);
@@ -4770,7 +4770,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         else
             x1 += i;
 
-        y1 = mulscale16(tspr->z-globalposz,siz);
+        y1 = mulscale16(tspr->z-engine_state->posz,siz);
         y1 -= mulscale14(siz,tspr->yrepeat*yoff);
         y1 += (globalhoriz<<8)-ysiz;
         if (cstat&128)
@@ -4792,12 +4792,12 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         yinc = divscale32(spriteDim.height,ysiz);
 
         if ((sec->ceilingstat&3) == 0)
-            startum = globalhoriz+mulscale24(siz,sec->ceilingz-globalposz)-1;
+            startum = globalhoriz+mulscale24(siz,sec->ceilingz-engine_state->posz)-1;
         else
             startum = 0;
         
         if ((sec->floorstat&3) == 0)
-            startdm = globalhoriz+mulscale24(siz,sec->floorz-globalposz)+1;
+            startdm = globalhoriz+mulscale24(siz,sec->floorz-engine_state->posz)+1;
         else
             startdm = 0x7fffffff;
         
@@ -4917,11 +4917,11 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         
         globalshiftval = 32-globalshiftval;
         globalyscale = divscale(512,tspr->yrepeat,globalshiftval-19);
-        globalzd = (((globalposz-z1)*globalyscale)<<8);
+        globalzd = (((engine_state->posz-z1)*globalyscale)<<8);
         if ((cstat&8) > 0)
         {
             globalyscale = -globalyscale;
-            globalzd = (((globalposz-z2)*globalyscale)<<8);
+            globalzd = (((engine_state->posz-z2)*globalyscale)<<8);
         }
 
         qinterpolatedown16((int32_t *)&lwall[lx],rx-lx+1,linum,linuminc);
@@ -4943,9 +4943,9 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         xv = tspr->xrepeat*sintable[(tspr->ang+2560+1536)&2047];
         yv = tspr->xrepeat*sintable[(tspr->ang+2048+1536)&2047];
         i = (spriteDim.width >>1)+xoff;
-        x1 = tspr->x-globalposx-mulscale16(xv,i);
+        x1 = tspr->x-engine_state->posx-mulscale16(xv,i);
         x2 = x1+mulscale16(xv,spriteDim.width );
-        y1 = tspr->y-globalposy-mulscale16(yv,i);
+        y1 = tspr->y-engine_state->posy-mulscale16(yv,i);
         y2 = y1+mulscale16(yv,spriteDim.width );
 
         yp1 = dmulscale6(x1,cosviewingrangeglobalang,y1,sinviewingrangeglobalang);
@@ -4954,10 +4954,10 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         xp1 = dmulscale6(y1,cosglobalang,-x1,singlobalang);
         xp2 = dmulscale6(y2,cosglobalang,-x2,singlobalang);
 
-        x1 += globalposx;
-        y1 += globalposy;
-        x2 += globalposx;
-        y2 += globalposy;
+        x1 += engine_state->posx;
+        y1 += engine_state->posy;
+        x2 += engine_state->posx;
+        y2 += engine_state->posy;
 
         swapped = 0;
         if (dmulscale32(xp1,yp2,-xp2,yp1) >= 0)  /* If wall's NOT facing you */
@@ -5071,11 +5071,11 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         if (pow2long[globalshiftval] != tiles[globalpicnum].dim.height) globalshiftval++;
         globalshiftval = 32-globalshiftval;
         globalyscale = divscale(512,tspr->yrepeat,globalshiftval-19);
-        globalzd = (((globalposz-z1)*globalyscale)<<8);
+        globalzd = (((engine_state->posz-z1)*globalyscale)<<8);
         if ((cstat&8) > 0)
         {
             globalyscale = -globalyscale;
-            globalzd = (((globalposz-z2)*globalyscale)<<8);
+            globalzd = (((engine_state->posz-z2)*globalyscale)<<8);
         }
 
         if (((sec->ceilingstat&1) == 0) && (z1 < sec->ceilingz))
@@ -5083,8 +5083,8 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         if (((sec->floorstat&1) == 0) && (z2 > sec->floorz))
             z2 = sec->floorz;
 
-        owallmost(uwall,(int32_t)(MAXWALLSB-1),z1-globalposz);
-        owallmost(dwall,(int32_t)(MAXWALLSB-1),z2-globalposz);
+        owallmost(uwall,(int32_t)(MAXWALLSB-1),z1-engine_state->posz);
+        owallmost(dwall,(int32_t)(MAXWALLSB-1),z2-engine_state->posz);
         for(i=pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL]; i<=pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL]; i++)
         {
             swall[i] = (krecip(hplc)<<2);
@@ -5136,8 +5136,8 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
                             }
                             else
                             {   /* INTERSECTION! */
-                                x = (xp1-globalposx) + scale(xp2-xp1,z1,z1-z2);
-                                y = (yp1-globalposy) + scale(yp2-yp1,z1,z1-z2);
+                                x = (xp1-engine_state->posx) + scale(xp2-xp1,z1,z1-z2);
+                                y = (yp1-engine_state->posy) + scale(yp2-yp1,z1,z1-z2);
 
                                 yp1 = dmulscale14(x,cosglobalang,y,singlobalang);
                                 if (yp1 > 0)
@@ -5213,7 +5213,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
     else if ((cstat&48) == 32)
     {
         if ((cstat&64) != 0)
-            if ((globalposz > tspr->z) == ((cstat&8)==0))
+            if ((engine_state->posz > tspr->z) == ((cstat&8)==0))
                 return;
 
         if ((cstat&4) > 0) xoff = -xoff;
@@ -5222,8 +5222,8 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         spriteDim.height = tiles[tilenum].dim.height;
 
         /* Rotate center point */
-        dax = tspr->x-globalposx;
-        day = tspr->y-globalposy;
+        dax = tspr->x - engine_state->posx;
+        day = tspr->y - engine_state->posy;
         rzi[0] = dmulscale10(cosglobalang,dax,singlobalang,day);
         rxi[0] = dmulscale10(cosglobalang,day,-singlobalang,dax);
 
@@ -5249,7 +5249,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         rxi[3] = rxi[0]+day;
 
         /* Put all points on same z */
-        ryi[0] = scale((tspr->z-globalposz),yxaspect,320<<8);
+        ryi[0] = scale((tspr->z - engine_state->posz),yxaspect,320<<8);
         if (ryi[0] == 0) return;
         ryi[1] = ryi[2] = ryi[3] = ryi[0];
 
@@ -5593,8 +5593,8 @@ void drawmasks(EngineState *engine_state)
     for(i=(engine_state->spritesortcnt)-1; i>=0; i--)
     {
         //Translate and rotate the sprite in Camera space coordinate.
-        xs = tspriteptr[i]->x-globalposx;
-        ys = tspriteptr[i]->y-globalposy;
+        xs = tspriteptr[i]->x - engine_state->posx;
+        ys = tspriteptr[i]->y - engine_state->posy;
         yp = dmulscale6(xs,cosviewingrangeglobalang,ys,sinviewingrangeglobalang);
         
         if (yp > (4<<8))
@@ -5655,13 +5655,13 @@ void drawmasks(EngineState *engine_state)
                     yspan = (tiles[tspriteptr[k]->picnum].dim.height*tspriteptr[k]->yrepeat<<2);
                     if (!(tspriteptr[k]->cstat&128))
                         spritesz[k] -= (yspan>>1);
-                    if (klabs(spritesz[k]-globalposz) < (yspan>>1))
-                        spritesz[k] = globalposz;
+                    if (klabs(spritesz[k] - engine_state->posz) < (yspan>>1))
+                        spritesz[k] = engine_state->posz;
                 }
             }
             for(k=i+1; k<j; k++)
                 for(l=i; l<k; l++)
-                    if (klabs(spritesz[k]-globalposz) < klabs(spritesz[l]-globalposz))
+                    if (klabs(spritesz[k]-engine_state->posz) < klabs(spritesz[l]-engine_state->posz))
                     {
                         swaplong((int32_t *)&tspriteptr[k],(int32_t *)&tspriteptr[l]);
                         swaplong(&spritesx[k],&spritesx[l]);
@@ -7900,7 +7900,7 @@ void setbrightness(uint8_t  dabrightness, uint8_t  *dapal)
 }
 
 //This is only used by drawmapview.
-static void fillpolygon(int32_t npoints, uint8_t polyType, int32_t a1, int32_t a2, int32_t asm3)
+static void fillpolygon(int32_t npoints, uint8_t polyType, int32_t a1, int32_t a2, int32_t asm3, EngineState *engine_state)
 {
     int32_t z, zz, x1, y1, x2, y2, miny, maxy, y, xinc, cnt;
     int32_t ox, oy, bx, by, p, day1, day2;
@@ -7963,8 +7963,8 @@ static void fillpolygon(int32_t npoints, uint8_t polyType, int32_t a1, int32_t a
     globaly2 = mulscale16(globaly2,xyaspect);
 
     oy = miny+1-(ydim>>1);
-    globalposx += oy*globalx1;
-    globalposy += oy*globaly2;
+    engine_state->posx += oy*globalx1;
+    engine_state->posy += oy*globaly2;
 
     
 
@@ -7992,8 +7992,8 @@ static void fillpolygon(int32_t npoints, uint8_t polyType, int32_t a1, int32_t a
             {
                 /* maphline */
                 ox = x2+1-(xdim>>1);
-                bx = ox*a1 + globalposx;
-                by = ox*a2 - globalposy;
+                bx = ox*a1 + engine_state->posx;
+                by = ox*a2 - engine_state->posy;
 
                 p = ylookup[y]+x2+frameplace;
                 hlineasm4(x2-x1,globalshade<<8,by,bx,p,a1,a2);
@@ -8002,8 +8002,8 @@ static void fillpolygon(int32_t npoints, uint8_t polyType, int32_t a1, int32_t a
             {
                 /* maphline */
                 ox = x1+1-(xdim>>1);
-                bx = ox*a1 + globalposx;
-                by = ox*a2 - globalposy;
+                bx = ox*a1 + engine_state->posx;
+                by = ox*a2 - engine_state->posy;
 
                 p = ylookup[y]+x1+frameplace;
                 if (polyType == 1)
@@ -8015,8 +8015,8 @@ static void fillpolygon(int32_t npoints, uint8_t polyType, int32_t a1, int32_t a
                 }
             }
         }
-        globalposx += globalx1;
-        globalposy += globaly2;
+        engine_state->posx += globalx1;
+        engine_state->posy += globaly2;
         ptr += MAXNODESPERLINE;
     }
     faketimerhandler();
@@ -8291,7 +8291,7 @@ static int clippoly (int32_t npoints, int32_t clipstat)
 }
 
 
-void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang)
+void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang, EngineState *engine_state)
 {
     sectortype *sec;
     spritetype *spr;
@@ -8474,21 +8474,21 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang)
 
             bakx1 = (bakx1>>4)-(xdim<<7);
             baky1 = (baky1>>4)-(ydim<<7);
-            globalposx = dmulscale28(-baky1,globalx1,-bakx1,globaly1);
-            globalposy = dmulscale28(bakx1,globalx2,-baky1,globaly2);
+            engine_state->posx = dmulscale28(-baky1,globalx1,-bakx1,globaly1);
+            engine_state->posy = dmulscale28(bakx1,globalx2,-baky1,globaly2);
 
             if ((spr->cstat&2) == 0)
                 msethlineshift(ox,oy);
             else
                 tsethlineshift(ox,oy);
 
-            if ((spr->cstat&0x4) > 0) globalx1 = -globalx1, globaly1 = -globaly1, globalposx = -globalposx;
+            if ((spr->cstat&0x4) > 0) globalx1 = -globalx1, globaly1 = -globaly1, engine_state->posx = -engine_state->posx;
             globalx1 <<= 2;
-            globalposx <<= (20+2);
+            engine_state->posx <<= (20+2);
             globaly2 <<= 2;
-            globalposy <<= (20+2);
+            engine_state->posy <<= (20+2);
 
-            fillpolygon(npoints, polyType, (globaly1<<2), (globalx2<<2), a3);
+            fillpolygon(npoints, polyType, (globaly1<<2), (globalx2<<2), a3, engine_state);
         }
     }
 }

@@ -32,6 +32,9 @@ typedef struct EngineState {
     short maskwall[MAXWALLSB];
     short smost[MAXYSAVES];
     short smostcnt;
+    int32_t posx;
+    int32_t posy;
+    int32_t posz;
 } EngineState;
 
 
@@ -136,7 +139,7 @@ void rotatesprite(int32_t sx, int32_t sy, int32_t z, int16_t a, int16_t picnum,
                   int32_t cx1, int32_t cy1, int32_t cx2, int32_t cy2);
 void makepalookup(int32_t palnum, uint8_t  *remapbuf, int8_t r,
                   int8_t g, int8_t b, uint8_t  dastat);
-void drawmapview(int32_t dax, int32_t day, int32_t zoome, int16_t ang);
+void drawmapview(int32_t dax, int32_t day, int32_t zoome, int16_t ang, EngineState *engine_state);
 void setview(int32_t x1, int32_t y1, int32_t x2, int32_t y2);
 void setviewtotile(int16_t tilenume, int32_t xsiz, int32_t ysiz);
 void setviewback(void);

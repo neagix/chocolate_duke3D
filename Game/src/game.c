@@ -2697,7 +2697,7 @@ void moveclouds(void)
 }
 
 
-void displayrest(int32_t smoothratio)
+void displayrest(int32_t smoothratio, EngineState *engine_state)
 {
     int32_t a, i, j;
 
@@ -2805,7 +2805,7 @@ void displayrest(int32_t smoothratio)
                 if(ud.overhead_on == 2)
                 {
                     clearview(0L);
-                    drawmapview(cposx,cposy,pp->zoom,cang);
+                    drawmapview(cposx, cposy, pp->zoom, cang, engine_state);
                 }
                 drawoverheadmap( cposx,cposy,pp->zoom,cang);
 
@@ -3227,13 +3227,14 @@ static void se40code(int32_t x,int32_t y,int32_t z,int32_t a,int32_t h, int32_t 
 
 static int32_t oyrepeat=-1;
 
-void displayrooms(short snum,int32_t smoothratio)
+EngineState* displayrooms(short snum,int32_t smoothratio)
 {
     int32_t cposx,cposy,cposz,dst,j,fz,cz;
     short sect, cang, k, choriz;
     struct player_struct *p;
     int32_t tposx,tposy,i;
     short tang;
+    EngineState *engine_state;
 
     p = &ps[snum];
 
@@ -3243,8 +3244,10 @@ void displayrooms(short snum,int32_t smoothratio)
         pub = 0;
     }
 
-    if( ud.overhead_on == 2 || ud.show_help || p->cursectnum == -1)
-        return;
+    if( ud.overhead_on == 2 || ud.show_help || p->cursectnum == -1) {
+        // TODO: An initialized engine_state should be returned
+        return engine_state;
+    }
 
     smoothratio = min(max(smoothratio,0),65536);
 
@@ -3253,7 +3256,10 @@ void displayrooms(short snum,int32_t smoothratio)
     if(ud.pause_on || ps[snum].on_crane > -1) smoothratio = 65536;
 
     sect = p->cursectnum;
-    if(sect < 0 || sect >= MAXSECTORS) return;
+    if(sect < 0 || sect >= MAXSECTORS) {
+        // TODO: An initialized engine_state should be returned
+        return engine_state;
+    }
 
     dointerpolations(smoothratio);
 
@@ -3272,7 +3278,7 @@ void displayrooms(short snum,int32_t smoothratio)
 
         se40code(s->x,s->y,s->z,cang,s->yvel,smoothratio);
 
-        EngineState *engine_state = drawrooms(s->x,s->y,s->z-(4<<8),cang,s->yvel,s->sectnum);
+        engine_state = drawrooms(s->x,s->y,s->z-(4<<8),cang,s->yvel,s->sectnum);
         animatesprites(s->x, s->y, cang, smoothratio, engine_state);
         drawmasks(engine_state);
     }
@@ -3403,7 +3409,7 @@ void displayrooms(short snum,int32_t smoothratio)
                 j = visibility;
                 visibility = (j>>1) + (j>>2);
 
-                EngineState *engine_state = drawrooms(tposx,tposy,cposz,tang,choriz,mirrorsector[i]+MAXSECTORS);
+                engine_state = drawrooms(tposx,tposy,cposz,tang,choriz,mirrorsector[i]+MAXSECTORS);
 
                 display_mirror = 1;
                 animatesprites(tposx, tposy, tang, smoothratio, engine_state);
@@ -3447,6 +3453,8 @@ void displayrooms(short snum,int32_t smoothratio)
             p->visibility += (ud.const_visibility-p->visibility)>>2;
     }
     else p->visibility = ud.const_visibility;
+
+    return engine_state;
 }
 
 
@@ -8530,8 +8538,7 @@ int main(int argc,char  **argv)
         else
             i = 65536;
 
-        displayrooms(screenpeek,i);
-        displayrest(i);
+        displayrest(i, displayrooms(screenpeek,i));
 
         if(ps[myconnectindex].gm&MODE_DEMO)
             goto MAIN_LOOP_RESTART;
@@ -8891,8 +8898,7 @@ int32_t playback(void)
             }
 
             j = min(max((totalclock-lockclock)*(65536/TICSPERFRAME),0),65536);
-            displayrooms(screenpeek,j);
-            displayrest(j);
+            displayrest(j, displayrooms(screenpeek,j));
 
             if(ud.multimode > 1 && ps[myconnectindex].gm )
                 getpackets();

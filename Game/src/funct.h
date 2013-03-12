@@ -378,7 +378,7 @@ extern void gameexit(char  *t);
 //#line "game.c" 1752
 extern short strget(short x,short y,char  *t,short dalen,short c);
 //#line "game.c" 1819
-extern void displayrest(int32_t smoothratio);
+extern void displayrest(int32_t smoothratio, EngineState *engine_state);
 //#line "game.c" 2047
 extern void updatesectorz(int32_t x,int32_t y,int32_t z,short *sectnum);
 //#line "game.c" 2085
@@ -386,7 +386,7 @@ extern void view(struct player_struct *pp,int32_t *vx,int32_t *vy,int32_t *vz,sh
 //#line "game.c" 2137
 extern void drawbackground(void );
 //#line "game.c" 2200
-extern void displayrooms(short snum,int32_t smoothratio);
+extern EngineState* displayrooms(short snum,int32_t smoothratio);
 //#line "game.c" 2445
 extern short LocateTheLocator(short n,short sn);
 //#line "game.c" 2459
