@@ -87,14 +87,13 @@ void TIMER_GetPlatformTicks(int64_t* t);
 #define UNLOCK_SURFACE_AND_RETURN  if (SDL_MUSTLOCK(surface)) SDL_UnlockSurface(surface); return;
 
 
-    /* !!! move these elsewhere? */
-int32_t maxpages;
+// !!! move these elsewhere?
 uint8_t* frameplace;
 
 //The frambuffer address
 uint8_t* frameoffset;
 uint8_t  *screen, vesachecked;
-int32_t buffermode, origbuffermode, linearmode;
+int32_t buffermode, linearmode;
 uint8_t  permanentupdate = 0, vgacompatible;
 
 SDL_Surface *surface = NULL; /* This isn't static so that we can use it elsewhere AH */

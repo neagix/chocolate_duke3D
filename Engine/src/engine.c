@@ -3902,7 +3902,7 @@ static void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short pi
         by = (tileHeight<<16)-1-by;
     }
 
-    if ((vidoption == 1) && (origbuffermode == 0))
+    if (vidoption == 1)
     {
         if (dastat&128)
         {
@@ -4249,7 +4249,7 @@ static void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short pi
         }
     }
 
-    if ((vidoption == 1) && (dastat&128) && (origbuffermode == 0))
+    if ((vidoption == 1) && (dastat&128))
     {
         buffermode = obuffermode;
 
