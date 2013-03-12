@@ -37,6 +37,7 @@ typedef struct EngineState {
 
 typedef struct GameMode {
     int32_t bytesperline;
+    int32_t qsetmode;
 } GameMode;
     
 extern GameMode game_mode;

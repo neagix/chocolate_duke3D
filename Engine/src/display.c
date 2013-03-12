@@ -238,7 +238,7 @@ static void init_new_res_vars(int32_t davidoption)
 	printf("init_new_res_vars %d %d\n",xdim,ydim);
 
     game_mode.bytesperline = surface->w;
-	qsetmode = surface->h;
+	game_mode.qsetmode = surface->h;
 
      
     frameoffset = frameplace = (uint8_t*)surface->pixels;
@@ -970,7 +970,7 @@ int _setgamemode(uint8_t  davidoption, int32_t daxdim, int32_t daydim)
 
     go_to_new_vid_mode((int) davidoption, daxdim, daydim);
 
-    qsetmode = 200;
+    game_mode.qsetmode = 200;
     last_render_ticks = getticks();
 
     return(0);
@@ -1734,9 +1734,9 @@ void clear2dscreen(void)
     rect.x = rect.y = 0;
     rect.w = surface->w;
 
-	if (qsetmode == 350)
+	if (game_mode.qsetmode == 350)
         rect.h = 350;
-	else if (qsetmode == 480)
+	else if (game_mode.qsetmode == 480)
 	{
 		if (ydim16 <= 336)
             rect.h = 336;

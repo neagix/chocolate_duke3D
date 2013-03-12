@@ -20,7 +20,6 @@ extern uint8_t  moustat;
 extern int32_t *horizlookup, *horizlookup2, horizycent;
 extern int32_t oxdimen, oviewingrange, oxyaspect;
 extern int32_t curbrightness;
-extern int32_t qsetmode;
 extern int32_t  pageoffset, ydim16;
 extern uint8_t* frameplace;
 extern uint8_t* frameoffset;

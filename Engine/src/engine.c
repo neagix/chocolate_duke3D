@@ -192,7 +192,7 @@ int32_t globalx, globaly, globalz;
 //static short sectorborder[256], sectorbordercnt;
 //FCS: Moved this on the stack
 
-int32_t pageoffset, ydim16, qsetmode = 0;
+int32_t pageoffset, ydim16;
 int32_t startposx, startposy, startposz;
 int16_t startang, startsectnum;
 int16_t pointhighlight, linehighlight, highlightcnt;
@@ -4197,7 +4197,7 @@ void nextpage(void)
     int32_t i;
     permfifotype *per;
 
-    if (qsetmode == 200)
+    if (game_mode.qsetmode == 200)
     {
         for(i=permtail; i!=permhead; i=((i+1)&(MAXPERMS-1)))
         {
@@ -4210,7 +4210,7 @@ void nextpage(void)
     _nextpage();  /* video driver specific. */
 
 
-    if (qsetmode == 200)
+    if (game_mode.qsetmode == 200)
     {
         for(i=permtail; i!=permhead; i=((i+1)&(MAXPERMS-1)))
         {
@@ -8498,7 +8498,7 @@ void clearview(int32_t dacol)
 {
     int32_t p, y, dx;
 
-    if (qsetmode != 200) return;
+    if (game_mode.qsetmode != 200) return;
 
     dx = windowx2-windowx1+1;
     dacol += (dacol<<8);
