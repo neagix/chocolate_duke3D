@@ -88,7 +88,7 @@ void TIMER_GetPlatformTicks(int64_t* t);
 
 
     /* !!! move these elsewhere? */
-int32_t imageSize, maxpages;
+int32_t maxpages;
 uint8_t* frameplace;
 
 //The frambuffer address

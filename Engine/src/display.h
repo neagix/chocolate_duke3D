@@ -15,7 +15,7 @@ int _argc;
 char  **_argv;
 
 /* !!! gads, look at all the namespace polution... */
-extern int32_t imageSize, maxpages;
+extern int32_t maxpages;
 extern uint8_t  *screen, vesachecked;
 extern int32_t buffermode, origbuffermode, linearmode;
 extern uint8_t  permanentupdate, vgacompatible;

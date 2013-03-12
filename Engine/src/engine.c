@@ -8589,31 +8589,6 @@ void clearview(int32_t dacol)
 }
 
 
-void clearallviews(int32_t dacol)
-{
-    int32_t i;
-
-    if (qsetmode != 200) return;
-    dacol += (dacol<<8);
-    dacol += (dacol<<16);
-
-    switch(vidoption)
-    {
-    case 1:
-        for(i=0; i<numpages; i++)
-        {
-
-            clearbufbyte((void *)frameplace,imageSize,0L);
-        }
-
-    case 2:
-        clearbuf((void *)frameplace,(xdim*ydim)>>2,0L);
-        break;
-    }
-    faketimerhandler();
-}
-
-
 void plotpixel(int32_t x, int32_t y, uint8_t  col)
 {
     drawpixel(ylookup[y]+x+frameplace,(int32_t)col);
