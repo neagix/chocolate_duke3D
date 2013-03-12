@@ -249,17 +249,16 @@ static void init_new_res_vars(int32_t davidoption)
    	} /* if */
     
 
-        i = xdim*ydim;
-    	j = ydim*4*sizeof(int32_t);  /* Leave room for horizlookup&horizlookup2 */
+    j = ydim*4*sizeof(int32_t);  /* Leave room for horizlookup&horizlookup2 */
 
-		if(horizlookup)
-			free(horizlookup);
+    if(horizlookup)
+        free(horizlookup);
 
-		if(horizlookup2)
-			free(horizlookup2);
+    if(horizlookup2)
+        free(horizlookup2);
 		
-		horizlookup = (int32_t*)malloc(j);
-		horizlookup2 = (int32_t*)malloc(j);
+    horizlookup = (int32_t*)malloc(j);
+    horizlookup2 = (int32_t*)malloc(j);
 
     j = 0;
     
