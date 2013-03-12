@@ -144,7 +144,6 @@ EXTERN uint16_t mapCRC;
 
 EXTERN spritetype tsprite[MAXSPRITESONSCREEN];
 
-EXTERN uint8_t  vidoption;
 EXTERN int32_t xdim, ydim, numpages;
 
 // Fast way to retrive the start of a column in the framebuffer, given a screenspace X coordinate.

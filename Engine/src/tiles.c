@@ -33,8 +33,6 @@ void setviewtotile(short tilenume, int32_t tileWidth, int32_t tileHeight)
     tiles[tilenume].dim.height = tileHeight;
     bakxsiz[setviewcnt] = tileWidth;
     bakysiz[setviewcnt] = tileHeight;
-    bakvidoption[setviewcnt] = vidoption;
-    vidoption = 2;
     bakframeplace[setviewcnt] = frameplace;
     frameplace = tiles[tilenume].data;
     bakwindowx1[setviewcnt] = windowx1;

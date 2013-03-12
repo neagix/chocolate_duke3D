@@ -249,15 +249,9 @@ static void init_new_res_vars(int32_t davidoption)
    	    if (screenalloctype == 1) suckcache((int32_t *)screen);
    		screen = NULL;
    	} /* if */
+    
 
-
-    	switch(vidoption)
-    	{
-    		case 1:i = xdim*ydim; break;
-    		case 2: xdim = 320; ydim = 200; i = xdim*ydim; break;
-    		
-    		default: assert(0);
-    	}
+        i = xdim*ydim;
     	j = ydim*4*sizeof(int32_t);  /* Leave room for horizlookup&horizlookup2 */
 
 		if(horizlookup)
@@ -1214,8 +1208,7 @@ void getvalidvesamodes(void)
 
     already_checked = 1;
    	validmodecnt = 0;
-    vidoption = 1;  /* !!! tmp */
-
+    
         /* fill in the standard resolutions... */
     for (i = 0; i < sizeof (stdres) / sizeof (stdres[0]); i++)
         add_vesa_mode("standard", stdres[i][0], stdres[i][1]);

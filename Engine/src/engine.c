@@ -8527,7 +8527,6 @@ uint8_t  getpixel(int32_t x, int32_t y)
 
 /* MUST USE RESTOREFORDRAWROOMS AFTER DRAWING */
 int32_t setviewcnt = 0;
-int32_t bakvidoption[4];
 uint8_t* bakframeplace[4];
 int32_t bakxsiz[4], bakysiz[4];
 int32_t bakwindowx1[4], bakwindowy1[4];
@@ -8545,7 +8544,6 @@ void setviewback(void)
             bakwindowx2[setviewcnt],bakwindowy2[setviewcnt]);
     copybufbyte(&bakumost[windowx1],&startumost[windowx1],(windowx2-windowx1+1)*sizeof(startumost[0]));
     copybufbyte(&bakdmost[windowx1],&startdmost[windowx1],(windowx2-windowx1+1)*sizeof(startdmost[0]));
-    vidoption = bakvidoption[setviewcnt];
     frameplace = bakframeplace[setviewcnt];
     if (setviewcnt == 0)
         k = bakxsiz[0];
