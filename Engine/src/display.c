@@ -239,7 +239,6 @@ static void init_new_res_vars(int32_t davidoption)
 
     game_mode.bytesperline = surface->w;
 	qsetmode = surface->h;
-	activepage = visualpage = 0;
 
      
     frameoffset = frameplace = (uint8_t*)surface->pixels;

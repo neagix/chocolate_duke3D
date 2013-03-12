@@ -30,9 +30,7 @@
 #include "engine.h"
 #include "tiles.h"
 
-int32_t stereowidth = 23040, stereopixelwidth = 28, ostereopixelwidth = -1;
-int32_t stereomode = 0, visualpage, activepage, whiteband, blackband;
-uint8_t  oa1, o3c2, ortca, ortcb, overtbits, laststereoint;
+//uint8_t  oa1, o3c2, ortca, ortcb, overtbits, laststereoint;
 
 #include "display.h"
 
@@ -2801,44 +2799,6 @@ EngineState* drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daan
     cosviewingrangeglobalang = mulscale16(cosglobalang,viewingrange);
     sinviewingrangeglobalang = mulscale16(singlobalang,viewingrange);
 
-    if (stereomode != 0)
-    {
-        if (stereopixelwidth != ostereopixelwidth)
-        {
-            ostereopixelwidth = stereopixelwidth;
-            xdimen = (windowx2-windowx1+1)+(stereopixelwidth<<1);
-            halfxdimen = (xdimen>>1);
-            xdimenrecip = divscale32(1L,xdimen);
-            setaspect((int32_t)divscale16(xdimen,windowx2-windowx1+1),yxaspect);
-        }
-
-        if ((!(activepage&1)) ^ inpreparemirror)
-        {
-            for(i=windowx1; i<windowx1+(stereopixelwidth<<1); i++) {
-                startumost[i] = 1, startdmost[i] = 0;
-            }
-            for(; i<windowx2+1+(stereopixelwidth<<1); i++) {
-                startumost[i] = windowy1, startdmost[i] = windowy2+1;
-            }
-            viewoffset = windowy1 * game_mode.bytesperline + windowx1 - (stereopixelwidth<<1);
-            i = stereowidth;
-        }
-        else
-        {
-            for(i=windowx1; i<windowx2+1; i++) {
-                startumost[i] = windowy1, startdmost[i] = windowy2+1;
-            }
-            for(; i<windowx2+1+(stereopixelwidth<<1); i++) {
-                startumost[i] = 1, startdmost[i] = 0;
-            }
-            viewoffset = windowy1 * game_mode.bytesperline + windowx1;
-            i = -stereowidth;
-        }
-        globalposx += mulscale24(singlobalang,i);
-        globalposy -= mulscale24(cosglobalang,i);
-       
-    }
-
     if ((xyaspect != oxyaspect) || (xdimen != oxdimen) || (viewingrange != oviewingrange))
         dosetaspect();
 
@@ -2903,12 +2863,6 @@ EngineState* drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daan
             if (wall[pvWalls[i].worldWallId].nextsector < 0) continue;
             if (pvWalls[i].screenSpaceCoo[0][VEC_COL] < mirrorsx1) mirrorsx1 = pvWalls[i].screenSpaceCoo[0][VEC_COL];
             if (pvWalls[i].screenSpaceCoo[1][VEC_COL] > mirrorsx2) mirrorsx2 = pvWalls[i].screenSpaceCoo[1][VEC_COL];
-        }
-
-        if (stereomode)
-        {
-            mirrorsx1 += (stereopixelwidth<<1);
-            mirrorsx2 += (stereopixelwidth<<1);
         }
 
         for(i=0; i<mirrorsx1; i++)
@@ -3744,7 +3698,6 @@ static void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short pi
         if ((dastat&8) == 0)
         {
             x = xdimenscale;   /* = scale(xdimen,yxaspect,320); */
-            if (stereomode) x = scale(windowx2-windowx1+1,yxaspect,320);
             sx = ((cx1+cx2+2)<<15)+scale(sx-(320<<15),xdimen,320);
             sy = ((cy1+cy2+2)<<15)+mulscale16(sy-(200<<15),x);
         }
@@ -7702,15 +7655,6 @@ void setview(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
     }
 
     viewoffset = windowy1 * game_mode.bytesperline + windowx1;
-
-    if (stereomode)
-    {
-        ostereopixelwidth = stereopixelwidth;
-        xdimen = (windowx2-windowx1+1)+(stereopixelwidth<<1);
-        halfxdimen = (xdimen>>1);
-        xdimenrecip = divscale32(1L,xdimen);
-        setaspect((int32_t)divscale16(xdimen,windowx2-windowx1+1),yxaspect);
-    }
 }
 
 

@@ -26,7 +26,6 @@ extern uint8_t* frameplace;
 extern uint8_t* frameoffset;
 extern uint8_t  textfont[1024], smalltextfont[1024];
 extern uint8_t  pow2char[8];
-extern int32_t stereomode, visualpage, activepage, whiteband, blackband;
 extern int32_t searchx, searchy;
 extern int32_t wx1, wy1, wx2, wy2, ydimen;
 extern int32_t xdimen, xdimenrecip, halfxdimen, xdimenscale, xdimscale;
