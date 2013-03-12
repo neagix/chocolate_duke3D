@@ -228,7 +228,6 @@ typedef struct
 static permfifotype permfifo[MAXPERMS];
 static int32_t permhead = 0, permtail = 0;
 
-short editstatus = 0;
 short searchit;
 int32_t searchx = -1, searchy;                     /* search input  */
 short searchsector, searchwall, searchstat;     /* search output */
@@ -6821,9 +6820,10 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
             if (dax >= day) continue;
 
             clipyou = 0;
-            if ((wal->nextsector < 0) || (wal->cstat&dawalclipmask)) clipyou = 1;
-            else if (editstatus == 0)
-            {
+            if ((wal->nextsector < 0) || (wal->cstat&dawalclipmask)) {
+                clipyou = 1;
+            }
+            else {
                 if (rintersect(*x,*y,0,gx,gy,0,x1,y1,x2,y2,&dax,&day,&daz) == 0)
                     dax = *x, day = *y;
                 daz = getflorzofslope((short)dasect,dax,day);
@@ -7444,11 +7444,9 @@ void getzrange(int32_t x, int32_t y, int32_t z, short sectnum,
 
                 if (wal->cstat&dawalclipmask) continue;
                 sec = &sector[k];
-                if (editstatus == 0)
-                {
-                    if (((sec->ceilingstat&1) == 0) && (z <= sec->ceilingz+(3<<8))) continue;
-                    if (((sec->floorstat&1) == 0) && (z >= sec->floorz-(3<<8))) continue;
-                }
+
+                if (((sec->ceilingstat&1) == 0) && (z <= sec->ceilingz+(3<<8))) continue;
+                if (((sec->floorstat&1) == 0) && (z >= sec->floorz-(3<<8))) continue;
 
                 for(i=clipsectnum-1; i>=0; i--) if (clipsectorlist[i] == k) break;
                 if (i < 0) clipsectorlist[clipsectnum++] = k;
