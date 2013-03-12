@@ -223,8 +223,6 @@ void* get_framebuffer(void){
 static uint8_t  screenalloctype = 255;
 static void init_new_res_vars(int32_t davidoption)
 {
-    int32_t xres, yres;
-    
     int i = 0;
     int j = 0;
 
@@ -232,8 +230,8 @@ static void init_new_res_vars(int32_t davidoption)
 
     SDL_WM_SetCaption(titleNameLong, titleNameShort);
 
-    xdim = xres = surface->w;
-    ydim = yres = surface->h;
+    xdim = surface->w;
+    ydim = surface->h;
 
 	printf("init_new_res_vars %d %d\n",xdim,ydim);
 
