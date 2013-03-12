@@ -3096,8 +3096,6 @@ int loadboard(char  *filename, int32_t *daposx, int32_t *daposy,
     spritetype *s;
     walltype *w;
 
-    x = 0;
-
     // FIX_00058: Save/load game crash in both single and multiplayer
     // We have to reset those arrays since the same
     // arrays are used as temporary space in the
@@ -3866,7 +3864,6 @@ static void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short pi
 
             by <<= 8;
             yv <<= 8;
-            yv2 <<= 8;
 
             palookupoffse[0] = palookupoffse[1] = palookupoffse[2] = palookupoffse[3] = palookupoffs;
             vince[0] = vince[1] = vince[2] = vince[3] = yv;
@@ -4349,9 +4346,7 @@ void drawline256 (int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint8_t  col)
             i = x1;
             x1 = x2;
             x2 = i;
-            i = y1;
             y1 = y2;
-            y2 = i;
         }
 
         inc = divscale12(dy,dx);
@@ -4370,12 +4365,13 @@ void drawline256 (int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint8_t  col)
     {
         if (dy < 0)
         {
-            i = x1;
+            int32_t swap;
+            
             x1 = x2;
-            x2 = i;
-            i = y1;
+            
+            swap = y1;            
             y1 = y2;
-            y2 = i;
+            y2 = swap;
         }
 
         inc = divscale12(dx,dy);
@@ -4789,8 +4785,6 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         if (rx >= xdimen) rx = xdimen-1;
         if (lx > rx) return;
 
-        yinc = divscale32(spriteDim.height,ysiz);
-
         if ((sec->ceilingstat&3) == 0)
             startum = globalhoriz+mulscale24(siz,sec->ceilingz-engine_state->posz)-1;
         else
@@ -4818,13 +4812,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
             linuminc = -divscale24(spriteDim.width,xsiz);
             linum = mulscale8((lx<<8)-x2,linuminc);
         }
-        if ((cstat&8) > 0)
-        {
-            yinc = -yinc;
-            i = y1;
-            y1 = y2;
-            y2 = i;
-        }
+
 
         for(x=lx; x<=rx; x++)
         {
@@ -7025,7 +7013,6 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
     } while (clipsectcnt < clipsectnum);
 
 
-    hitwall = 0;
     cnt = clipmoveboxtracenum;
     do
     {
@@ -7129,14 +7116,13 @@ int pushmove(int32_t *x, int32_t *y, int32_t *z, short *sectnum,
     sectortype *sec, *sec2;
     walltype *wal;
     int32_t i, j, k, t, dx, dy, dax, day, daz, daz2, bad, dir;
-    int32_t dasprclipmask, dawalclipmask;
+    int32_t dawalclipmask;
     short startwall, endwall, clipsectcnt;
     uint8_t  bad2;
 
     if ((*sectnum) < 0) return(-1);
 
     dawalclipmask = (cliptype&65535);
-    dasprclipmask = (cliptype>>16);
 
     k = 32;
     dir = 1;
@@ -8340,8 +8326,6 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang, EngineState
         spr = &sprite[tsprite[s].owner];
         if ((spr->cstat&48) == 32)
         {
-            npoints = 0;
-
             tilenum = spr->picnum;
             xoff = (int32_t)((int8_t  )((tiles[tilenum].animFlags>>8)&255))+((int32_t)spr->xoffset);
             yoff = (int32_t)((int8_t  )((tiles[tilenum].animFlags>>16)&255))+((int32_t)spr->yoffset);
