@@ -35,6 +35,7 @@ typedef struct EngineState {
     int32_t posx;
     int32_t posy;
     int32_t posz;
+    int32_t horiz;
 } EngineState;
 
 
