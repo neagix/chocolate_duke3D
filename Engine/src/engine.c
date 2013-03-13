@@ -164,7 +164,7 @@ static int32_t xsi[8], ysi[8];
 int32_t *horizlookup=0, *horizlookup2=0, horizycent;
 
 int32_t globalhoriz;
-int16_t globalang, globalcursectnum;
+int16_t globalang;
 int32_t globalpal, cosglobalang, singlobalang;
 int32_t cosviewingrangeglobalang, sinviewingrangeglobalang;
 uint8_t  *globalpalwritten;
@@ -2727,7 +2727,7 @@ static int bunchfront(int32_t firstBunchID, int32_t secondBunchID, EngineState *
 /*
       FCS: Draw every walls in Front to Back Order.
 */
-EngineState* drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daang, int32_t dahoriz, short dacursectnum)
+EngineState* drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daang, int32_t dahoriz, short currentSectorNumber)
 {
     int32_t i, j, closest;
 	//Ceiling and Floor height at the player position.
@@ -2790,7 +2790,6 @@ EngineState* drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daan
     globalhisibility = mulscale16(globalvisibility,xyaspect);
     globalcisibility = mulscale8(globalhisibility,320);
 
-    globalcursectnum = dacursectnum;
     totalclocklock = totalclock;
 
     cosglobalang = sintable[(globalang+512)&2047];
@@ -2826,30 +2825,30 @@ EngineState* drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daan
     engine_state.smostcnt = 0;
     engine_state.spritesortcnt = 0;
 
-    if (globalcursectnum >= MAXSECTORS)
-        globalcursectnum -= MAXSECTORS;
+    if (currentSectorNumber >= MAXSECTORS)
+        currentSectorNumber -= MAXSECTORS;
     else
     {
 		// Even if the player leaves the map, the engine will keep on rendering from the last visited sector.
 		// Save it.
-        i = globalcursectnum;
-        updatesector(engine_state.posx,engine_state.posy,&globalcursectnum);
+        i = currentSectorNumber;
+        updatesector(engine_state.posx, engine_state.posy, &currentSectorNumber);
 		//Seem the player has left the map since updatesector cannot locate him -> Restore to the last known sector.
-        if (globalcursectnum < 0) 
-			globalcursectnum = i;
+        if (currentSectorNumber < 0) 
+			currentSectorNumber = i;
     }
 
     globparaceilclip = 1;
     globparaflorclip = 1;
 
 	//Update the ceiling and floor Z coordinate for the player's 2D position.
-    getzsofslope(globalcursectnum, engine_state.posx, engine_state.posy, &cz, &fz);
+    getzsofslope(currentSectorNumber, engine_state.posx, engine_state.posy, &cz, &fz);
 
     if (engine_state.posz < cz) globparaceilclip = 0;
     if (engine_state.posz > fz) globparaflorclip = 0;
 
 	//Build the list of potentially visible wall in to "bunches".
-    scansector(globalcursectnum, &numscans, &numbunches, &engine_state);
+    scansector(currentSectorNumber, &numscans, &numbunches, &engine_state);
 
     // Are we drawing a mirror?
     if (inpreparemirror)
