@@ -651,7 +651,7 @@ static void slowhline (int32_t xr, int32_t yp, EngineState *engine_state)
 /* renders non-parallaxed ceilings. --ryan. */
 static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engine_state)
 {
-    int8_t globalxshift, globalyshift;
+    int8_t xshift, yshift;
     int32_t i, j, ox, oy, x, y1, y2, twall, bwall;
     sectortype *sec;
 
@@ -737,11 +737,11 @@ static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
 
     globalx2 = mulscale16(globalx2,viewingrangerecip);
     globaly1 = mulscale16(globaly1,viewingrangerecip);
-    globalxshift = (8-(picsiz[globalpicnum]&15));
-    globalyshift = (8-(picsiz[globalpicnum]>>4));
+    xshift = (8-(picsiz[globalpicnum]&15));
+    yshift = (8-(picsiz[globalpicnum]>>4));
     if (globalorientation&8) {
-        globalxshift++;
-        globalyshift++;
+        xshift++;
+        yshift++;
     }
 
     if ((globalorientation&0x4) > 0) {
@@ -766,12 +766,12 @@ static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
         globalypanning = -globalypanning;
     }
 
-    globalx1 <<= globalxshift;
-    globaly1 <<= globalxshift;
-    globalx2 <<= globalyshift;
-    globaly2 <<= globalyshift;
-    globalxpanning <<= globalxshift;
-    globalypanning <<= globalyshift;
+    globalx1 <<= xshift;
+    globaly1 <<= xshift;
+    globalx2 <<= yshift;
+    globaly2 <<= yshift;
+    globalxpanning <<= xshift;
+    globalypanning <<= yshift;
     globalxpanning += (((int32_t)sec->ceilingxpanning)<<24);
     globalypanning += (((int32_t)sec->ceilingypanning)<<24);
     globaly1 = (-globalx1-globaly1)*halfxdimen;
@@ -899,7 +899,7 @@ static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
 /* renders non-parallaxed floors. --ryan. */
 static void florscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engine_state)
 {
-    int8_t globalxshift, globalyshift;
+    int8_t xshift, yshift;
     int32_t i, j, ox, oy, x, y1, y2, twall, bwall;
     sectortype *sec;
 
@@ -992,11 +992,11 @@ static void florscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
 
     globalx2 = mulscale16(globalx2,viewingrangerecip);
     globaly1 = mulscale16(globaly1,viewingrangerecip);
-    globalxshift = (8-(picsiz[globalpicnum]&15));
-    globalyshift = (8-(picsiz[globalpicnum]>>4));
+    xshift = (8-(picsiz[globalpicnum]&15));
+    yshift = (8-(picsiz[globalpicnum]>>4));
     if (globalorientation&8) {
-        globalxshift++;
-        globalyshift++;
+        xshift++;
+        yshift++;
     }
 
     if ((globalorientation&0x4) > 0) {
@@ -1025,12 +1025,12 @@ static void florscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
     }
 
 
-    globalx1 <<= globalxshift;
-    globaly1 <<= globalxshift;
-    globalx2 <<= globalyshift;
-    globaly2 <<= globalyshift;
-    globalxpanning <<= globalxshift;
-    globalypanning <<= globalyshift;
+    globalx1 <<= xshift;
+    globaly1 <<= xshift;
+    globalx2 <<= yshift;
+    globaly2 <<= yshift;
+    globalxpanning <<= xshift;
+    globalypanning <<= yshift;
     globalxpanning += (((int32_t)sec->floorxpanning)<<24);
     globalypanning += (((int32_t)sec->floorypanning)<<24);
     globaly1 = (-globalx1-globaly1)*halfxdimen;
