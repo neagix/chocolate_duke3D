@@ -155,7 +155,6 @@ EXTERN int32_t validmodexdim[256], validmodeydim[256];
 EXTERN short numsectors, numwalls;
 EXTERN volatile int32_t totalclock;
 EXTERN int32_t numframes, randomseed;
-EXTERN short sintable[2048];
 EXTERN uint8_t  palette[768];
 EXTERN short numpalookups;
 EXTERN uint8_t  *palookup[MAXPALOOKUPS];
@@ -266,15 +265,6 @@ OTHER VARIABLES:
         STARTDMOST[320] is an array of the lowest y-coordinates on each column
                 that my engine is allowed to write to.  You need to set it only
                 once.
-        SINTABLE[2048] is a sin table with 2048 angles rather than the
-            normal 360 angles for higher precision.  Also since SINTABLE is in
-            all integers, the range is multiplied by 16383, so instead of the
-            normal -1<sin(x)<1, the range of sintable is -16383<sintable[]<16383
-            If you use this sintable, you can possibly speed up your code as
-            well as save space in memory.  If you plan to use sintable, 2
-            identities you may want to keep in mind are:
-                sintable[ang&2047]       = sin(ang * (3.141592/1024)) * 16383
-                sintable[(ang+512)&2047] = cos(ang * (3.141592/1024)) * 16383
         NUMSECTORS - the total number of existing sectors.  Modified every time
             you call the loadboard function.
 ***************************************************************************/

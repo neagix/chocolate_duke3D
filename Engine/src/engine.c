@@ -3501,8 +3501,9 @@ static void loadtables(void)
     if (tablesloaded == 0) {
 
         if ((fil = TCkopen4load("tables.dat",0)) != -1) {
+            // Skips the first 2048*2 bytes
             for (i = 0; i < 2048; i++) {
-                kread16(fil,&sintable[i]);
+                kread16(fil,&radarang[0]);
             }
 
             for (i = 0; i < 640; i++) {
