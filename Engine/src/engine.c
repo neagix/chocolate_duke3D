@@ -6754,7 +6754,7 @@ int hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum,
                     k = spr->ang;
                     l = spr->xrepeat;
                     dax = fixedPointSin(k)*l;
-                    sinang = fixedPointSin((k+1536))*l;
+                    day = fixedPointSin((k+1536))*l;
                     l = tiles[tilenum].dim.width;
                     k = (l>>1)+xoff;
                     x1 -= mulscale16(dax,k);
