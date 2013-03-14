@@ -162,6 +162,7 @@ static inline int mul9 (int32_t i1)
 
 int32_t fixedPointSqrt(uint32_t radicand);
 int32_t fixedPointSin(int32_t degree);
+int32_t fixedPointCos(int32_t degree);
 void copybufreverse(void *S, void *D, int32_t c);
 void copybuf(void *s, void *d, int32_t c);
 void clearbuf(void *d, int32_t c, int32_t a);
