@@ -240,23 +240,6 @@ uint16_t mapCRC;
 
 #include "draw.h"
 
-int32_t fixedPointSqrt(uint32_t radicand)
-{
-    return (int32_t)floor(sqrt(radicand));
-}
-
-double_t toRadiains(int32_t degree)
-{
-    return ((double_t)degree * M_PI) / 1024.0;
-}
-
-// fixedPointSin(ang)     = sin(ang * (3.141592/1024)) * 16383
-// fixedPointSin(ang+512) = cos(ang * (3.141592/1024)) * 16383
-int32_t fixedPointSin(int32_t degree)
-{
-    return (int32_t)(sin(toRadiains(degree)) * 16383);
-}
-
 static __inline int32_t getclipmask(int32_t a, int32_t b, int32_t c, int32_t d)
 {
     // Ken did this
