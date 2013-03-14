@@ -171,9 +171,9 @@ void getangplayers(short snum)
             a = ps[snum].ang+getangle(ps[i].posx-ps[snum].posx,ps[i].posy-ps[snum].posy);
             a = a-1024;
             rotatesprite(
-                (320<<15) + (((sintable[(a+512)&2047])>>7)<<15),
-                (320<<15) - (((sintable[a&2047])>>8)<<15),
-                klabs(sintable[((a>>1)+768)&2047]<<2),0,APLAYER,0,ps[i].palookup,0,0,0,xdim-1,ydim-1);
+		(320<<15) + (((fixedPointSin((a+512)))>>7)<<15),
+		(320<<15) - (((fixedPointSin(a))>>8)<<15),
+		klabs(fixedPointSin(((a>>1)+768))<<2),0,APLAYER,0,ps[i].palookup,0,0,0,xdim-1,ydim-1);
         }
     }
 }
@@ -1466,7 +1466,7 @@ void menus(void)
 
     x = 0;
 
-    sh = 4-(sintable[(totalclock<<4)&2047]>>11);
+    sh = 4-(fixedPointSin((totalclock<<4))>>11);
 
     if(!(current_menu >= 1000 && current_menu <= 2999 && current_menu >= 300 && current_menu <= 369))
         vscrn();
@@ -2043,11 +2043,11 @@ void menus(void)
             }
             break;
 
-        case 0: // main menu
-            c = (320>>1);
-            rotatesprite(c<<16,28<<16,65536L,0,INGAMEDUKETHREEDEE,0,0,10,0,0,xdim-1,ydim-1);
-            rotatesprite((c+100)<<16,36<<16,65536L,0,PLUTOPAKSPRITE+2,(sintable[(totalclock<<4)&2047]>>11),0,2+8,0,0,xdim-1,ydim-1);
-            
+	case 0: // main menu
+	    c = (320>>1);
+	    rotatesprite(c<<16,28<<16,65536L,0,INGAMEDUKETHREEDEE,0,0,10,0,0,xdim-1,ydim-1);
+	    rotatesprite((c+100)<<16,36<<16,65536L,0,PLUTOPAKSPRITE+2,(fixedPointSin((totalclock<<4))>>11),0,2+8,0,0,xdim-1,ydim-1);
+
 			x = probe(c,67,16,6);
 
             if(x >= 0)
@@ -2122,7 +2122,7 @@ else
         case 50: // general menu as cmenu(0) but for multiplayer games
             c = (320>>1);
             rotatesprite(c<<16,32<<16,65536L,0,INGAMEDUKETHREEDEE,0,0,10,0,0,xdim-1,ydim-1);
-            rotatesprite((c+100)<<16,36<<16,65536L,0,PLUTOPAKSPRITE+2,(sintable[(totalclock<<4)&2047]>>11),0,2+8,0,0,xdim-1,ydim-1);
+	    rotatesprite((c+100)<<16,36<<16,65536L,0,PLUTOPAKSPRITE+2,(fixedPointSin((totalclock<<4))>>11),0,2+8,0,0,xdim-1,ydim-1);
             x = probe(c,67,16,7);
             switch(x)
             {
@@ -2309,8 +2309,8 @@ else
 
 					// uncomment this for usermap
 					//menutext(160,60+20+20+20+20,SHX(-6),PHX(-6),"USER MAP");
-		           
-					//gametextpal(160,60+20+20+20+20+3,boardfilename,16+(sintable[(totalclock<<4)&2047]>>11),2);
+
+					//gametextpal(160,60+20+20+20+20+3,boardfilename,16+(fixedPointSin((totalclock<<4))>>11),2);
 					//}
 				}
 				else
@@ -4173,8 +4173,8 @@ void drawoverheadmap(int32_t cposx, int32_t cposy, int32_t czoom, short cang)
         walltype *wal, *wal2;
         spritetype *spr;
 
-        xvect = sintable[(-cang)&2047] * czoom;
-        yvect = sintable[(1536-cang)&2047] * czoom;
+	xvect = fixedPointSin((-cang)) * czoom;
+	yvect = fixedPointSin((1536-cang)) * czoom;
         xvect2 = mulscale16(xvect,yxaspect);
         yvect2 = mulscale16(yvect,yxaspect);
 
@@ -4234,8 +4234,8 @@ void drawoverheadmap(int32_t cposx, int32_t cposy, int32_t czoom, short cang)
                                                 x1 = dmulscale16(ox,xvect,-oy,yvect);
                                                 y1 = dmulscale16(oy,xvect2,ox,yvect2);
 
-                                                ox = (sintable[(spr->ang+512)&2047]>>7);
-                                                oy = (sintable[(spr->ang)&2047]>>7);
+						ox = (fixedPointSin((spr->ang+512))>>7);
+						oy = (fixedPointSin((spr->ang))>>7);
                                                 x2 = dmulscale16(ox,xvect,-oy,yvect);
                                                 y2 = dmulscale16(oy,xvect,ox,yvect);
 
@@ -4259,7 +4259,7 @@ void drawoverheadmap(int32_t cposx, int32_t cposy, int32_t czoom, short cang)
                             if ((spr->cstat&4) > 0)
                                 xoff = -xoff;
                             k = spr->ang; l = spr->xrepeat;
-                            dax = sintable[k&2047]*l; day = sintable[(k+1536)&2047]*l;
+			    dax = fixedPointSin(k)*l; day = fixedPointSin((k+1536))*l;
                             l = tiles[tilenum].dim.width;
                             k = (l>>1)+xoff;
                             x1 -= mulscale16(dax,k);
@@ -4290,8 +4290,8 @@ void drawoverheadmap(int32_t cposx, int32_t cposy, int32_t czoom, short cang)
                                                 if ((spr->cstat&8) > 0) yoff = -yoff;
 
                                                 k = spr->ang;
-                                                cosang = sintable[(k+512)&2047];
-                                        sinang = sintable[k];
+						cosang = fixedPointSin((k+512));
+					sinang = fixedPointSin(k);
                                                 xspan = tiles[tilenum].dim.width;
                                         xrepeat = spr->xrepeat;
                                                 yspan = tiles[tilenum].dim.height;

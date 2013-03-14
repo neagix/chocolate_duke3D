@@ -247,6 +247,15 @@ int32_t fixedPointSqrt(uint32_t radicand)
     return (int32_t)floor(sqrt(radicand));
 }
 
+double_t toRadiains(int32_t degree) {
+    return ((double_t)degree * M_PI) / 1024.0;
+}
+
+// fixedPointSin(ang)     = sin(ang * (3.141592/1024)) * 16383
+// fixedPointSin(ang+512) = cos(ang * (3.141592/1024)) * 16383
+int32_t fixedPointSin(int32_t degree) {
+    return (int32_t)(sin(toRadiains(degree)) * 16383);
+}
 
 static __inline int32_t getclipmask(int32_t a, int32_t b, int32_t c, int32_t d)
 {   // Ken did this
@@ -1591,7 +1600,7 @@ static void parascan(int32_t dax1, int32_t dax2, int32_t sectnum,uint8_t  dastat
             {
                 n = mulscale16(xdimscale,viewingrange);
                 for(j=pvWalls[z].screenSpaceCoo[0][VEC_COL]; j<=pvWalls[z].screenSpaceCoo[1][VEC_COL]; j++)
-                    swplc[j] = mulscale14(sintable[((int32_t)radarang2[j]+512)&2047],n);
+		    swplc[j] = mulscale14(fixedPointSin(((int32_t)radarang2[j]+512)),n);
             }
             else
                 clearbuf(&swplc[pvWalls[z].screenSpaceCoo[0][VEC_COL]],pvWalls[z].screenSpaceCoo[1][VEC_COL]-pvWalls[z].screenSpaceCoo[0][VEC_COL]+1,mulscale16(xdimscale,viewingrange));
@@ -2793,8 +2802,8 @@ EngineState* drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daan
 
     totalclocklock = totalclock;
 
-    cosglobalang = sintable[(globalang+512)&2047];
-    singlobalang = sintable[globalang&2047];
+    cosglobalang = fixedPointSin((globalang+512));
+    singlobalang = fixedPointSin(globalang);
     cosviewingrangeglobalang = mulscale16(cosglobalang,viewingrange);
     sinviewingrangeglobalang = mulscale16(singlobalang,viewingrange);
 
@@ -3382,8 +3391,8 @@ static void loadtables(void)
 
         if ((fil = TCkopen4load("tables.dat",0)) != -1)
         {
-            for (i = 0; i < 2048; i++)
-                kread16(fil,&sintable[i]);
+	    for (i = 0; i < 2048; i++)
+		kread16(fil,&sintable[i]);
 
             for (i = 0; i < 640; i++)
                 kread16(fil,&radarang[i]);
@@ -3687,8 +3696,8 @@ static void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short pi
     if (dastat&4)
         yoff = tileHeight-yoff;
 
-    cosang = sintable[(a+512)&2047];
-    sinang = sintable[a&2047];
+    cosang = fixedPointSin((a+512));
+    sinang = fixedPointSin(a);
 
     if ((dastat&2) != 0)  /* Auto window size scaling */
     {
@@ -4925,14 +4934,14 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         if ((cstat&4) > 0) xoff = -xoff;
         if ((cstat&8) > 0) yoff = -yoff;
 
-        spriteDim.width = tiles[tilenum].dim.width;
-        spriteDim.height = tiles[tilenum].dim.height;
-        
-        xv = tspr->xrepeat*sintable[(tspr->ang+2560+1536)&2047];
-        yv = tspr->xrepeat*sintable[(tspr->ang+2048+1536)&2047];
-        i = (spriteDim.width >>1)+xoff;
-        x1 = tspr->x-engine_state->posx-mulscale16(xv,i);
-        x2 = x1+mulscale16(xv,spriteDim.width );
+	spriteDim.width = tiles[tilenum].dim.width;
+	spriteDim.height = tiles[tilenum].dim.height;
+
+	xv = tspr->xrepeat*fixedPointSin((tspr->ang+2560+1536));
+	yv = tspr->xrepeat*fixedPointSin((tspr->ang+2048+1536));
+	i = (spriteDim.width >>1)+xoff;
+	x1 = tspr->x-engine_state->posx-mulscale16(xv,i);
+	x2 = x1+mulscale16(xv,spriteDim.width );
         y1 = tspr->y-engine_state->posy-mulscale16(yv,i);
         y2 = y1+mulscale16(yv,spriteDim.width );
 
@@ -5217,8 +5226,8 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
 
         /* Get top-left corner */
         i = ((tspr->ang+2048-globalang)&2047);
-        cosang = sintable[(i+512)&2047];
-        sinang = sintable[i];
+	cosang = fixedPointSin((i+512));
+	sinang = fixedPointSin(i);
         dax = ((spriteDim.width>>1)+xoff)*tspr->xrepeat;
         day = ((spriteDim.height>>1)+yoff)*tspr->yrepeat;
         rzi[0] += dmulscale12(sinang,dax,cosang,day);
@@ -6338,8 +6347,8 @@ int hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum,
                 if ((cstat&4) > 0) xoff = -xoff;
                 k = spr->ang;
                 l = spr->xrepeat;
-                dax = sintable[k&2047]*l;
-                day = sintable[(k+1536)&2047]*l;
+		dax = fixedPointSin(k)*l;
+		sinang = fixedPointSin((k+1536))*l;
                 l = tiles[tilenum].dim.width;
                 k = (l>>1)+xoff;
                 x1 -= mulscale16(dax,k);
@@ -6392,8 +6401,8 @@ int hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum,
                 if ((cstat&8) > 0) yoff = -yoff;
 
                 ang = spr->ang;
-                cosang = sintable[(ang+512)&2047];
-                sinang = sintable[ang];
+		cosang = fixedPointSin((ang+512));
+		sinang = fixedPointSin(ang);
                 xspan = tiles[tilenum].dim.width;
                 xrepeat = spr->xrepeat;
                 yspan = tiles[tilenum].dim.height;
@@ -6473,9 +6482,9 @@ int neartag(int32_t xs, int32_t ys, int32_t zs, short sectnum, short ange,
     if (sectnum < 0) return(0);
     if ((tagsearch < 1) || (tagsearch > 3)) return(0);
 
-    vx = mulscale14(sintable[(ange+2560)&2047],neartagrange);
+    vx = mulscale14(fixedPointSin((ange+2560)),neartagrange);
     xe = xs+vx;
-    vy = mulscale14(sintable[(ange+2048)&2047],neartagrange);
+    vy = mulscale14(fixedPointSin((ange+2048)),neartagrange);
     ye = ys+vy;
     vz = 0;
     ze = 0;
@@ -6518,7 +6527,7 @@ int neartag(int32_t xs, int32_t ys, int32_t zs, short sectnum, short ange,
                 {
                     if (good&1) *neartagsector = nextsector;
                     if (good&2) *neartagwall = z;
-                    *neartaghitdist = dmulscale14(intx-xs,sintable[(ange+2560)&2047],inty-ys,sintable[(ange+2048)&2047]);
+		    *neartaghitdist = dmulscale14(intx-xs,fixedPointSin((ange+2560)),inty-ys,fixedPointSin((ange+2048)));
                     xe = intx;
                     ye = inty;
                     ze = intz;
@@ -6573,7 +6582,7 @@ int neartag(int32_t xs, int32_t ys, int32_t zs, short sectnum, short ange,
                                 if (klabs(intx-xs)+klabs(inty-ys) < klabs(xe-xs)+klabs(ye-ys))
                                 {
                                     *neartagsprite = z;
-                                    *neartaghitdist = dmulscale14(intx-xs,sintable[(ange+2560)&2047],inty-ys,sintable[(ange+2048)&2047]);
+				    *neartaghitdist = dmulscale14(intx-xs,fixedPointSin((ange+2560)),inty-ys,fixedPointSin((ange+2048)));
                                     xe = intx;
                                     ye = inty;
                                     ze = intz;
@@ -6910,8 +6919,8 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
                     if ((cstat&4) > 0) xoff = -xoff;
                     k = spr->ang;
                     l = spr->xrepeat;
-                    dax = sintable[k&2047]*l;
-                    day = sintable[(k+1536)&2047]*l;
+		    dax = fixedPointSin(k)*l;
+		    day = fixedPointSin((k+1536))*l;
                     l = tiles[tilenum].dim.width;
                     k = (l>>1)+xoff;
                     x1 -= mulscale16(dax,k);
@@ -6920,8 +6929,8 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
                     y2 = y1+mulscale16(day,l);
                     if (clipinsideboxline(cx,cy,x1,y1,x2,y2,rad) != 0)
                     {
-                        dax = mulscale14(sintable[(spr->ang+256+512)&2047],walldist);
-                        day = mulscale14(sintable[(spr->ang+256)&2047],walldist);
+			dax = mulscale14(fixedPointSin((spr->ang+256+512)),walldist);
+			day = mulscale14(fixedPointSin((spr->ang+256)),walldist);
 
                         if ((x1-(*x))*(y2-(*y)) >= (x2-(*x))*(y1-(*y)))   /* Front */
                         {
@@ -6960,8 +6969,8 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
                     if ((cstat&8) > 0) yoff = -yoff;
 
                     k = spr->ang;
-                    cosang = sintable[(k+512)&2047];
-                    sinang = sintable[k];
+		    cosang = fixedPointSin((k+512));
+		    sinang = fixedPointSin(k);
                     xspan = tiles[tilenum].dim.width;
                     xrepeat = spr->xrepeat;
                     yspan = tiles[tilenum].dim.height;
@@ -6982,8 +6991,8 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
                     ryi[2] = ryi[1]+k;
                     ryi[3] = ryi[0]+k;
 
-                    dax = mulscale14(sintable[(spr->ang-256+512)&2047],walldist);
-                    day = mulscale14(sintable[(spr->ang-256)&2047],walldist);
+		    dax = mulscale14(fixedPointSin((spr->ang-256+512)),walldist);
+		    day = mulscale14(fixedPointSin((spr->ang-256)),walldist);
 
                     if ((rxi[0]-(*x))*(ryi[1]-(*y)) < (rxi[1]-(*x))*(ryi[0]-(*y)))
                     {
@@ -7181,8 +7190,8 @@ int pushmove(int32_t *x, int32_t *y, int32_t *z, short *sectnum,
                     if (j != 0)
                     {
                         j = getangle(wall[wal->point2].x-wal->x,wall[wal->point2].y-wal->y);
-                        dx = (sintable[(j+1024)&2047]>>11);
-                        dy = (sintable[(j+512)&2047]>>11);
+			dx = (fixedPointSin((j+1024))>>11);
+			dy = (fixedPointSin((j+512))>>11);
                         bad2 = 16;
                         do
                         {
@@ -7273,8 +7282,8 @@ void rotatepoint(int32_t xpivot, int32_t ypivot, int32_t x, int32_t y, short daa
 {
     int32_t dacos, dasin;
 
-    dacos = sintable[(daang+2560)&2047];
-    dasin = sintable[(daang+2048)&2047];
+    dacos = fixedPointSin((daang+2560));
+    dasin = fixedPointSin((daang+2048));
     x -= xpivot;
     y -= ypivot;
     *x2 = dmulscale14(x,dacos,-y,dasin) + xpivot;
@@ -7495,8 +7504,8 @@ void getzrange(int32_t x, int32_t y, int32_t z, short sectnum,
                     if ((cstat&4) > 0) xoff = -xoff;
                     k = spr->ang;
                     l = spr->xrepeat;
-                    dax = sintable[k&2047]*l;
-                    day = sintable[(k+1536)&2047]*l;
+		    dax = fixedPointSin(k)*l;
+		    day = fixedPointSin((k+1536))*l;
                     l = tiles[tilenum].dim.width;
                     k = (l>>1)+xoff;
                     x1 -= mulscale16(dax,k);
@@ -7531,8 +7540,8 @@ void getzrange(int32_t x, int32_t y, int32_t z, short sectnum,
                     if ((cstat&8) > 0) yoff = -yoff;
 
                     ang = spr->ang;
-                    cosang = sintable[(ang+512)&2047];
-                    sinang = sintable[ang];
+		    cosang = fixedPointSin((ang+512));
+		    sinang = fixedPointSin(ang);
                     xspan = tiles[tilenum].dim.width;
                     xrepeat = spr->xrepeat;
                     yspan = tiles[tilenum].dim.height;
@@ -7553,8 +7562,8 @@ void getzrange(int32_t x, int32_t y, int32_t z, short sectnum,
                     y3 = y2+k;
                     y4 = y1+k;
 
-                    dax = mulscale14(sintable[(spr->ang-256+512)&2047],walldist+4);
-                    day = mulscale14(sintable[(spr->ang-256)&2047],walldist+4);
+		    dax = mulscale14(fixedPointSin((spr->ang-256+512)),walldist+4);
+		    day = mulscale14(fixedPointSin((spr->ang-256)),walldist+4);
                     x1 += dax;
                     x2 -= day;
                     x3 -= dax;
@@ -8300,10 +8309,10 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang, EngineState
     cx2 = ((windowx2+1)<<12)-1;
     cy2 = ((windowy2+1)<<12)-1;
     zoome <<= 8;
-    bakgxvect = divscale28(sintable[(1536-ang)&2047],zoome);
-    bakgyvect = divscale28(sintable[(2048-ang)&2047],zoome);
-    xvect = mulscale8(sintable[(2048-ang)&2047],zoome);
-    yvect = mulscale8(sintable[(1536-ang)&2047],zoome);
+    bakgxvect = divscale28(fixedPointSin((1536-ang)),zoome);
+    bakgyvect = divscale28(fixedPointSin((2048-ang)),zoome);
+    xvect = mulscale8(fixedPointSin((2048-ang)),zoome);
+    yvect = mulscale8(fixedPointSin((1536-ang)),zoome);
     xvect2 = mulscale16(xvect,yxaspect);
     yvect2 = mulscale16(yvect,yxaspect);
 
@@ -8336,8 +8345,8 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang, EngineState
                 yoff = -yoff;
 
             k = spr->ang;
-            cosang = sintable[(k+512)&2047];
-            sinang = sintable[k];
+	    cosang = fixedPointSin((k+512));
+	    sinang = fixedPointSin(k);
             xspan = tiles[tilenum].dim.width;
             xrepeat = spr->xrepeat;
             yspan = tiles[tilenum].dim.height;

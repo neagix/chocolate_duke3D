@@ -2552,7 +2552,7 @@ short strget(short x,short y,char  *t,short dalen,short c)
         x = gametext(x,y,b,c,2+8+16);
     }
     else x = gametext(x,y,t,c,2+8+16);
-    c = 4-(sintable[(totalclock<<4)&2047]>>11);
+    c = 4-(fixedPointSin((totalclock<<4))>>11);
     rotatesprite((x+8)<<16,(y+4)<<16,32768L,0,SPINNINGNUKEICON+((totalclock>>3)%7),c,0,2+8,0,0,xdim-1,ydim-1);
 
     return (0);
@@ -2687,8 +2687,8 @@ void moveclouds(void)
 
         for(i=0;i<numclouds;i++)
         {
-            cloudx[i] += (sintable[(ps[screenpeek].ang+512)&2047]>>9);
-            cloudy[i] += (sintable[ps[screenpeek].ang&2047]>>9);
+	    cloudx[i] += (fixedPointSin((ps[screenpeek].ang+512))>>9);
+	    cloudy[i] += (fixedPointSin(ps[screenpeek].ang)>>9);
 
             sector[clouds[i]].ceilingxpanning = cloudx[i]>>6;
             sector[clouds[i]].ceilingypanning = cloudy[i]>>6;
@@ -2794,8 +2794,8 @@ void displayrest(int32_t smoothratio, EngineState *engine_state)
                 {
 
                      ud.fola += ud.folavel>>3;
-                     ud.folx += (ud.folfvel*sintable[(512+2048-ud.fola)&2047])>>14;
-                     ud.foly += (ud.folfvel*sintable[(512+1024-512-ud.fola)&2047])>>14;
+		     ud.folx += (ud.folfvel*fixedPointSin((512+2048-ud.fola)))>>14;
+		     ud.foly += (ud.folfvel*fixedPointSin((512+1024-512-ud.fola)))>>14;
 
                      cposx = ud.folx;
                      cposy = ud.foly;
@@ -2943,8 +2943,8 @@ void view(struct player_struct *pp, int32_t *vx, int32_t *vy,int32_t *vz,short *
      int32_t i, nx, ny, nz, hx, hy, hitx, hity, hitz;
      short bakcstat, hitsect, hitwall, hitsprite, daang;
 
-     nx = (sintable[(ang+1536)&2047]>>4);
-     ny = (sintable[(ang+1024)&2047]>>4);
+     nx = (fixedPointSin((ang+1536))>>4);
+     ny = (fixedPointSin((ang+1024))>>4);
      nz = (horiz-100)*128;
 
      sp = &sprite[pp->i];
@@ -2970,7 +2970,7 @@ void view(struct player_struct *pp, int32_t *vx, int32_t *vy,int32_t *vz,short *
              daang = getangle(wall[wall[hitwall].point2].x-wall[hitwall].x,
                                     wall[wall[hitwall].point2].y-wall[hitwall].y);
 
-             i = nx*sintable[daang]+ny*sintable[(daang+1536)&2047];
+	     i = nx*fixedPointSin(daang)+ny*fixedPointSin((daang+1536));
              if (klabs(nx) > klabs(ny)) hx -= mulscale28(nx,i);
                                           else hy -= mulscale28(ny,i);
          }
@@ -3323,7 +3323,7 @@ EngineState* displayrooms(short snum,int32_t smoothratio)
                 }
 
                 i = (tang&511); if (i > 256) i = 512-i;
-                i = sintable[i+512]*8 + sintable[i]*5L;
+		i = fixedPointSin(i+512)*8 + fixedPointSin(i)*5L;
                 setaspect(i>>1,yxaspect);
           }
 
@@ -3438,7 +3438,7 @@ EngineState* displayrooms(short snum,int32_t smoothratio)
             setviewback();
             tiles[MAXTILES-2].animFlags &= 0xff0000ff;
             i = (tang&511); if (i > 256) i = 512-i;
-            i = sintable[i+512]*8 + sintable[i]*5L;
+	    i = fixedPointSin(i+512)*8 + fixedPointSin(i)*5L;
             if ((1-ud.detail) == 0) i >>= 1;
             rotatesprite(160<<16,100<<16,i,tang+512,MAXTILES-2,0,0,4+2+64,windowx1,windowy1,windowx2,windowy2);
             tiles[MAXTILES-2].lock = 199;
@@ -4265,8 +4265,8 @@ short spawn( short j, short pn )
                         sp->z = sprite[j].z-PHEIGHT+(3<<8);
                     }
 
-                    sp->x = sprite[j].x+(sintable[(a+512)&2047]>>7);
-                    sp->y = sprite[j].y+(sintable[a&2047]>>7);
+		    sp->x = sprite[j].x+(fixedPointSin((a+512))>>7);
+		    sp->y = sprite[j].y+(fixedPointSin(a)>>7);
 
                     sp->shade = -8;
 
@@ -5653,8 +5653,8 @@ void animatesprites(int32_t x, int32_t y, short a, int32_t smoothratio, EngineSt
                         t->ang = getangle(x-t->x,y-t->y);
                         t->x = sprite[s->owner].x;
                         t->y = sprite[s->owner].y;
-                        t->x += sintable[(t->ang+512)&2047]>>10;
-                        t->y += sintable[t->ang&2047]>>10;
+			t->x += fixedPointSin((t->ang+512))>>10;
+			t->y += fixedPointSin(t->ang)>>10;
                     }
                 }
                 break;
@@ -5663,7 +5663,7 @@ void animatesprites(int32_t x, int32_t y, short a, int32_t smoothratio, EngineSt
                 t->z -= (4<<8);
                 break;
             case CRYSTALAMMO:
-                t->shade = (sintable[(totalclock<<4)&2047]>>10);
+		t->shade = (fixedPointSin((totalclock<<4))>>10);
                 continue;
             case VIEWSCREEN:
             case VIEWSCREEN2:
@@ -8055,11 +8055,11 @@ void findGRPToUse(char * groupfilefullpath){
     else{
         strcat(directoryToScan, "./");    
     }
-    
+
     printf("Scanning directory '%s' for a GRP file like '%s'.\n",directoryToScan,baseDir);
-    
+
     DIR* dir =  opendir(directoryToScan);
-    
+
     while ((dirEntry = readdir(dir)) != NULL)
     {
         
@@ -9083,8 +9083,8 @@ void fakedomovethings(void)
 
         if( p->aim_mode == 0 && myonground && psectlotag != 2 && (sector[psect].floorstat&2) )
         {
-                x = myx+(sintable[(myang+512)&2047]>>5);
-                y = myy+(sintable[myang&2047]>>5);
+		x = myx+(fixedPointSin((myang+512))>>5);
+		y = myy+(fixedPointSin(myang)>>5);
                 tempsect = psect;
                 updatesector(x,y,&tempsect);
                 if (tempsect >= 0)
@@ -9120,8 +9120,8 @@ void fakedomovethings(void)
                  if(badguy(&sprite[j]) && sprite[j].xrepeat > 24 && klabs(sprite[p->i].z-sprite[j].z) < (84<<8) )
                  {
                     j = getangle( sprite[j].x-myx,sprite[j].y-myy);
-                    myxvel -= sintable[(j+512)&2047]<<4;
-                    myyvel -= sintable[j&2047]<<4;
+		    myxvel -= fixedPointSin((j+512))<<4;
+		    myyvel -= fixedPointSin(j)<<4;
                 }
         }
 
@@ -9305,7 +9305,7 @@ void fakedomovethings(void)
                                      }
                                      else
                                      {
-                                             myzvel -= (sintable[(2048-128+myjumpingcounter)&2047])/12;
+					     myzvel -= (fixedPointSin((2048-128+myjumpingcounter)))/12;
                                              myjumpingcounter += 180;
 
                                              myonground = 0;

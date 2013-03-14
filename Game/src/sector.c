@@ -468,8 +468,8 @@ void animatewalls(void)
 
                 if(wall[i].cstat&254)
                 {
-                    wall[i].xpanning -= t>>10; // sintable[(t+512)&2047]>>12;
-                    wall[i].ypanning -= t>>10; // sintable[t&2047]>>12;
+		    wall[i].xpanning -= t>>10; // fixedPointSin((t+512))>>12;
+		    wall[i].ypanning -= t>>10; // fixedPointSin(t)>>12;
 
                     if(wall[i].extra == 1)
                     {
@@ -1846,13 +1846,13 @@ void checkplayerhurt(struct player_struct *p,short j)
              p->pals[1] = 0;
              p->pals[2] = 0;
 
-             p->posxv = -(sintable[(p->ang+512)&2047]<<8);
-             p->posyv = -(sintable[(p->ang)&2047]<<8);
+	     p->posxv = -(fixedPointSin((p->ang+512))<<8);
+	     p->posyv = -(fixedPointSin((p->ang))<<8);
              spritesound(DUKE_LONGTERM_PAIN,p->i);
 
              checkhitwall(p->i,j,
-                 p->posx+(sintable[(p->ang+512)&2047]>>9),
-                 p->posy+(sintable[p->ang&2047]>>9),
+		 p->posx+(fixedPointSin((p->ang+512))>>9),
+		 p->posy+(fixedPointSin(p->ang)>>9),
                  p->posz,-1);
 
             break;
@@ -1860,8 +1860,8 @@ void checkplayerhurt(struct player_struct *p,short j)
         case BIGFORCE:
             p->hurt_delay = 26;
             checkhitwall(p->i,j,
-                p->posx+(sintable[(p->ang+512)&2047]>>9),
-                p->posy+(sintable[p->ang&2047]>>9),
+		p->posx+(fixedPointSin((p->ang+512))>>9),
+		p->posy+(fixedPointSin(p->ang)>>9),
                 p->posz,-1);
             break;
 
