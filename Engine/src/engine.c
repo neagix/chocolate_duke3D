@@ -172,7 +172,6 @@ int32_t xyaspect, viewingrangerecip;
 
 uint8_t  *palookupoffse[4];
 
-uint8_t  globalxshift, globalyshift;
 int32_t globalxpanning, globalypanning, globalshade;
 int16_t globalpicnum, globalshiftval;
 int32_t globalzd, globalyscale, globalorientation;
@@ -652,6 +651,7 @@ static void slowhline (int32_t xr, int32_t yp, EngineState *engine_state)
 /* renders non-parallaxed ceilings. --ryan. */
 static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engine_state)
 {
+    int8_t globalxshift, globalyshift;
     int32_t i, j, ox, oy, x, y1, y2, twall, bwall;
     sectortype *sec;
 
@@ -899,6 +899,7 @@ static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
 /* renders non-parallaxed floors. --ryan. */
 static void florscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engine_state)
 {
+    int8_t globalxshift, globalyshift;
     int32_t i, j, ox, oy, x, y1, y2, twall, bwall;
     sectortype *sec;
 
