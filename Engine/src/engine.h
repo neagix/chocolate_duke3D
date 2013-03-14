@@ -36,6 +36,7 @@ extern "C" {
         int32_t posy;
         int32_t posz;
         int32_t horiz;
+        int32_t ang;
     } EngineState;
 
 
