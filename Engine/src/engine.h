@@ -37,6 +37,11 @@ extern "C" {
         int32_t posz;
         int32_t horiz;
         int32_t ang;
+        
+        int32_t cisibility;
+        int32_t visibility;
+        int32_t pisibility;
+        int32_t hisibility;
     } EngineState;
 
 

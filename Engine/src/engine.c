@@ -166,7 +166,6 @@ int32_t globalpal;
 int32_t cosviewingrangeglobalang, sinviewingrangeglobalang;
 uint8_t  *globalpalwritten;
 int32_t globaluclip, globaldclip, globvis = 0;
-int32_t globalvisibility, globalhisibility, globalpisibility, globalcisibility;
 uint8_t  globparaceilclip, globparaflorclip;
 
 int32_t xyaspect, viewingrangerecip;
@@ -694,7 +693,7 @@ static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
     globalbufplc = tiles[globalpicnum].data;
 
     globalshade = (int32_t)sec->ceilingshade;
-    globvis = globalcisibility;
+    globvis = engine_state->cisibility;
     if (sec->visibility != 0) {
         globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
     }
@@ -948,7 +947,7 @@ static void florscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
     //Retrieve the shade of the sector (illumination level).
     globalshade = (int32_t)sec->floorshade;
 
-    globvis = globalcisibility;
+    globvis = engine_state->cisibility;
     if (sec->visibility != 0) {
         globvis = mulscale4(globvis,(int32_t)((sec->visibility+16)));
     }
@@ -1593,7 +1592,7 @@ static void parascan(int32_t dax1, int32_t dax2, int32_t sectnum,uint8_t  dastat
     if (parallaxyscale != 65536) {
         engine_state->horiz = mulscale16(engine_state->horiz-(ydimen>>1),parallaxyscale) + (ydimen>>1);
     }
-    globvis = globalpisibility;
+    globvis = engine_state->pisibility;
     /* globalorientation = 0L; */
     if (sec->visibility != 0) {
         globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
@@ -1858,7 +1857,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
         globaly1 += (((int32_t)sec->floorypanning)<<24);
     }
 
-    globvis = globalvisibility;
+    globvis = engine_state->visibility;
     if (sec->visibility != 0) {
         globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
     }
@@ -2345,7 +2344,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                     }
 
                     globalshade = (int32_t)wal->shade;
-                    globvis = globalvisibility;
+                    globvis = engine_state->visibility;
                     if (sec->visibility != 0) {
                         globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
                     }
@@ -2468,7 +2467,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                         globalshade = (int32_t)wal->shade;
                         globalpal = (int32_t)wal->pal;
                     }
-                    globvis = globalvisibility;
+                    globvis = engine_state->visibility;
                     if (sec->visibility != 0) {
                         globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
                     }
@@ -2581,7 +2580,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
             }
 
             globalshade = (int32_t)wal->shade;
-            globvis = globalvisibility;
+            globvis = engine_state->visibility;
             if (sec->visibility != 0) {
                 globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
             }
@@ -2891,10 +2890,10 @@ EngineState *drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daan
     globaldclip = (ydimen - engine_state.horiz) * xdimscale;
 
     i = mulscale16(xdimenscale,viewingrangerecip);
-    globalpisibility = mulscale16(parallaxvisibility,i);
-    globalvisibility = mulscale16(visibility,i);
-    globalhisibility = mulscale16(globalvisibility,xyaspect);
-    globalcisibility = mulscale8(globalhisibility,320);
+    engine_state.pisibility = mulscale16(parallaxvisibility, i);
+    engine_state.visibility = mulscale16(visibility, i);
+    engine_state.hisibility = mulscale16(engine_state.visibility, xyaspect);
+    engine_state.cisibility = mulscale8(engine_state.hisibility, 320);
 
     totalclocklock = totalclock;
 
@@ -4774,7 +4773,7 @@ static void drawmaskwall(EngineState *engine_state)
     }
 
     globalshade = (int32_t)wal->shade;
-    globvis = globalvisibility;
+    globvis = engine_state->visibility;
     if (sec->visibility != 0) {
         globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
     }
@@ -5185,7 +5184,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         }
         globalxpanning = 0L;
         globalypanning = 0L;
-        globvis = globalvisibility;
+        globvis = engine_state->visibility;
         if (sec->visibility != 0) {
             globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
         }
@@ -5374,7 +5373,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         }
         globalxpanning = 0L;
         globalypanning = 0L;
-        globvis = globalvisibility;
+        globvis = engine_state->visibility;
         if (sec->visibility != 0) {
             globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
         }
@@ -5875,7 +5874,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         setgotpic(globalpicnum);
         globalbufplc = tiles[globalpicnum].data;
 
-        globvis = mulscale16(globalhisibility,viewingrange);
+        globvis = mulscale16(engine_state->hisibility,viewingrange);
         if (sec->visibility != 0) {
             globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
         }
@@ -9032,7 +9031,7 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang, EngineState
             }
             globalshade = max(min(globalshade+spr->shade+6,numpalookups-1),0);
             a3 = (int32_t) FP_OFF(palookup[spr->pal]+(globalshade<<8));
-            globvis = globalhisibility;
+            globvis = engine_state->hisibility;
             if (sec->visibility != 0) {
                 globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
             }
