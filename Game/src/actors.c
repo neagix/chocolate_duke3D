@@ -741,8 +741,9 @@ short ssp(short i,uint32_t cliptype) //The set sprite function
     s = &sprite[i];
 
     movetype = movesprite(i,
-                          (s->xvel*(fixedPointSin((s->ang+512))))>>14,
-                          (s->xvel*(fixedPointSin(s->ang)))>>14,s->zvel,
+                          (s->xvel * (fixedPointCos(s->ang))) >> 14,
+                          (s->xvel * (fixedPointSin(s->ang))) >> 14,
+                          s->zvel,
                           cliptype);
 
     return (movetype==0);
@@ -909,8 +910,8 @@ void ms(short i)
 
     s = &sprite[i];
 
-    s->x += (s->xvel*(fixedPointSin((s->ang+512))))>>14;
-    s->y += (s->xvel*(fixedPointSin(s->ang)))>>14;
+    s->x += (s->xvel * (fixedPointCos(s->ang))) >> 14;
+    s->y += (s->xvel * (fixedPointSin(s->ang))) >> 14;
 
     j = T2;
     k = T3;
@@ -1080,13 +1081,13 @@ short ifhitbyweapon(short sn)
                     case OOZFILTER:
                     case EXPLODINGBARREL:
                         ps[p].posxv +=
-                            hittype[sn].extra*(fixedPointSin((hittype[sn].ang+512)))<<2;
+                            hittype[sn].extra*(fixedPointCos(hittype[sn].ang))<<2;
                         ps[p].posyv +=
                             hittype[sn].extra*(fixedPointSin(hittype[sn].ang))<<2;
                         break;
                     default:
                         ps[p].posxv +=
-                            hittype[sn].extra*(fixedPointSin((hittype[sn].ang+512)))<<1;
+                            hittype[sn].extra*(fixedPointCos(hittype[sn].ang))<<1;
                         ps[p].posyv +=
                             hittype[sn].extra*(fixedPointSin(hittype[sn].ang))<<1;
                         break;
@@ -1658,7 +1659,7 @@ void movestandables(void)
 
                     s->zvel = 0;
                 } else if (s->owner == -2) {
-                    ps[p].oposx = ps[p].posx = s->x-(fixedPointSin((ps[p].ang+512))>>6);
+                    ps[p].oposx = ps[p].posx = s->x-(fixedPointCos(ps[p].ang)>>6);
                     ps[p].oposy = ps[p].posy = s->y-(fixedPointSin(ps[p].ang)>>6);
                     ps[p].oposz = ps[p].posz = s->z+(2<<8);
                     setsprite(ps[p].i,ps[p].posx,ps[p].posy,ps[p].posz);
@@ -1781,8 +1782,8 @@ void movestandables(void)
 
                 T4 = s->x;
                 T5 = s->y;
-                s->x += fixedPointSin((T6+512))>>9;
-                s->y += fixedPointSin((T6))>>9;
+                s->x += fixedPointCos(T6) >> 9;
+                s->y += fixedPointSin(T6) >> 9;
                 s->z -= (3<<8);
                 setsprite(i,s->x,s->y,s->z);
 
@@ -1800,8 +1801,8 @@ void movestandables(void)
                     sprite[j].hitag = s->hitag;
                     hittype[j].temp_data[1] = sprite[j].z;
 
-                    s->x += fixedPointSin((T6+512))>>4;
-                    s->y += fixedPointSin((T6))>>4;
+                    s->x += fixedPointCos(T6)>>4;
+                    s->y += fixedPointSin(T6)>>4;
 
                     if ( x < 1024 ) {
                         sprite[j].xrepeat = x>>5;
@@ -1829,8 +1830,8 @@ void movestandables(void)
 
                 T4 = s->x;
                 T5 = s->y;
-                s->x += fixedPointSin((T6+512))>>9;
-                s->y += fixedPointSin((T6))>>9;
+                s->x += fixedPointCos(T6)>>9;
+                s->y += fixedPointSin(T6)>>9;
                 s->z -= (3<<8);
                 setsprite(i,s->x,s->y,s->z);
 
@@ -2345,7 +2346,7 @@ void bounce(short i)
     short hitsect;
     spritetype *s = &sprite[i];
 
-    xvect = mulscale10(s->xvel,fixedPointSin((s->ang+512)));
+    xvect = mulscale10(s->xvel,fixedPointCos(s->ang));
     yvect = mulscale10(s->xvel,fixedPointSin(s->ang));
     zvect = s->zvel;
 
@@ -2423,7 +2424,7 @@ void moveweapons(void)
                 }
                 for (k=0; k<T1; k++) {
                     q = EGS(s->sectnum,
-                            s->x+((k*fixedPointSin((s->ang+512)))>>9),
+                            s->x+((k*fixedPointCos(s->ang))>>9),
                             s->y+((k*fixedPointSin(s->ang))>>9),
                             s->z+((k*ksgn(s->zvel))*klabs(s->zvel/12)),TONGUE,-40+(k<<1),
                             8,8,0,0,0,i,5);
@@ -2431,7 +2432,7 @@ void moveweapons(void)
                     sprite[q].pal = 8;
                 }
                 q = EGS(s->sectnum,
-                        s->x+((k*fixedPointSin((s->ang+512)))>>9),
+                        s->x+((k*fixedPointCos(s->ang))>>9),
                         s->y+((k*fixedPointSin(s->ang))>>9),
                         s->z+((k*ksgn(s->zvel))*klabs(s->zvel/12)),INNERJAW,-40,
                         32,32,0,0,0,i,5);
@@ -2488,7 +2489,7 @@ void moveweapons(void)
                 }
 
                 j = movesprite(i,
-                               (k*(fixedPointSin((s->ang+512))))>>14,
+                               (k*(fixedPointCos(s->ang)))>>14,
                                (k*(fixedPointSin(s->ang)))>>14,ll,qq);
 
                 if (s->picnum == RPG && s->yvel >= 0)
@@ -2517,7 +2518,7 @@ void moveweapons(void)
                 if (s->picnum == FIRELASER) {
                     for (k=-3; k<2; k++) {
                         x = EGS(s->sectnum,
-                                s->x+((k*fixedPointSin((s->ang+512)))>>9),
+                                s->x+((k*fixedPointCos(s->ang))>>9),
                                 s->y+((k*fixedPointSin(s->ang))>>9),
                                 s->z+((k*ksgn(s->zvel))*klabs(s->zvel/24)),FIRELASER,-40+(k<<2),
                                 s->xrepeat,s->yrepeat,0,0,0,s->owner,5);
@@ -3161,7 +3162,7 @@ void moveactors(void)
                     }
 
                     j = clipmove(&s->x,&s->y,&s->z,&s->sectnum,
-                                 (((s->xvel*(fixedPointSin((s->ang+512))))>>14)*TICSPERFRAME)<<11,
+                                 (((s->xvel*(fixedPointCos(s->ang)))>>14)*TICSPERFRAME)<<11,
                                  (((s->xvel*(fixedPointSin(s->ang)))>>14)*TICSPERFRAME)<<11,
                                  24L,(4<<8),(4<<8),CLIPMASK1);
 
@@ -3240,7 +3241,7 @@ void moveactors(void)
                             sprite[k].clipdist = 64;
                             sprite[k].ang = j;
                             sprite[k].zvel = fixedPointSin(l)>>5;
-                            sprite[k].xvel = fixedPointSin((l+512))>>9;
+                            sprite[k].xvel = fixedPointCos(l)>>9;
                             sprite[k].owner = i;
                         }
                 }
@@ -3642,7 +3643,7 @@ void moveactors(void)
                     s->xrepeat = 20+(fixedPointSin(t[1])>>13);
                     s->yrepeat = 15+(fixedPointSin(t[1])>>13);
 
-                    s->x = ps[p].posx + (fixedPointSin((ps[p].ang+512))>>7);
+                    s->x = ps[p].posx + (fixedPointSin(ps[p].ang)>>7);
                     s->y = ps[p].posy + (fixedPointSin(ps[p].ang)>>7);
 
                     goto BOLT;
@@ -3721,7 +3722,7 @@ void moveactors(void)
                     l = sprite[t[5]].ang;
 
                     s->z = sprite[t[5]].z;
-                    s->x = sprite[t[5]].x+(fixedPointSin((l+512))>>11);
+                    s->x = sprite[t[5]].x+(fixedPointCos(l)>>11);
                     s->y = sprite[t[5]].y+(fixedPointSin(l)>>11);
 
                     s->picnum =  GREENSLIME+2+(global_random&1);
@@ -3798,14 +3799,14 @@ void moveactors(void)
                         if (s->xvel < 32) {
                             s->xvel += 4;
                         }
-                        s->xvel = 64 - (fixedPointSin((t[1]+512))>>9);
+                        s->xvel = 64 - (fixedPointCos(t[1])>>9);
 
                         s->ang += getincangle(s->ang,
                                               getangle(ps[p].posx-s->x,ps[p].posy-s->y))>>3;
 // TJR
                     }
 
-                    s->xrepeat = 36 + (fixedPointSin((t[1]+512))>>11);
+                    s->xrepeat = 36 + (fixedPointCos(t[1])>>11);
                     s->yrepeat = 16 + (fixedPointSin(t[1])>>13);
 
                     if (rnd(4) && (sector[sect].ceilingstat&1) == 0 &&
@@ -3917,7 +3918,7 @@ void moveactors(void)
                 }
 
                 j = movesprite(i,
-                               (s->xvel*(fixedPointSin((s->ang+512))))>>14,
+                               (s->xvel*(fixedPointCos(s->ang)))>>14,
                                (s->xvel*(fixedPointSin(s->ang)))>>14,
                                s->zvel,CLIPMASK0);
 
@@ -4556,7 +4557,7 @@ void moveexplosions(void)  // STATNUM 5
                         }
                     }
 
-                    s->x += (s->xvel*fixedPointSin((s->ang+512)))>>14;
+                    s->x += (s->xvel*fixedPointCos(s->ang))>>14;
                     s->y += (s->xvel*fixedPointSin(s->ang))>>14;
                     s->z += s->zvel;
 
@@ -4800,7 +4801,7 @@ void moveexplosions(void)  // STATNUM 5
                 if (s->zvel < 4096) {
                     s->zvel += gc-50;
                 }
-                s->x += (s->xvel*fixedPointSin((s->ang+512)))>>14;
+                s->x += (s->xvel*fixedPointCos(s->ang))>>14;
                 s->y += (s->xvel*fixedPointSin(s->ang))>>14;
                 s->z += s->zvel;
             } else {
@@ -5128,7 +5129,7 @@ void moveeffectors(void)   //STATNUM 3
                                 }
                     }
 
-                    m = (s->xvel*fixedPointSin((s->ang+512)))>>14;
+                    m = (s->xvel*fixedPointCos(s->ang))>>14;
                     x = (s->xvel*fixedPointSin(s->ang))>>14;
 
                     for (p = connecthead; p >= 0; p=connectpoint2[p])
@@ -5266,7 +5267,7 @@ void moveeffectors(void)   //STATNUM 3
                 }
 
                 if (s->xvel) {
-                    l = (s->xvel*fixedPointSin((s->ang+512)))>>14;
+                    l = (s->xvel*fixedPointCos(s->ang))>>14;
                     x = (s->xvel*fixedPointSin(s->ang))>>14;
 
                     if ( (sc->floorz-sc->ceilingz) < (108<<8) )
@@ -5402,7 +5403,7 @@ void moveeffectors(void)   //STATNUM 3
                         }
                     }
 
-                    m = (s->xvel*fixedPointSin((s->ang+512)))>>14;
+                    m = (s->xvel*fixedPointCos(s->ang))>>14;
                     x = (s->xvel*fixedPointSin(s->ang))>>14;
 
 
@@ -6228,7 +6229,7 @@ void moveeffectors(void)   //STATNUM 3
                 }
 
                 if ( s->xvel ) { //Moving
-                    x = (s->xvel*fixedPointSin((s->ang+512)))>>14;
+                    x = (s->xvel*fixedPointCos(s->ang))>>14;
                     l = (s->xvel*fixedPointSin(s->ang))>>14;
 
                     t[3] += s->xvel;
@@ -6330,7 +6331,7 @@ void moveeffectors(void)   //STATNUM 3
                     break;
                 }
 
-                x = (SP*fixedPointSin((s->ang+512)))>>18;
+                x = (SP*fixedPointCos(s->ang))>>18;
                 l = (SP*fixedPointSin(s->ang))>>18;
 
                 k = 0;
@@ -6474,7 +6475,7 @@ void moveeffectors(void)   //STATNUM 3
             case 26:
 
                 s->xvel = 32;
-                l = (s->xvel*fixedPointSin((s->ang+512)))>>14;
+                l = (s->xvel*fixedPointCos(s->ang))>>14;
                 x = (s->xvel*fixedPointSin(s->ang))>>14;
 
                 s->shade++;

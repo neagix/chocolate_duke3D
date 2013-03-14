@@ -170,7 +170,7 @@ void getangplayers(short snum)
             a = ps[snum].ang+getangle(ps[i].posx-ps[snum].posx,ps[i].posy-ps[snum].posy);
             a = a-1024;
             rotatesprite(
-                (320<<15) + (((fixedPointSin((a+512)))>>7)<<15),
+                (320<<15) + (((fixedPointCos(a))>>7)<<15),
                 (320<<15) - (((fixedPointSin(a))>>8)<<15),
                 klabs(fixedPointSin(((a>>1)+768))<<2),0,APLAYER,0,ps[i].palookup,0,0,0,xdim-1,ydim-1);
         }
@@ -4249,8 +4249,8 @@ void drawoverheadmap(int32_t cposx, int32_t cposy, int32_t czoom, short cang)
                         x1 = dmulscale16(ox,xvect,-oy,yvect);
                         y1 = dmulscale16(oy,xvect2,ox,yvect2);
 
-                        ox = (fixedPointSin((spr->ang+512))>>7);
-                        oy = (fixedPointSin((spr->ang))>>7);
+                        ox = (fixedPointCos(spr->ang)>>7);
+                        oy = (fixedPointSin(spr->ang)>>7);
                         x2 = dmulscale16(ox,xvect,-oy,yvect);
                         y2 = dmulscale16(oy,xvect,ox,yvect);
 
@@ -4277,7 +4277,7 @@ void drawoverheadmap(int32_t cposx, int32_t cposy, int32_t czoom, short cang)
                             k = spr->ang;
                             l = spr->xrepeat;
                             dax = fixedPointSin(k)*l;
-                            day = fixedPointSin((k+1536))*l;
+                            day = fixedPointCos(k+1024)*l;
                             l = tiles[tilenum].dim.width;
                             k = (l>>1)+xoff;
                             x1 -= mulscale16(dax,k);
@@ -4314,7 +4314,7 @@ void drawoverheadmap(int32_t cposx, int32_t cposy, int32_t czoom, short cang)
                         }
 
                         k = spr->ang;
-                        cosang = fixedPointSin((k+512));
+                        cosang = fixedPointCos(k);
                         sinang = fixedPointSin(k);
                         xspan = tiles[tilenum].dim.width;
                         xrepeat = spr->xrepeat;

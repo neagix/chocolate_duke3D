@@ -148,7 +148,7 @@ int32_t hits(short i)
     }
 
     hitscan(SX,SY,SZ-zoff,SECT,
-            fixedPointSin((SA+512)),
+            fixedPointCos(SA),
             fixedPointSin(SA),
             0,&sect,&hw,&hs,&sx,&sy,&sz,CLIPMASK1);
 
@@ -169,7 +169,7 @@ int32_t hitasprite(short i,short *hitsp)
     }
 
     hitscan(SX,SY,SZ-zoff,SECT,
-            fixedPointSin((SA+512)),
+            fixedPointCos(SA),
             fixedPointSin(SA),
             0,&sect,&hw,hitsp,&sx,&sy,&sz,CLIPMASK1);
 
@@ -202,7 +202,7 @@ int32_t hitawall(struct player_struct *p,short *hitw)
     short sect,hs;
 
     hitscan(p->posx,p->posy,p->posz,p->cursectnum,
-            fixedPointSin((p->ang+512)),
+            fixedPointCos(p->ang),
             fixedPointSin(p->ang),
             0,&sect,hitw,&hs,&sx,&sy,&sz,CLIPMASK0);
 
@@ -227,12 +227,12 @@ short aim(spritetype *s,short aang, short auto_aim)
 
     smax = 0x7fffffff;
 
-    dx1 = fixedPointSin((a+512-aang));
-    dy1 = fixedPointSin((a-aang));
-    dx2 = fixedPointSin((a+512+aang));
-    dy2 = fixedPointSin((a+aang));
+    dx1 = fixedPointCos(a-aang);
+    dy1 = fixedPointSin(a-aang);
+    dx2 = fixedPointCos(a+aang);
+    dy2 = fixedPointSin(a+aang);
 
-    dx3 = fixedPointSin((a+512));
+    dx3 = fixedPointCos(a);
     dy3 = fixedPointSin(a);
 
     // FIX_00015: Backward compliance with older demos (down to demos v27, 28, 116 and 117 only)
@@ -351,7 +351,7 @@ void shoot(short i,short atwith)
         if (s->picnum != ROTATEGUN) {
             sz -= (7<<8);
             if (badguy(s) && PN != COMMANDER) {
-                sx += (fixedPointSin((sa+1024+96))>>7);
+                sx += (fixedPointCos((sa+512+96))>>7);
                 sy += (fixedPointSin((sa+512+96))>>7);
             }
         }
@@ -383,7 +383,7 @@ void shoot(short i,short atwith)
             }
 
             hitscan(sx,sy,sz,sect,
-                    fixedPointSin((sa+512)),
+                    fixedPointCos(sa),
                     fixedPointSin(sa),zvel<<6,
                     &hitsect,&hitwall,&hitspr,&hitx,&hity,&hitz,CLIPMASK1);
 
@@ -545,7 +545,7 @@ void shoot(short i,short atwith)
 
             s->cstat &= ~257;
             hitscan(sx,sy,sz,sect,
-                    fixedPointSin((sa+512)),
+                    fixedPointCos(sa),
                     fixedPointSin(sa),
                     zvel<<6,&hitsect,&hitwall,&hitspr,&hitx,&hity,&hitz,CLIPMASK1);
             s->cstat |= 257;
@@ -831,7 +831,7 @@ SKIPBULLETHOLE:
             }
 
             j = EGS(sect,
-                    sx+(fixedPointSin((348+sa+512))/448),
+                    sx+(fixedPointCos((348+sa))/448),
                     sy+(fixedPointSin((sa+348))/448),
                     sz-(1<<8),atwith,0,14,14,sa,vel,zvel,i,4);
 
@@ -849,18 +849,18 @@ SKIPBULLETHOLE:
                 if (PN == BOSS3) {
                     if (TRAND&1) {
                         sprite[j].x -= fixedPointSin(sa)>>6;
-                        sprite[j].y -= fixedPointSin((sa+1024+512))>>6;
+                        sprite[j].y -= fixedPointCos(sa+1024)>>6;
                         sprite[j].ang -= 8;
                     } else {
                         sprite[j].x += fixedPointSin(sa)>>6;
-                        sprite[j].y += fixedPointSin((sa+1024+512))>>6;
+                        sprite[j].y += fixedPointCos((sa+1024))>>6;
                         sprite[j].ang += 4;
                     }
                     sprite[j].xrepeat = 42;
                     sprite[j].yrepeat = 42;
                 } else if (PN == BOSS2) {
                     sprite[j].x -= fixedPointSin(sa)/56;
-                    sprite[j].y -= fixedPointSin((sa+1024+512))/56;
+                    sprite[j].y -= fixedPointCos(sa+1024)/56;
                     sprite[j].ang -= 8+(TRAND&255)-128;
                     sprite[j].xrepeat = 24;
                     sprite[j].yrepeat = 24;
@@ -876,10 +876,10 @@ SKIPBULLETHOLE:
 
                 if ( ps[p].hbomb_hold_delay ) {
                     sprite[j].x -= fixedPointSin(sa)/644;
-                    sprite[j].y -= fixedPointSin((sa+1024+512))/644;
+                    sprite[j].y -= fixedPointCos(sa+1024)/644;
                 } else {
                     sprite[j].x += fixedPointSin(sa)>>8;
-                    sprite[j].y += fixedPointSin((sa+1024+512))>>8;
+                    sprite[j].y += fixedPointCos(sa+1024)>>8;
                 }
                 sprite[j].xrepeat >>= 1;
                 sprite[j].yrepeat >>= 1;
@@ -903,7 +903,7 @@ SKIPBULLETHOLE:
             }
 
             hitscan(sx,sy,sz-ps[p].pyoff,sect,
-                    fixedPointSin((sa+512)),
+                    fixedPointCos(sa),
                     fixedPointSin(sa),
                     zvel<<6,&hitsect,&hitwall,&hitspr,&hitx,&hity,&hitz,CLIPMASK1);
 
@@ -1005,7 +1005,7 @@ SKIPBULLETHOLE:
 
             s->cstat &= ~257;
             hitscan(sx,sy,sz,sect,
-                    fixedPointSin((sa+512)),
+                    fixedPointCos(sa),
                     fixedPointSin(sa),
                     zvel<<6,&hitsect,&hitwall,&hitspr,&hitx,&hity,&hitz,CLIPMASK1);
 
@@ -1116,7 +1116,7 @@ uint8_t  animatefist(short gs,short snum)
 
     looking_arc = klabs(ps[snum].look_ang)/9;
 
-    fistzoom = 65536L - (fixedPointSin((512+(fisti<<6)))<<2);
+    fistzoom = 65536L - (fixedPointCos(fisti<<6)<<2);
     if (fistzoom > 90612L) {
         fistzoom = 90612L;
     }
@@ -1308,7 +1308,7 @@ void displayweapon(short snum)
     gun_pos = 80-(p->weapon_pos*p->weapon_pos);
 
     weapon_xoffset =  (160)-90;
-    weapon_xoffset -= (fixedPointSin(((p->weapon_sway>>1)+512))/(1024+512));
+    weapon_xoffset -= (fixedPointCos(p->weapon_sway>>1)/(1024+512));
     weapon_xoffset -= 58 + p->weapon_ang;
     if ( sprite[p->i].xrepeat < 32 ) {
         gun_pos -= klabs(fixedPointSin((p->weapon_sway<<2))>>9);
@@ -2064,10 +2064,10 @@ sprintf(fta_quotes[103],"AUTOAIM %s", ud.auto_aim?(ud.auto_aim==1)?"BULLET ONLY"
         daang = p->ang;
     }
 
-    momx = mulscale9(vel,fixedPointSin((daang+2560)));
+    momx = mulscale9(vel,fixedPointCos((daang+2048)));
     momy = mulscale9(vel,fixedPointSin((daang+2048)));
 
-    momx += mulscale9(svel,fixedPointSin((daang+2048)));
+    momx += mulscale9(svel,fixedPointCos((daang+1536)));
     momy += mulscale9(svel,fixedPointSin((daang+1536)));
 
     momx += fricxv;
@@ -2340,7 +2340,7 @@ void processinput(short snum)
     p->ohorizoff = p->horizoff;
 
     if ( p->aim_mode == 0 && p->on_ground && psectlotag != 2 && (sector[psect].floorstat&2) ) {
-        x = p->posx+(fixedPointSin((p->ang+512))>>5);
+        x = p->posx+(fixedPointCos(p->ang)>>5);
         y = p->posy+(fixedPointSin(p->ang)>>5);
         tempsect = psect;
         updatesector(x,y,&tempsect);
@@ -3533,7 +3533,7 @@ SHOOTINCODE:
                         short sect,hw,hitsp;
 
                         hitscan( p->posx, p->posy, p->posz,
-                                 p->cursectnum, fixedPointSin((p->ang+512)),
+                                 p->cursectnum, fixedPointCos(p->ang),
                                  fixedPointSin(p->ang), (100-p->horiz-p->horizoff)*32,
                                  &sect, &hw, &hitsp, &sx, &sy, &sz,CLIPMASK1);
 
@@ -3638,7 +3638,7 @@ SHOOTINCODE:
                     }
 
                     j = EGS(p->cursectnum,
-                            p->posx+(fixedPointSin((p->ang+512))>>6),
+                            p->posx+(fixedPointCos(p->ang)>>6),
                             p->posy+(fixedPointSin(p->ang)>>6),
                             p->posz,HEAVYHBOMB,-16,9,9,
                             p->ang,(k+(p->hbomb_hold_delay<<5)),i,pi,1);
@@ -4194,7 +4194,7 @@ void computergetinput(int32_t snum, input *syn)
             z3 = sprite[j].z;
             for (l=0; l<=8; l++) {
                 if (tmulscale11(x3-x1,x3-x1,y3-y1,y3-y1,(z3-z1)>>4,(z3-z1)>>4) < 3072) {
-                    dx = fixedPointSin((sprite[j].ang+512));
+                    dx = fixedPointCos(sprite[j].ang);
                     dy = fixedPointSin(sprite[j].ang);
                     if ((x1-x3)*dy > (y1-y3)*dx) {
                         i = -k*512;
@@ -4205,12 +4205,12 @@ void computergetinput(int32_t snum, input *syn)
                     syn->svel += mulscale17(dx,i);
                 }
                 if (l < 7) {
-                    x3 += (mulscale14(sprite[j].xvel,fixedPointSin((sprite[j].ang+512)))<<2);
+                    x3 += (mulscale14(sprite[j].xvel,fixedPointCos(sprite[j].ang))<<2);
                     y3 += (mulscale14(sprite[j].xvel,fixedPointSin(sprite[j].ang))<<2);
                     z3 += (sprite[j].zvel<<2);
                 } else {
                     hitscan(sprite[j].x,sprite[j].y,sprite[j].z,sprite[j].sectnum,
-                            mulscale14(sprite[j].xvel,fixedPointSin((sprite[j].ang+512))),
+                            mulscale14(sprite[j].xvel,fixedPointCos(sprite[j].ang)),
                             mulscale14(sprite[j].xvel,fixedPointSin(sprite[j].ang)),
                             (int32_t)sprite[j].zvel,
                             &dasect,&dawall,&daspr,&x3,&y3,&z3,CLIPMASK1);
@@ -4234,7 +4234,7 @@ void computergetinput(int32_t snum, input *syn)
         }
 
         if (p->curr_weapon == RPG_WEAPON) {
-            hitscan(x1,y1,z1-PHEIGHT,damysect,fixedPointSin((damyang+512)),fixedPointSin(damyang),
+            hitscan(x1,y1,z1-PHEIGHT,damysect,fixedPointCos(damyang),fixedPointSin(damyang),
                     (100-p->horiz-p->horizoff)*32,&dasect,&dawall,&daspr,&x3,&y3,&z3,CLIPMASK1);
             if ((x3-x1)*(x3-x1)+(y3-y1)*(y3-y1) < 2560*2560) {
                 syn->bits &= ~(1<<2);
@@ -4286,8 +4286,8 @@ void computergetinput(int32_t snum, input *syn)
             } else {
                 i -= 8192;
             }
-            syn->fvel += ((fixedPointSin((daang+1024))*i)>>17);
-            syn->svel += ((fixedPointSin((daang+512))*i)>>17);
+            syn->fvel += ((fixedPointCos(daang+512)*i)>>17);
+            syn->svel += ((fixedPointSin(daang+512)*i)>>17);
         }
 
         syn->avel = min(max((((daang+1024-damyang)&2047)-1024)>>1,-127),127);
@@ -4377,7 +4377,7 @@ void computergetinput(int32_t snum, input *syn)
                         }
                         goalwall[snum] = k;
                         daang = ((getangle(wall[wall[k].point2].x-wall[k].x,wall[wall[k].point2].y-wall[k].y)+1536)&2047);
-                        goalx[snum] = ((wall[k].x+wall[wall[k].point2].x)>>1)+(fixedPointSin((daang+512))>>8);
+                        goalx[snum] = ((wall[k].x+wall[wall[k].point2].x)>>1)+(fixedPointCos(daang)>>8);
                         goaly[snum] = ((wall[k].y+wall[wall[k].point2].y)>>1)+(fixedPointSin(daang)>>8);
                         goalz[snum] = sector[goalsect[snum]].floorz-(32<<8);
                         break;
@@ -4420,7 +4420,7 @@ void computergetinput(int32_t snum, input *syn)
                             }
                             goalwall[snum] = k;
                             daang = ((getangle(wall[wall[k].point2].x-wall[k].x,wall[wall[k].point2].y-wall[k].y)+1536)&2047);
-                            goalx[snum] = ((wall[k].x+wall[wall[k].point2].x)>>1)+(fixedPointSin((daang+512))>>8);
+                            goalx[snum] = ((wall[k].x+wall[wall[k].point2].x)>>1)+(fixedPointCos(daang)>>8);
                             goaly[snum] = ((wall[k].y+wall[wall[k].point2].y)>>1)+(fixedPointSin(daang)>>8);
                             goalz[snum] = sector[goalsect[snum]].floorz-(32<<8);
                             break;
@@ -4513,7 +4513,7 @@ void computergetinput(int32_t snum, input *syn)
         i += fixedPointSin(((j+4245)<<5));
         i += fixedPointSin(((j+6745)<<4));
         i += fixedPointSin(((j+15685)<<3));
-        syn->fvel += ((fixedPointSin((daang+1024))*i)>>17);
+        syn->fvel += ((fixedPointCos((daang+512))*i)>>17);
         syn->svel += ((fixedPointSin((daang+512))*i)>>17);
 
         if ((clipmovecount[snum]&31) == 2) {

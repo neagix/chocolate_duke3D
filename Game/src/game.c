@@ -3022,7 +3022,7 @@ void moveclouds(void)
         cloudtotalclock = totalclock+6;
 
         for (i=0; i<numclouds; i++) {
-            cloudx[i] += (fixedPointSin((ps[screenpeek].ang+512))>>9);
+            cloudx[i] += (fixedPointCos(ps[screenpeek].ang)>>9);
             cloudy[i] += (fixedPointSin(ps[screenpeek].ang)>>9);
 
             sector[clouds[i]].ceilingxpanning = cloudx[i]>>6;
@@ -3122,8 +3122,8 @@ void displayrest(int32_t smoothratio, EngineState *engine_state)
             } else {
 
                 ud.fola += ud.folavel>>3;
-                ud.folx += (ud.folfvel*fixedPointSin((512+2048-ud.fola)))>>14;
-                ud.foly += (ud.folfvel*fixedPointSin((512+1024-512-ud.fola)))>>14;
+                ud.folx += (ud.folfvel*fixedPointCos(2048-ud.fola))>>14;
+                ud.foly += (ud.folfvel*fixedPointSin(1024-ud.fola))>>14;
 
                 cposx = ud.folx;
                 cposy = ud.foly;
@@ -3272,7 +3272,7 @@ void view(struct player_struct *pp, int32_t *vx, int32_t *vy,int32_t *vz,short *
     int32_t i, nx, ny, nz, hx, hy, hitx, hity, hitz;
     short bakcstat, hitsect, hitwall, hitsprite, daang;
 
-    nx = (fixedPointSin((ang+1536))>>4);
+    nx = (fixedPointCos((ang+1024))>>4);
     ny = (fixedPointSin((ang+1024))>>4);
     nz = (horiz-100)*128;
 
@@ -3297,7 +3297,7 @@ void view(struct player_struct *pp, int32_t *vx, int32_t *vy,int32_t *vz,short *
             daang = getangle(wall[wall[hitwall].point2].x-wall[hitwall].x,
                              wall[wall[hitwall].point2].y-wall[hitwall].y);
 
-            i = nx*fixedPointSin(daang)+ny*fixedPointSin((daang+1536));
+            i = nx*fixedPointSin(daang) + ny*fixedPointCos(daang+1024);
             if (klabs(nx) > klabs(ny)) {
                 hx -= mulscale28(nx,i);
             } else {
@@ -3693,7 +3693,7 @@ EngineState *displayrooms(short snum,int32_t smoothratio)
             if (i > 256) {
                 i = 512-i;
             }
-            i = fixedPointSin(i+512)*8 + fixedPointSin(i)*5L;
+            i = fixedPointCos(i)*8 + fixedPointSin(i)*5L;
             setaspect(i>>1,yxaspect);
         }
 
@@ -3819,7 +3819,7 @@ EngineState *displayrooms(short snum,int32_t smoothratio)
             if (i > 256) {
                 i = 512-i;
             }
-            i = fixedPointSin(i+512)*8 + fixedPointSin(i)*5L;
+            i = fixedPointCos(i)*8 + fixedPointSin(i)*5L;
             if ((1-ud.detail) == 0) {
                 i >>= 1;
             }
@@ -4649,7 +4649,7 @@ short spawn( short j, short pn )
                     sp->z = sprite[j].z-PHEIGHT+(3<<8);
                 }
 
-                sp->x = sprite[j].x+(fixedPointSin((a+512))>>7);
+                sp->x = sprite[j].x+(fixedPointCos(a)>>7);
                 sp->y = sprite[j].y+(fixedPointSin(a)>>7);
 
                 sp->shade = -8;
@@ -6017,7 +6017,7 @@ void animatesprites(int32_t x, int32_t y, short a, int32_t smoothratio, EngineSt
                         t->ang = getangle(x-t->x,y-t->y);
                         t->x = sprite[s->owner].x;
                         t->y = sprite[s->owner].y;
-                        t->x += fixedPointSin((t->ang+512))>>10;
+                        t->x += fixedPointCos(t->ang)>>10;
                         t->y += fixedPointSin(t->ang)>>10;
                     }
                 }
@@ -9403,7 +9403,7 @@ void fakedomovethings(void)
     }
 
     if ( p->aim_mode == 0 && myonground && psectlotag != 2 && (sector[psect].floorstat&2) ) {
-        x = myx+(fixedPointSin((myang+512))>>5);
+        x = myx+(fixedPointCos(myang)>>5);
         y = myy+(fixedPointSin(myang)>>5);
         tempsect = psect;
         updatesector(x,y,&tempsect);
@@ -9438,7 +9438,7 @@ void fakedomovethings(void)
         }
         if (badguy(&sprite[j]) && sprite[j].xrepeat > 24 && klabs(sprite[p->i].z-sprite[j].z) < (84<<8) ) {
             j = getangle( sprite[j].x-myx,sprite[j].y-myy);
-            myxvel -= fixedPointSin((j+512))<<4;
+            myxvel -= fixedPointCos(j)<<4;
             myyvel -= fixedPointSin(j)<<4;
         }
     }

@@ -5,10 +5,12 @@
 #include "platform.h"
 #include "fixedPoint_math.h"
 
+
 int32_t fixedPointSqrt(uint32_t radicand)
 {
     return (int32_t)floor(sqrt(radicand));
 }
+
 
 double_t toRadiains(int32_t degree)
 {
@@ -21,6 +23,13 @@ int32_t fixedPointSin(int32_t degree)
 {
     return (int32_t)(sin(toRadiains(degree)) * 16383);
 }
+
+
+int32_t fixedPointCos(int32_t degree)
+{
+    return (int32_t)(cos(toRadiains(degree)) * 16383);
+}
+
 
 void clearbuf(void *d, int32_t c, int32_t a)
 {

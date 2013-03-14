@@ -1859,12 +1859,12 @@ void checkplayerhurt(struct player_struct *p,short j)
                 p->pals[1] = 0;
                 p->pals[2] = 0;
 
-                p->posxv = -(fixedPointSin((p->ang+512))<<8);
+                p->posxv = -(fixedPointCos(p->ang)<<8);
                 p->posyv = -(fixedPointSin((p->ang))<<8);
                 spritesound(DUKE_LONGTERM_PAIN,p->i);
 
                 checkhitwall(p->i,j,
-                             p->posx+(fixedPointSin((p->ang+512))>>9),
+                             p->posx+(fixedPointCos(p->ang)>>9),
                              p->posy+(fixedPointSin(p->ang)>>9),
                              p->posz,-1);
 
@@ -1873,7 +1873,7 @@ void checkplayerhurt(struct player_struct *p,short j)
             case BIGFORCE:
                 p->hurt_delay = 26;
                 checkhitwall(p->i,j,
-                             p->posx+(fixedPointSin((p->ang+512))>>9),
+                             p->posx+(fixedPointCos(p->ang)>>9),
                              p->posy+(fixedPointSin(p->ang)>>9),
                              p->posz,-1);
                 break;

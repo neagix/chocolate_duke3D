@@ -1624,7 +1624,7 @@ uint8_t  dodge(spritetype *s)
 
     mx = s->x;
     my = s->y;
-    mxvect = fixedPointSin((s->ang+512));
+    mxvect = fixedPointCos(s->ang);
     myvect = fixedPointSin(s->ang);
 
     for (i=headspritestat[4]; i>=0; i=nextspritestat[i]) { //weapons list
@@ -1634,7 +1634,7 @@ uint8_t  dodge(spritetype *s)
 
         bx = SX-mx;
         by = SY-my;
-        bxvect = fixedPointSin((SA+512));
+        bxvect = fixedPointCos(SA);
         byvect = fixedPointSin(SA);
 
         if (mxvect*bx + myvect*by >= 0)
@@ -1665,7 +1665,7 @@ short furthestangle(short i,short angs)
 
     for (j=s->ang; j<(2048+s->ang); j+=angincs) {
         hitscan(s->x, s->y, s->z-(8<<8), s->sectnum,
-                fixedPointSin((j+512)),
+                fixedPointCos(j),
                 fixedPointSin(j),0,
                 &hitsect,&hitwall,&hitspr,&hx,&hy,&hz,CLIPMASK1);
 
@@ -1697,7 +1697,7 @@ short furthestcanseepoint(short i,spritetype *ts,int32_t *dax,int32_t *day)
 
     for (j=ts->ang; j<(2048+ts->ang); j+=(angincs-(TRAND&511))) {
         hitscan(ts->x, ts->y, ts->z-(16<<8), ts->sectnum,
-                fixedPointSin((j+512)),
+                fixedPointCos(j),
                 fixedPointSin(j),16384-(TRAND&32767),
                 &hitsect,&hitwall,&hitspr,&hx,&hy,&hz,CLIPMASK1);
 
@@ -1834,7 +1834,7 @@ void move()
 
     if ((a&jumptoplayer) == jumptoplayer) {
         if (g_t[0] < 16) {
-            g_sp->zvel -= (fixedPointSin((512+(g_t[0]<<4)))>>5);
+            g_sp->zvel -= (fixedPointCos(g_t[0]<<4)>>5);
         }
     }
 
@@ -1965,7 +1965,7 @@ void move()
         }
 
         hittype[g_i].movflag = movesprite(g_i,
-                                          (daxvel*(fixedPointSin((angdif+512))))>>14,
+                                          (daxvel*(fixedPointCos(angdif)))>>14,
                                           (daxvel*(fixedPointSin(angdif)))>>14,g_sp->zvel,CLIPMASK0);
     }
 
