@@ -163,7 +163,7 @@ static int32_t xsi[8], ysi[8];
 int32_t *horizlookup=0, *horizlookup2=0, horizycent;
 
 int16_t globalang;
-int32_t globalpal, cosglobalang, singlobalang;
+int32_t globalpal;
 int32_t cosviewingrangeglobalang, sinviewingrangeglobalang;
 uint8_t  *globalpalwritten;
 int32_t globaluclip, globaldclip, globvis = 0;
@@ -297,7 +297,7 @@ static void scansector (short sectnum, short *numscans, short *numbunches, Engin
                 (engine_state->spritesortcnt < MAXSPRITESONSCREEN)) {
                 xs = spr->x - engine_state->posx;
                 ys = spr->y - engine_state->posy;
-                if ((spr->cstat&48) || (xs*cosglobalang+ys*singlobalang > 0)) {
+                if ((spr->cstat&48) || (xs*fixedPointCos(globalang)+ys*fixedPointSin(globalang) > 0)) {
                     copybufbyte(spr,&tsprite[engine_state->spritesortcnt],sizeof(spritetype));
                     tsprite[engine_state->spritesortcnt++].owner = z;
                 }
@@ -350,7 +350,7 @@ static void scansector (short sectnum, short *numscans, short *numbunches, Engin
             // This is a regular rotation matrix using [29.3] fixed point.
             if ((z == startwall) || (wall[z-1].point2 != z)) {
                 //If this is the first endpoint of the bunch, rotate: This is a standard cos sin 2D rotation matrix projection
-                xp1 = dmulscale6(y1,cosglobalang,-x1,singlobalang);
+                xp1 = dmulscale6(y1, fixedPointCos(globalang), -x1, fixedPointSin(globalang));
                 yp1 = dmulscale6(x1,cosviewingrangeglobalang,y1,sinviewingrangeglobalang);
             } else {
                 //If this is NOT the first endpoint, Save the coordinate for next loop.
@@ -359,7 +359,7 @@ static void scansector (short sectnum, short *numscans, short *numbunches, Engin
             }
 
             // Rotate: This is a standard cos sin 2D rotation matrix projection
-            xp2 = dmulscale6(y2,cosglobalang,-x2,singlobalang);
+            xp2 = dmulscale6(y2, fixedPointCos(globalang), -x2, fixedPointSin(globalang));
             yp2 = dmulscale6(x2,cosviewingrangeglobalang,y2,sinviewingrangeglobalang);
 
 
@@ -704,10 +704,10 @@ static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
 
 
     if ((globalorientation&64) == 0) {
-        globalx1 = singlobalang;
-        globalx2 = singlobalang;
-        globaly1 = cosglobalang;
-        globaly2 = cosglobalang;
+        globalx1 = fixedPointSin(globalang);
+        globalx2 = fixedPointSin(globalang);
+        globaly1 = fixedPointCos(globalang);
+        globaly2 = fixedPointCos(globalang);
         globalxpanning = (engine_state->posx<<20);
         globalypanning = -(engine_state->posy<<20);
     } else {
@@ -722,15 +722,15 @@ static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
             i = 1048576/i;
         }
 
-        globalx1 = mulscale10(dmulscale10(ox,singlobalang,-oy,cosglobalang),i);
-        globaly1 = mulscale10(dmulscale10(ox,cosglobalang,oy,singlobalang),i);
+        globalx1 = mulscale10(dmulscale10(ox,fixedPointSin(globalang),-oy,fixedPointCos(globalang)),i);
+        globaly1 = mulscale10(dmulscale10(ox,fixedPointCos(globalang),oy,fixedPointSin(globalang)),i);
         globalx2 = -globalx1;
         globaly2 = -globaly1;
 
         ox = ((wall[j].x-engine_state->posx)<<6);
         oy = ((wall[j].y-engine_state->posy)<<6);
-        i = dmulscale14(oy,cosglobalang,-ox,singlobalang);
-        j = dmulscale14(ox,cosglobalang,oy,singlobalang);
+        i = dmulscale14(oy,fixedPointCos(globalang),-ox,fixedPointSin(globalang));
+        j = dmulscale14(ox,fixedPointCos(globalang),oy,fixedPointSin(globalang));
         ox = i;
         oy = j;
         globalxpanning = globalx1*ox - globaly1*oy;
@@ -959,10 +959,10 @@ static void florscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
 
 
     if ((globalorientation&64) == 0) {
-        globalx1 = singlobalang;
-        globalx2 = singlobalang;
-        globaly1 = cosglobalang;
-        globaly2 = cosglobalang;
+        globalx1 = fixedPointSin(globalang);
+        globalx2 = fixedPointSin(globalang);
+        globaly1 = fixedPointCos(globalang);
+        globaly2 = fixedPointCos(globalang);
         globalxpanning = (engine_state->posx<<20);
         globalypanning = -(engine_state->posy<<20);
     } else {
@@ -975,15 +975,15 @@ static void florscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
         } else {
             i = 1048576/i;
         }
-        globalx1 = mulscale10(dmulscale10(ox,singlobalang,-oy,cosglobalang),i);
-        globaly1 = mulscale10(dmulscale10(ox,cosglobalang,oy,singlobalang),i);
+        globalx1 = mulscale10(dmulscale10(ox,fixedPointSin(globalang),-oy,fixedPointCos(globalang)),i);
+        globaly1 = mulscale10(dmulscale10(ox,fixedPointCos(globalang),oy,fixedPointSin(globalang)),i);
         globalx2 = -globalx1;
         globaly2 = -globaly1;
 
         ox = ((wall[j].x - engine_state->posx)<<6);
         oy = ((wall[j].y - engine_state->posy)<<6);
-        i = dmulscale14(oy,cosglobalang,-ox,singlobalang);
-        j = dmulscale14(ox,cosglobalang,oy,singlobalang);
+        i = dmulscale14(oy,fixedPointCos(globalang),-ox,fixedPointSin(globalang));
+        j = dmulscale14(ox,fixedPointCos(globalang),oy,fixedPointSin(globalang));
         ox = i;
         oy = j;
         globalxpanning = globalx1*ox - globaly1*oy;
@@ -1782,13 +1782,13 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
     wx *= i;
     wy *= i;
 
-    globalx = -mulscale19(singlobalang,xdimenrecip);
-    globaly = mulscale19(cosglobalang,xdimenrecip);
+    globalx = -mulscale19(fixedPointSin(globalang),xdimenrecip);
+    globaly = mulscale19(fixedPointCos(globalang),xdimenrecip);
     globalx1 = (engine_state->posx << 8);
     globaly1 = -(engine_state->posy << 8);
     i = (dax1-halfxdimen)*xdimenrecip;
-    globalx2 = mulscale16(cosglobalang<<4,viewingrangerecip) - mulscale27(singlobalang,i);
-    globaly2 = mulscale16(singlobalang<<4,viewingrangerecip) + mulscale27(cosglobalang,i);
+    globalx2 = mulscale16(fixedPointCos(globalang)<<4,viewingrangerecip) - mulscale27(fixedPointSin(globalang),i);
+    globaly2 = mulscale16(fixedPointSin(globalang)<<4,viewingrangerecip) + mulscale27(fixedPointCos(globalang),i);
     globalzd = (xdimscale<<9);
     globalzx = -dmulscale17(wx,globaly2,-wy,globalx2) + mulscale10(1-engine_state->horiz,globalzd);
     globalz = -dmulscale25(wx,globaly,-wy,globalx);
@@ -2061,8 +2061,8 @@ static int wallmost(short *mostbuf, int32_t w, int32_t sectnum, uint8_t  dastat,
     dasqr = krecip(fixedPointSqrt(dx*dx+dy*dy));
 
     if (pvWalls[w].screenSpaceCoo[0][VEC_COL] == 0) {
-        xv = cosglobalang+sinviewingrangeglobalang;
-        yv = singlobalang-cosviewingrangeglobalang;
+        xv = fixedPointCos(globalang)+sinviewingrangeglobalang;
+        yv = fixedPointSin(globalang)-cosviewingrangeglobalang;
     } else {
         xv = x1 - engine_state->posx;
         yv = y1 - engine_state->posy;
@@ -2086,8 +2086,8 @@ static int wallmost(short *mostbuf, int32_t w, int32_t sectnum, uint8_t  dastat,
 
 
     if (pvWalls[w].screenSpaceCoo[1][VEC_COL] == xdimen-1) {
-        xv = cosglobalang-sinviewingrangeglobalang;
-        yv = singlobalang+cosviewingrangeglobalang;
+        xv = fixedPointCos(globalang)-sinviewingrangeglobalang;
+        yv = fixedPointSin(globalang)+cosviewingrangeglobalang;
     } else {
         xv = (x2+x1) - engine_state->posx;
         yv = (y2+y1) - engine_state->posy;
@@ -2899,10 +2899,8 @@ EngineState *drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daan
 
     totalclocklock = totalclock;
 
-    cosglobalang = fixedPointCos(globalang);
-    singlobalang = fixedPointSin(globalang);
-    cosviewingrangeglobalang = mulscale16(cosglobalang,viewingrange);
-    sinviewingrangeglobalang = mulscale16(singlobalang,viewingrange);
+    cosviewingrangeglobalang = mulscale16(fixedPointCos(globalang), viewingrange);
+    sinviewingrangeglobalang = mulscale16(fixedPointSin(globalang), viewingrange);
 
     if ((xyaspect != oxyaspect) || (xdimen != oxdimen) || (viewingrange != oviewingrange)) {
         dosetaspect();
@@ -5237,8 +5235,8 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         if ((yp1 <= 0) && (yp2 <= 0)) {
             return;
         }
-        xp1 = dmulscale6(y1,cosglobalang,-x1,singlobalang);
-        xp2 = dmulscale6(y2,cosglobalang,-x2,singlobalang);
+        xp1 = dmulscale6(y1,fixedPointCos(globalang),-x1,fixedPointSin(globalang));
+        xp2 = dmulscale6(y2,fixedPointCos(globalang),-x2,fixedPointSin(globalang));
 
         x1 += engine_state->posx;
         y1 += engine_state->posy;
@@ -5449,9 +5447,9 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
                                 x = (xp1-engine_state->posx) + scale(xp2-xp1,z1,z1-z2);
                                 y = (yp1-engine_state->posy) + scale(yp2-yp1,z1,z1-z2);
 
-                                yp1 = dmulscale14(x,cosglobalang,y,singlobalang);
+                                yp1 = dmulscale14(x,fixedPointCos(globalang),y,fixedPointSin(globalang));
                                 if (yp1 > 0) {
-                                    xp1 = dmulscale14(y,cosglobalang,-x,singlobalang);
+                                    xp1 = dmulscale14(y,fixedPointCos(globalang),-x,fixedPointSin(globalang));
 
                                     x = halfxdimen + scale(xp1,halfxdimen,yp1);
                                     if (xp1 >= 0) {
@@ -5542,8 +5540,8 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         /* Rotate center point */
         dax = tspr->x - engine_state->posx;
         day = tspr->y - engine_state->posy;
-        rzi[0] = dmulscale10(cosglobalang,dax,singlobalang,day);
-        rxi[0] = dmulscale10(cosglobalang,day,-singlobalang,dax);
+        rzi[0] = dmulscale10(fixedPointCos(globalang),dax,fixedPointSin(globalang),day);
+        rxi[0] = dmulscale10(fixedPointCos(globalang),day,-fixedPointSin(globalang),dax);
 
         /* Get top-left corner */
         i = ((tspr->ang+2048-globalang)&2047);
@@ -5941,7 +5939,7 @@ void drawmasks(EngineState *engine_state)
         yp = dmulscale6(xs,cosviewingrangeglobalang,ys,sinviewingrangeglobalang);
 
         if (yp > (4<<8)) {
-            xp = dmulscale6(ys,cosglobalang,-xs,singlobalang);
+            xp = dmulscale6(ys, fixedPointCos(globalang), -xs, fixedPointSin(globalang));
             spritesx[i] = scale(xp+yp,xdimen<<7,yp);
         } else if ((tspriteptr[i]->cstat&48) == 0) {
             engine_state->spritesortcnt--;  /* Delete face sprite if on wrong side! */
