@@ -76,22 +76,22 @@ void FX_StopRecord( void ){}
  */
 
 
-//Dummy music for when a system has no music system yet. 
+//Dummy music for when a system has no music system yet.
 
 /*
 char  *MUSIC_ErrorString(int ErrorNumber)
 {
-	return "";
+    return "";
 }
 
 int MUSIC_Init(int SoundCard, int Address)
 {
-	return 0;
+    return 0;
 }
 
 int MUSIC_Shutdown(void)
 {
-	return 0;
+    return 0;
 }
 
 void MUSIC_SetMaxFMMidiChannel(int channel)
@@ -112,7 +112,7 @@ void MUSIC_ResetMidiChannelVolumes(void)
 
 int MUSIC_GetVolume(void)
 {
-	return 0;
+    return 0;
 }
 
 void MUSIC_SetLoopFlag(int loopflag)
@@ -121,7 +121,7 @@ void MUSIC_SetLoopFlag(int loopflag)
 
 int MUSIC_SongPlaying(void)
 {
-	return 0;
+    return 0;
 }
 
 void MUSIC_Continue(void)
@@ -134,12 +134,12 @@ void MUSIC_Pause(void)
 
 int MUSIC_StopSong(void)
 {
-	return 0;
+    return 0;
 }
 
 int MUSIC_PlaySong(uint8_t  *song, int loopflag)
 {
-	return 0;
+    return 0;
 }
 
 
@@ -149,7 +149,7 @@ void MUSIC_SetContext(int context)
 
 int MUSIC_GetContext(void)
 {
-	return 0;
+    return 0;
 }
 
 void MUSIC_SetSongTick(uint32_t PositionInTicks)
@@ -174,12 +174,12 @@ void MUSIC_GetSongLength(songposition *pos)
 
 int MUSIC_FadeVolume(int tovolume, int milliseconds)
 {
-	return 0;
+    return 0;
 }
 
 int MUSIC_FadeActive(void)
 {
-	return 0;
+    return 0;
 }
 
 void MUSIC_StopFade(void)
@@ -201,14 +201,14 @@ void PlayMusic(char* filename)
     int32_t fd = kopen4load(filename,1);
     if (fd > 0)
         printf("Found the music size='%d'!\n",kfilelength(fd));
-    
+
     kread(fd, magicNumber, 4);
     magicNumber[4] = 0;
-    
+
     //If midi this should be 'MThd' !
     printf("Magic number='%s'!\n",magicNumber);
-    
-    
+
+
     kclose(fd);
 }
 */

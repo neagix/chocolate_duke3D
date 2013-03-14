@@ -11,7 +11,7 @@ of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 See the GNU General Public License for more details.
 
@@ -37,14 +37,14 @@ uint8_t  MusicPtr[72000];
 
 
 crc32_t crc32lookup[] = {
-		// good:
-		{ CRC_BASE_GRP_SHAREWARE_13,	"SHAREWARE 1.3D", 11035779 },
-		{ CRC_BASE_GRP_FULL_13,			"FULL 1.3D     ", 26524524 },
-		{ CRC_BASE_GRP_PLUTONIUM_14,	"PLUTONIUM 1.4 ", 44348015 },
-		{ CRC_BASE_GRP_ATOMIC_15,		"ATOMIC 1.5    ", 44356548 },
-		// unknown:
-		{ 0,							"HACK/UNKNOWN  ", 0}
-	};
+    // good:
+    { CRC_BASE_GRP_SHAREWARE_13,    "SHAREWARE 1.3D", 11035779 },
+    { CRC_BASE_GRP_FULL_13,         "FULL 1.3D     ", 26524524 },
+    { CRC_BASE_GRP_PLUTONIUM_14,    "PLUTONIUM 1.4 ", 44348015 },
+    { CRC_BASE_GRP_ATOMIC_15,       "ATOMIC 1.5    ", 44356548 },
+    // unknown:
+    { 0,                            "HACK/UNKNOWN  ", 0}
+};
 
 uint8_t  conVersion = 13;
 uint8_t  grpVersion = 0;
@@ -52,7 +52,7 @@ uint8_t  grpVersion = 0;
 // FIX_00015: Backward compliance with older demos (down to demos v27, 28, 116 and 117 only)
 
 // For BYTEVERSION diff, 27/116 vs 28/117 see extras\duke3d.h vs source\duke3d.h
-// from the official source code release. 
+// from the official source code release.
 
 int BYTEVERSION_27 = 27; // 1.3 under 1.4 Plutonium. Not supported anymore
 int BYTEVERSION_116 = 116; // 1.4 Plutonium. Not supported anymore
@@ -65,7 +65,7 @@ int BYTEVERSION_118 = 118; // 1.5 Atomic under xDuke v19.6.
 
 int BYTEVERSION_1_3 = 1; // for 1.3 demos (Not compatible)
 
-int BYTEVERSION			= 119; // xDuke v19.7
+int BYTEVERSION         = 119; // xDuke v19.7
 
 short global_random;
 short neartagsector, neartagwall, neartagsprite;
@@ -144,12 +144,12 @@ input recsync[RECSYNCBUFSIZ];
 
 int32_t movefifosendplc;
 
-  //Multiplayer syncing variables
+//Multiplayer syncing variables
 short screenpeek;
 int32_t movefifoend[MAXPLAYERS];
 
 
-    //Game recording variables
+//Game recording variables
 
 uint8_t  playerreadyflag[MAXPLAYERS],ready2send;
 uint8_t  playerquitflag[MAXPLAYERS];
@@ -173,26 +173,26 @@ uint8_t  rtsplaying;
 
 
 short weaponsandammosprites[15] = {
-        RPGSPRITE,
-        CHAINGUNSPRITE,
-        DEVISTATORAMMO,
-        RPGAMMO,
-        RPGAMMO,
-        JETPACK,
-        SHIELD,
-        FIRSTAID,
-        STEROIDS,
-        RPGAMMO,
-        RPGAMMO,
-        RPGSPRITE,
-        RPGAMMO,
-        FREEZESPRITE,
-        FREEZEAMMO
-    };
+    RPGSPRITE,
+    CHAINGUNSPRITE,
+    DEVISTATORAMMO,
+    RPGAMMO,
+    RPGAMMO,
+    JETPACK,
+    SHIELD,
+    FIRSTAID,
+    STEROIDS,
+    RPGAMMO,
+    RPGAMMO,
+    RPGSPRITE,
+    RPGAMMO,
+    FREEZESPRITE,
+    FREEZEAMMO
+};
 
 int32_t impact_damage;
 
-        //GLOBAL.C - replace the end "my's" with this
+//GLOBAL.C - replace the end "my's" with this
 int32_t myx, omyx, myxvel, myy, omyy, myyvel, myz, omyz, myzvel;
 short myhoriz, omyhoriz, myhorizoff, omyhorizoff;
 short myang, omyang, mycursectnum, myjumpingcounter,frags[MAXPLAYERS][MAXPLAYERS];
@@ -232,55 +232,53 @@ void FixFilePath(char  *filename)
     uint8_t  *ptr;
     uint8_t  *lastsep = filename;
 
-    if ((!filename) || (*filename == '\0'))
+    if ((!filename) || (*filename == '\0')) {
         return;
+    }
 
-    if (access(filename, F_OK) == 0)  /* File exists; we're good to go. */
+    if (access(filename, F_OK) == 0) { /* File exists; we're good to go. */
         return;
+    }
 
-    for (ptr = filename; 1; ptr++)
-    {
-        if (*ptr == '\\')
+    for (ptr = filename; 1; ptr++) {
+        if (*ptr == '\\') {
             *ptr = PATH_SEP_CHAR;
+        }
 
-        if ((*ptr == PATH_SEP_CHAR) || (*ptr == '\0'))
-        {
+        if ((*ptr == PATH_SEP_CHAR) || (*ptr == '\0')) {
             uint8_t  pch = *ptr;
             struct dirent *dent = NULL;
             DIR *dir;
 
-            if ((pch == PATH_SEP_CHAR) && (*(ptr + 1) == '\0'))
-                return; /* eos is pathsep; we're done. */
+            if ((pch == PATH_SEP_CHAR) && (*(ptr + 1) == '\0')) {
+                return;    /* eos is pathsep; we're done. */
+            }
 
-            if (lastsep == ptr)
-                continue;  /* absolute path; skip to next one. */
+            if (lastsep == ptr) {
+                continue;    /* absolute path; skip to next one. */
+            }
 
             *ptr = '\0';
             if (lastsep == filename) {
                 dir = opendir((*lastsep == PATH_SEP_CHAR) ? ROOTDIR : CURDIR);
-                
+
                 if (*lastsep == PATH_SEP_CHAR) {
                     lastsep++;
                 }
-            } 
-            else
-            {
+            } else {
                 *lastsep = '\0';
                 dir = opendir(filename);
                 *lastsep = PATH_SEP_CHAR;
                 lastsep++;
             }
 
-            if (dir == NULL)
-            {
+            if (dir == NULL) {
                 *ptr = PATH_SEP_CHAR;
                 return;  /* maybe dir doesn't exist? give up. */
             }
 
-            while ((dent = readdir(dir)) != NULL)
-            {
-                if (strcasecmp(dent->d_name, lastsep) == 0)
-                {
+            while ((dent = readdir(dir)) != NULL) {
+                if (strcasecmp(dent->d_name, lastsep) == 0) {
                     /* found match; replace it. */
                     strcpy(lastsep, dent->d_name);
                     break;
@@ -291,11 +289,13 @@ void FixFilePath(char  *filename)
             *ptr = pch;
             lastsep = ptr;
 
-            if (dent == NULL)
-                return;  /* no match. oh well. */
+            if (dent == NULL) {
+                return;    /* no match. oh well. */
+            }
 
-            if (pch == '\0')  /* eos? */
+            if (pch == '\0') { /* eos? */
                 return;
+            }
         }
     }
 #endif
@@ -303,15 +303,14 @@ void FixFilePath(char  *filename)
 
 
 #if PLATFORM_DOS
- /* no-op. */
+/* no-op. */
 
 #elif PLATFORM_WIN32
 int _dos_findfirst(uint8_t  *filename, int x, struct find_t *f)
 {
     int32_t rc = _findfirst(filename, &f->data);
     f->handle = rc;
-    if (rc != -1)
-    {
+    if (rc != -1) {
         strncpy(f->name, f->data.name, sizeof (f->name) - 1);
         f->name[sizeof (f->name) - 1] = '\0';
         return(0);
@@ -322,12 +321,12 @@ int _dos_findfirst(uint8_t  *filename, int x, struct find_t *f)
 int _dos_findnext(struct find_t *f)
 {
     int rc = 0;
-    if (f->handle == -1)
-        return(1);   /* invalid handle. */
+    if (f->handle == -1) {
+        return(1);    /* invalid handle. */
+    }
 
     rc = _findnext(f->handle, &f->data);
-    if (rc == -1)
-    {
+    if (rc == -1) {
         _findclose(f->handle);
         f->handle = -1;
         return(1);
@@ -343,20 +342,18 @@ int _dos_findfirst(char  *filename, int x, struct find_t *f)
 {
     char  *ptr;
 
-    if (strlen(filename) >= sizeof (f->pattern))
+    if (strlen(filename) >= sizeof (f->pattern)) {
         return(1);
+    }
 
     strcpy(f->pattern, filename);
     FixFilePath(f->pattern);
     ptr = strrchr(f->pattern, PATH_SEP_CHAR);
 
-    if (ptr == NULL)
-    {
+    if (ptr == NULL) {
         ptr = filename;
         f->dir = opendir(CURDIR);
-    }
-    else
-    {
+    } else {
         *ptr = '\0';
         f->dir = opendir(f->pattern);
         memmove(f->pattern, ptr + 1, strlen(ptr + 1) + 1);
@@ -368,32 +365,31 @@ int _dos_findfirst(char  *filename, int x, struct find_t *f)
 
 static int check_pattern_nocase(const char  *x, const char  *y)
 {
-    if ((x == NULL) || (y == NULL))
-        return(0);  /* not a match. */
+    if ((x == NULL) || (y == NULL)) {
+        return(0);    /* not a match. */
+    }
 
-    while ((*x) && (*y))
-    {
-        if (*x == '*')
-        {
+    while ((*x) && (*y)) {
+        if (*x == '*') {
             x++;
-            while (*y != '\0')
-            {
-                if (toupper((int) *x) == toupper((int) *y))
+            while (*y != '\0') {
+                if (toupper((int) *x) == toupper((int) *y)) {
                     break;
+                }
                 y++;
             }
         }
 
-        else if (*x == '?')
-        {
-            if (*y == '\0')
-                return(0);  /* anything but EOS is okay. */
+        else if (*x == '?') {
+            if (*y == '\0') {
+                return(0);    /* anything but EOS is okay. */
+            }
         }
 
-        else
-        {
-            if (toupper((int) *x) != toupper((int) *y))
-                return(0);  /* not a match. */
+        else {
+            if (toupper((int) *x) != toupper((int) *y)) {
+                return(0);    /* not a match. */
+            }
         }
 
         x++;
@@ -407,15 +403,13 @@ int _dos_findnext(struct find_t *f)
 {
     struct dirent *dent;
 
-    if (f->dir == NULL)
-        return(1);  /* no such dir or we're just done searching. */
+    if (f->dir == NULL) {
+        return(1);    /* no such dir or we're just done searching. */
+    }
 
-    while ((dent = readdir(f->dir)) != NULL)
-    {
-        if (check_pattern_nocase(f->pattern, dent->d_name))
-        {
-            if (strlen(dent->d_name) < sizeof (f->name))
-            {
+    while ((dent = readdir(f->dir)) != NULL) {
+        if (check_pattern_nocase(f->pattern, dent->d_name)) {
+            if (strlen(dent->d_name) < sizeof (f->name)) {
                 strcpy(f->name, dent->d_name);
                 return(0);  /* match. */
             }
@@ -434,125 +428,120 @@ int _dos_findnext(struct find_t *f)
 #if !PLATFORM_DOS
 void _dos_getdate(struct dosdate_t *date)
 {
-	time_t curtime = time(NULL);
-	struct tm *tm;
-	
-	if (date == NULL) {
-		return;
-	}
-	
-	memset(date, 0, sizeof(struct dosdate_t));
-	
-	if ((tm = localtime(&curtime)) != NULL) {
-		date->day = tm->tm_mday;
-		date->month = tm->tm_mon + 1;
-		date->year = tm->tm_year + 1900;
-		date->dayofweek = tm->tm_wday + 1;
-	}
+    time_t curtime = time(NULL);
+    struct tm *tm;
+
+    if (date == NULL) {
+        return;
+    }
+
+    memset(date, 0, sizeof(struct dosdate_t));
+
+    if ((tm = localtime(&curtime)) != NULL) {
+        date->day = tm->tm_mday;
+        date->month = tm->tm_mon + 1;
+        date->year = tm->tm_year + 1900;
+        date->dayofweek = tm->tm_wday + 1;
+    }
 }
 #endif
 
 
 int FindDistance2D(int ix, int iy)
 {
-  int   t;
+    int   t;
 
-  ix= abs(ix);        /* absolute values */
-  iy= abs(iy);
+    ix= abs(ix);        /* absolute values */
+    iy= abs(iy);
 
-  if (ix<iy)
-  {
-     int tmp = ix;
-     ix = iy;
-     iy = tmp;
-  }
+    if (ix<iy) {
+        int tmp = ix;
+        ix = iy;
+        iy = tmp;
+    }
 
-  t = iy + (iy>>1);
+    t = iy + (iy>>1);
 
-  return (ix - (ix>>5) - (ix>>7)  + (t>>2) + (t>>6));
+    return (ix - (ix>>5) - (ix>>7)  + (t>>2) + (t>>6));
 }
 
 int FindDistance3D(int ix, int iy, int iz)
 {
-   int   t;
+    int   t;
 
-   ix= abs(ix);           /* absolute values */
-   iy= abs(iy);
-   iz= abs(iz);
+    ix= abs(ix);           /* absolute values */
+    iy= abs(iy);
+    iz= abs(iz);
 
-   if (ix<iy)
-   {
-     int tmp = ix;
-     ix = iy;
-     iy = tmp;
-   }
+    if (ix<iy) {
+        int tmp = ix;
+        ix = iy;
+        iy = tmp;
+    }
 
-   if (ix<iz)
-   {
-     int tmp = ix;
-     ix = iz;
-     iz = tmp;
-   }
+    if (ix<iz) {
+        int tmp = ix;
+        ix = iz;
+        iz = tmp;
+    }
 
-   t = iy + iz;
+    t = iy + iz;
 
-   return (ix - (ix>>4) + (t>>2) + (t>>3));
+    return (ix - (ix>>4) + (t>>2) + (t>>3));
 }
 #include "SDL.h"
 void Error (int errorType, char  *error, ...)
 {
-   va_list argptr;
+    va_list argptr;
 
-   SDL_Quit();
+    SDL_Quit();
 
-   //FCS: http://duke3d.m-klein.com is obscolete :/ !
-   /*
-   if(errorType==EXIT_FAILURE)
-	   printf("ERROR: Please copy that screen and visit http://duke3d.m-klein.com for report:\n");
-	else
-		printf("http://duke3d.m-klein.com\n");
-	*/
+    //FCS: http://duke3d.m-klein.com is obscolete :/ !
+    /*
+    if(errorType==EXIT_FAILURE)
+       printf("ERROR: Please copy that screen and visit http://duke3d.m-klein.com for report:\n");
+    else
+     printf("http://duke3d.m-klein.com\n");
+    */
 
 
-   va_start (argptr, error);
-   vprintf(error, argptr);
-   va_end (argptr);
+    va_start (argptr, error);
+    vprintf(error, argptr);
+    va_end (argptr);
 
-   printf("Press any key to continue...\n");
+    printf("Press any key to continue...\n");
 
-	// FIX_00043: Nicer exit on error. Ask the user to hit a key on exits and error exits.
-   getch();
+    // FIX_00043: Nicer exit on error. Ask the user to hit a key on exits and error exits.
+    getch();
 
-   exit (errorType);
+    exit (errorType);
 }
 
-void write2disk(int line, char * cfilename, char  *filename2write, char  *message)
+void write2disk(int line, char *cfilename, char  *filename2write, char  *message)
 {
-	// usage: write2disk(__LINE__, __FILE__, "c:\temp\my_dbug_file.txt", uint8_t * msg);
+    // usage: write2disk(__LINE__, __FILE__, "c:\temp\my_dbug_file.txt", uint8_t * msg);
 
-	int i, k=0;
-	char  filename[2048];
-	FILE *pFile;
+    int i, k=0;
+    char  filename[2048];
+    FILE *pFile;
 
-	for(i=0; cfilename[i]; i++)
-	{
-		if(cfilename[i]=='\\')
-		{
-			i++;
-			k = 0;
-		}
-		filename[k++]=(cfilename[i]=='.')?0:cfilename[i];
-	}
-	pFile = fopen(filename2write,"a");
-	fprintf(pFile,"%-4d %-5s %s", line, filename, message);
-	fclose(pFile);
+    for (i=0; cfilename[i]; i++) {
+        if (cfilename[i]=='\\') {
+            i++;
+            k = 0;
+        }
+        filename[k++]=(cfilename[i]=='.')?0:cfilename[i];
+    }
+    pFile = fopen(filename2write,"a");
+    fprintf(pFile,"%-4d %-5s %s", line, filename, message);
+    fclose(pFile);
 }
 
 int32 SafeOpenAppend (const char  *_filename, int32 filetype)
 {
-	int	handle;
+    int handle;
     char  filename[MAX_PATH];
-    
+
     strncpy(filename, _filename, sizeof (filename));
     filename[sizeof (filename) - 1] = '\0';
     FixFilePath(filename);
@@ -560,16 +549,17 @@ int32 SafeOpenAppend (const char  *_filename, int32 filetype)
 #if (defined PLATFORM_WIN32)
     handle = open(filename,O_RDWR | O_BINARY | O_CREAT | O_APPEND );
 #else
-	handle = open(filename,O_RDWR | O_BINARY | O_CREAT | O_APPEND , S_IREAD | S_IWRITE);
+    handle = open(filename,O_RDWR | O_BINARY | O_CREAT | O_APPEND , S_IREAD | S_IWRITE);
 #endif
 
-	if (handle == -1)
-		Error (EXIT_FAILURE, "Error opening for append %s: %s",filename,strerror(errno));
+    if (handle == -1) {
+        Error (EXIT_FAILURE, "Error opening for append %s: %s",filename,strerror(errno));
+    }
 
-	return handle;
+    return handle;
 }
 
-boolean SafeFileExists ( const char  * _filename )
+boolean SafeFileExists ( const char   *_filename )
 {
     char  filename[MAX_PATH];
     strncpy(filename, _filename, sizeof (filename));
@@ -577,7 +567,7 @@ boolean SafeFileExists ( const char  * _filename )
     FixFilePath(filename);
 
 #if( defined PLATFORM_WIN32)
-        return(access(filename, 6) == 0);
+    return(access(filename, 6) == 0);
 #else
     return(access(filename, F_OK) == 0);
 #endif
@@ -586,7 +576,7 @@ boolean SafeFileExists ( const char  * _filename )
 
 int32 SafeOpenWrite (const char  *_filename, int32 filetype)
 {
-	int	handle;
+    int handle;
     char  filename[MAX_PATH];
     strncpy(filename, _filename, sizeof (filename));
     filename[sizeof (filename) - 1] = '\0';
@@ -595,14 +585,15 @@ int32 SafeOpenWrite (const char  *_filename, int32 filetype)
 #if (defined PLATFORM_WIN32)
     handle = open(filename,O_RDWR | O_BINARY | O_CREAT | O_TRUNC );
 #else
-	handle = open(filename,O_RDWR | O_BINARY | O_CREAT | O_TRUNC
-	, S_IREAD | S_IWRITE);
+    handle = open(filename,O_RDWR | O_BINARY | O_CREAT | O_TRUNC
+                  , S_IREAD | S_IWRITE);
 #endif
 
-	if (handle == -1)
-		Error (EXIT_FAILURE, "Error opening %s: %s",filename,strerror(errno));
+    if (handle == -1) {
+        Error (EXIT_FAILURE, "Error opening %s: %s",filename,strerror(errno));
+    }
 
-	return handle;
+    return handle;
 }
 
 
@@ -610,135 +601,141 @@ int32 SafeOpenWrite (const char  *_filename, int32 filetype)
 
 int32 SafeOpenRead (const char  *_filename, int32 filetype)
 {
-	int	handle;
+    int handle;
     char  filename[MAX_PATH];
     strncpy(filename, _filename, sizeof (filename));
     filename[sizeof (filename) - 1] = '\0';
     FixFilePath(filename);
 
-	handle = open(filename,O_RDONLY | O_BINARY);
+    handle = open(filename,O_RDONLY | O_BINARY);
 
-	if (handle == -1)
-		Error (EXIT_FAILURE, "Error opening %s: %s",filename,strerror(errno));
+    if (handle == -1) {
+        Error (EXIT_FAILURE, "Error opening %s: %s",filename,strerror(errno));
+    }
 
-	return handle;
+    return handle;
 }
 
 
 void SafeRead (int32 handle, void *buffer, int32 count)
 {
-	unsigned	iocount;
+    unsigned    iocount;
 
-	while (count)
-	{
-		iocount = count > 0x8000 ? 0x8000 : count;
-		if (read (handle,buffer,iocount) != (int)iocount)
-			Error (EXIT_FAILURE, "File read failure reading %ld bytes",count);
-		buffer = (void *)( (byte *)buffer + iocount );
-		count -= iocount;
-	}
+    while (count) {
+        iocount = count > 0x8000 ? 0x8000 : count;
+        if (read (handle,buffer,iocount) != (int)iocount) {
+            Error (EXIT_FAILURE, "File read failure reading %ld bytes",count);
+        }
+        buffer = (void *)( (byte *)buffer + iocount );
+        count -= iocount;
+    }
 }
 
 
 void SafeWrite (int32 handle, void *buffer, int32 count)
 {
-	unsigned	iocount;
+    unsigned    iocount;
 
-	while (count)
-	{
-		iocount = count > 0x8000 ? 0x8000 : count;
-		if (write (handle,buffer,iocount) != (int)iocount)
-			Error (EXIT_FAILURE, "File write failure writing %ld bytes",count);
-		buffer = (void *)( (byte *)buffer + iocount );
-		count -= iocount;
-	}
+    while (count) {
+        iocount = count > 0x8000 ? 0x8000 : count;
+        if (write (handle,buffer,iocount) != (int)iocount) {
+            Error (EXIT_FAILURE, "File write failure writing %ld bytes",count);
+        }
+        buffer = (void *)( (byte *)buffer + iocount );
+        count -= iocount;
+    }
 }
 
-void SafeWriteString (int handle, char  * buffer)
+void SafeWriteString (int handle, char   *buffer)
 {
-	unsigned	iocount;
+    unsigned    iocount;
 
-   iocount=strlen(buffer);
-	if (write (handle,buffer,iocount) != (int)iocount)
-			Error (EXIT_FAILURE, "File write string failure writing %s\n",buffer);
+    iocount=strlen(buffer);
+    if (write (handle,buffer,iocount) != (int)iocount) {
+        Error (EXIT_FAILURE, "File write string failure writing %s\n",buffer);
+    }
 }
 
 void *SafeMalloc (int32_t size)
 {
-	void *ptr;
+    void *ptr;
 
     ptr = malloc(size);
 
-	if (!ptr)
-      Error (EXIT_FAILURE, "SafeMalloc failure for %lu bytes",size);
+    if (!ptr) {
+        Error (EXIT_FAILURE, "SafeMalloc failure for %lu bytes",size);
+    }
 
-	return ptr;
+    return ptr;
 }
 
 void SafeRealloc (void **x, int32 size)
 {
-	void *ptr;
+    void *ptr;
 
     ptr = realloc(*x, size);
 
-	if (!ptr)
-      Error (EXIT_FAILURE, "SafeRealloc failure for %lu bytes",size);
+    if (!ptr) {
+        Error (EXIT_FAILURE, "SafeRealloc failure for %lu bytes",size);
+    }
 
     *x = ptr;
 }
 
 void *SafeLevelMalloc (int32_t size)
 {
-	void *ptr;
+    void *ptr;
 
     ptr = malloc(size);
 
-	if (!ptr)
-      Error (EXIT_FAILURE, "SafeLevelMalloc failure for %lu bytes",size);
+    if (!ptr) {
+        Error (EXIT_FAILURE, "SafeLevelMalloc failure for %lu bytes",size);
+    }
 
-	return ptr;
+    return ptr;
 }
 
-void SafeFree (void * ptr)
+void SafeFree (void *ptr)
 {
-   if ( ptr == NULL )
-      Error (EXIT_FAILURE, "SafeFree : Tried to free a freed pointer\n");
+    if ( ptr == NULL ) {
+        Error (EXIT_FAILURE, "SafeFree : Tried to free a freed pointer\n");
+    }
 
     free(ptr);
 
 }
 
-short	SwapShort (short l)
+short   SwapShort (short l)
 {
-	byte	b1,b2;
+    byte    b1,b2;
 
-	b1 = l&255;
-	b2 = (l>>8)&255;
+    b1 = l&255;
+    b2 = (l>>8)&255;
 
-	return (b1<<8) + b2;
+    return (b1<<8) + b2;
 }
 
-short	KeepShort (short l)
+short   KeepShort (short l)
 {
-	return l;
+    return l;
 }
 
 
-int32_t	Swapint32_t (int32_t l)
+int32_t Swapint32_t (int32_t l)
 {
-	byte	b1,b2,b3,b4;
+    byte    b1,b2,b3,b4;
 
-	b1 = l&255;
-	b2 = (l>>8)&255;
-	b3 = (l>>16)&255;
-	b4 = (l>>24)&255;
+    b1 = l&255;
+    b2 = (l>>8)&255;
+    b3 = (l>>16)&255;
+    b4 = (l>>24)&255;
 
-	return ((int32_t)b1<<24) + ((int32_t)b2<<16) + ((int32_t)b3<<8) + b4;
+    return ((int32_t)b1<<24) + ((int32_t)b2<<16) + ((int32_t)b3<<8) + b4;
 }
 
-int32_t	Keepint32_t (int32_t l)
+int32_t Keepint32_t (int32_t l)
 {
-	return l;
+    return l;
 }
 
 
@@ -774,86 +771,86 @@ void SwapIntelShortArray(short *s, int num)
 }
 
 
-/* 
+/*
   Copied over from Wolf3D Linux: http://www.icculus.org/wolf3d/
   Modified for ROTT.
   Stolen for Duke3D, too.
  */
- 
+
 #if PLATFORM_UNIX
 uint8_t  *strlwr(uint8_t  *s)
 {
-	uint8_t  *p = s;
-	
-	while (*p) {
-		*p = tolower(*p);
-		p++;
-	}
-	
-	return s;
+    uint8_t  *p = s;
+
+    while (*p) {
+        *p = tolower(*p);
+        p++;
+    }
+
+    return s;
 }
 
 uint8_t  *strupr(uint8_t  *s)
 {
-	uint8_t  *p = s;
-	
-	while (*p) {
-		*p = toupper(*p);
-		p++;
-	}
-	
-	return s;
+    uint8_t  *p = s;
+
+    while (*p) {
+        *p = toupper(*p);
+        p++;
+    }
+
+    return s;
 }
-	
+
 uint8_t  *itoa(int value, uint8_t  *string, int radix)
 {
-	switch (radix) {
-		case 10:
-			sprintf(string, "%d", value);
-			break;
-		case 16:
-			sprintf(string, "%x", value);
-			break;
-		default:
-			STUBBED("unknown radix");
-			break;
-	}
-	
-	return string;
+    switch (radix) {
+        case 10:
+            sprintf(string, "%d", value);
+            break;
+        case 16:
+            sprintf(string, "%x", value);
+            break;
+        default:
+            STUBBED("unknown radix");
+            break;
+    }
+
+    return string;
 }
 
 uint8_t  *ltoa(int32_t value, uint8_t  *string, int radix)
 {
-	switch (radix) {
-		case 10:
-			sprintf(string, "%ld", value);
-			break;
-		case 16:
-			sprintf(string, "%lx", value);
-			break;
-		default:
-			STUBBED("unknown radix");
-			break;
-	}
-	
-	return string;
+    switch (radix) {
+        case 10:
+            sprintf(string, "%ld", value);
+            break;
+        case 16:
+            sprintf(string, "%lx", value);
+            break;
+        default:
+            STUBBED("unknown radix");
+            break;
+    }
+
+    return string;
 }
 
 uint8_t  *ultoa(unsigned int32_t value, uint8_t  *string, int radix)
 {
-	switch (radix) {
-		case 10:
-			sprintf(string, "%lu", value);
-			break;
-		case 16:
-			sprintf(string, "%lux", value);
-			break;
-		default:
-			STUBBED("unknown radix");
-			break;
-	}
-	
-	return string;
+    switch (radix) {
+        case 10:
+            sprintf(string, "%lu", value);
+            break;
+        case 16:
+            sprintf(string, "%lux", value);
+            break;
+        default:
+            STUBBED("unknown radix");
+            break;
+    }
+
+    return string;
 }
 #endif
 
@@ -862,32 +859,31 @@ char  ApogeePath[256];
 int setup_homedir (void)
 {
 #if PLATFORM_UNIX
-	int err;
+    int err;
 
-	snprintf (ApogeePath, sizeof (ApogeePath), "%s/.duke3d/", getenv ("HOME"));
+    snprintf (ApogeePath, sizeof (ApogeePath), "%s/.duke3d/", getenv ("HOME"));
 
-	err = mkdir (ApogeePath, S_IRWXU);
-	if (err == -1 && errno != EEXIST)
-	{
-		fprintf (stderr, "Couldn't create preferences directory: %s\n", 
-				strerror (errno));
-		return -1;
-	}
+    err = mkdir (ApogeePath, S_IRWXU);
+    if (err == -1 && errno != EEXIST) {
+        fprintf (stderr, "Couldn't create preferences directory: %s\n",
+                 strerror (errno));
+        return -1;
+    }
 #else
     sprintf(ApogeePath, ".%s", PATH_SEP_STR);
 #endif
 
-	return 0;
+    return 0;
 }
 
 
 uint8_t    CheckParm (char  *check)
 {
     int i;
-    for (i = 1; i < _argc; i++)
-    {
-        if ((*(_argv[i]) == '-') && (strcmpi(_argv[i] + 1, check) == 0))
+    for (i = 1; i < _argc; i++) {
+        if ((*(_argv[i]) == '-') && (strcmpi(_argv[i] + 1, check) == 0)) {
             return(i);
+        }
     }
 
     return(0);
@@ -903,8 +899,7 @@ void RegisterShutdownFunction( void (* shutdown) (void) )
 
 void Shutdown(void)
 {
-    if (shutdown_func != NULL)
-    {
+    if (shutdown_func != NULL) {
         shutdown_func();
         shutdown_func = NULL;
     }

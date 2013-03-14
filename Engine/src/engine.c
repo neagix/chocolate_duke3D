@@ -69,8 +69,7 @@ int32_t tilefileoffs[MAXTILES];
 
 static short radarang[1280], radarang2[MAXXDIM+1];
 uint8_t  pow2char[8] = {1,2,4,8,16,32,64,-128};
-int32_t pow2long[32] =
-{
+int32_t pow2long[32] = {
     1L,2L,4L,8L,
     16L,32L,64L,128L,
     256L,512L,1024L,2048L,
@@ -103,7 +102,7 @@ typedef int32_t vector_t[2];
 typedef int32_t coo2D_t[2];
 // This is the structure emitted for each wall that is potentially visible.
 // A stack of those is populated when the sectors are scanned.
-typedef struct pvWall_s{
+typedef struct pvWall_s {
     vector_t cameraSpaceCoo[2]; //Camera space coordinates of the wall endpoints. Access with vector_index_e.
     int16_t sectorId;        //The index of the sector this wall belongs to in the map database.
     int16_t worldWallId;     //The index of the wall in the map database.
@@ -173,13 +172,13 @@ uint8_t  globparaceilclip, globparaflorclip;
 
 int32_t xyaspect, viewingrangerecip;
 
-uint8_t*  palookupoffse[4];
+uint8_t  *palookupoffse[4];
 
 uint8_t  globalxshift, globalyshift;
 int32_t globalxpanning, globalypanning, globalshade;
 int16_t globalpicnum, globalshiftval;
 int32_t globalzd, globalyscale, globalorientation;
-uint8_t* globalbufplc;
+uint8_t *globalbufplc;
 int32_t globalx1, globaly1, globalx2, globaly2, globalx3, globaly3, globalzx;
 int32_t globalx, globaly, globalz;
 
@@ -216,8 +215,7 @@ static linetype clipit[MAXCLIPNUM];
 static short clipsectorlist[MAXCLIPNUM], clipsectnum;
 static short clipobjectval[MAXCLIPNUM];
 
-typedef struct
-{
+typedef struct {
     int32_t sx, sy, z;
     short a, picnum;
     int8_t dashade;
@@ -247,18 +245,21 @@ int32_t fixedPointSqrt(uint32_t radicand)
     return (int32_t)floor(sqrt(radicand));
 }
 
-double_t toRadiains(int32_t degree) {
+double_t toRadiains(int32_t degree)
+{
     return ((double_t)degree * M_PI) / 1024.0;
 }
 
 // fixedPointSin(ang)     = sin(ang * (3.141592/1024)) * 16383
 // fixedPointSin(ang+512) = cos(ang * (3.141592/1024)) * 16383
-int32_t fixedPointSin(int32_t degree) {
+int32_t fixedPointSin(int32_t degree)
+{
     return (int32_t)(sin(toRadiains(degree)) * 16383);
 }
 
 static __inline int32_t getclipmask(int32_t a, int32_t b, int32_t c, int32_t d)
-{   // Ken did this
+{
+    // Ken did this
     d = ((a<0)*8) + ((b<0)*4) + ((c<0)*2) + (d<0);
     return(((d<<4)^0xf0)|d);
 }
@@ -291,32 +292,29 @@ static void scansector (short sectnum, short *numscans, short *numbunches, Engin
     int32_t xs, ys, x1, y1, x2, y2, xp1, yp1, xp2=0, yp2=0, tempint;
     short z, zz, startwall, endwall, numscansbefore, scanfirst, bunchfrst;
     short nextsectnum;
-    
+
     //The stack storing sectors to visit.
     short sectorsToVisit[256], numSectorsToVisit;
-    
-    
-    if (sectnum < 0)
+
+
+    if (sectnum < 0) {
         return;
+    }
 
     sectorsToVisit[0] = sectnum;
     numSectorsToVisit = 1;
-    do
-    {
+    do {
         sectnum = sectorsToVisit[--numSectorsToVisit];
 
         //Add every script in the current sector as potentially visible.
-        for(z=headspritesect[sectnum]; z>=0; z=nextspritesect[z])
-        {
+        for (z=headspritesect[sectnum]; z>=0; z=nextspritesect[z]) {
             spr = &sprite[z];
             if ((((spr->cstat&0x8000) == 0) || (showinvisibility)) &&
-                    (spr->xrepeat > 0) && (spr->yrepeat > 0) &&
-                    (engine_state->spritesortcnt < MAXSPRITESONSCREEN))
-            {
+                (spr->xrepeat > 0) && (spr->yrepeat > 0) &&
+                (engine_state->spritesortcnt < MAXSPRITESONSCREEN)) {
                 xs = spr->x - engine_state->posx;
                 ys = spr->y - engine_state->posy;
-                if ((spr->cstat&48) || (xs*cosglobalang+ys*singlobalang > 0))
-                {
+                if ((spr->cstat&48) || (xs*cosglobalang+ys*singlobalang > 0)) {
                     copybufbyte(spr,&tsprite[engine_state->spritesortcnt],sizeof(spritetype));
                     tsprite[engine_state->spritesortcnt++].owner = z;
                 }
@@ -332,8 +330,7 @@ static void scansector (short sectnum, short *numscans, short *numbunches, Engin
         startwall = sector[sectnum].wallptr;
         endwall = startwall + sector[sectnum].wallnum;
         scanfirst = *numscans;
-        for(z=startwall,wal=&wall[z]; z<endwall; z++,wal++)
-        {
+        for (z=startwall,wal=&wall[z]; z<endwall; z++,wal++) {
             nextsectnum = wal->nextsector;
 
             wal2 = &wall[wal->point2];
@@ -350,33 +347,29 @@ static void scansector (short sectnum, short *numscans, short *numbunches, Engin
             // If this is a portal...
             if ((nextsectnum >= 0) && ((wal->cstat&32) == 0))
                 //If this portal has not been visited yet.
-                if ((visitedSectors[nextsectnum>>3]&pow2char[nextsectnum&7]) == 0)
-                {
+                if ((visitedSectors[nextsectnum>>3]&pow2char[nextsectnum&7]) == 0) {
                     //Cross product -> Z component
                     tempint = x1*y2-x2*y1;
 
                     // Using cross product, determine if the portal is facing us or not.
                     // If it is: Add it to the stack and bump the stack counter.
                     // This line is equivalent to tempint < 0x40000
-                    if (((uint32_t)tempint+262144) < 524288) // ??? What is this test ?? How acute the angle is ?
-                    {
+                    if (((uint32_t)tempint+262144) < 524288) { // ??? What is this test ?? How acute the angle is ?
                         //(x2-x1)*(x2-x1)+(y2-y1)*(y2-y1) is the squared length of the wall
                         // ??? What is this test ?? How acute the angle is ?
-                        if (mulscale5(tempint,tempint) <= (x2-x1)*(x2-x1)+(y2-y1)*(y2-y1))
+                        if (mulscale5(tempint,tempint) <= (x2-x1)*(x2-x1)+(y2-y1)*(y2-y1)) {
                             sectorsToVisit[numSectorsToVisit++] = nextsectnum;
+                        }
                     }
                 }
 
             // Rotate the wall endpoints vectors according to the player orientation.
             // This is a regular rotation matrix using [29.3] fixed point.
-            if ((z == startwall) || (wall[z-1].point2 != z))
-            {
+            if ((z == startwall) || (wall[z-1].point2 != z)) {
                 //If this is the first endpoint of the bunch, rotate: This is a standard cos sin 2D rotation matrix projection
                 xp1 = dmulscale6(y1,cosglobalang,-x1,singlobalang);
                 yp1 = dmulscale6(x1,cosviewingrangeglobalang,y1,sinviewingrangeglobalang);
-            }
-            else
-            {
+            } else {
                 //If this is NOT the first endpoint, Save the coordinate for next loop.
                 xp1 = xp2;
                 yp1 = yp2;
@@ -389,61 +382,81 @@ static void scansector (short sectnum, short *numscans, short *numbunches, Engin
 
 
             // Equivalent of a near plane clipping ?
-            if ((yp1 < 256) && (yp2 < 256)) goto skipitaddwall;
+            if ((yp1 < 256) && (yp2 < 256)) {
+                goto skipitaddwall;
+            }
 
             /* If wall's NOT facing you */
-            if (dmulscale32(xp1,yp2,-xp2,yp1) >= 0) goto skipitaddwall;
+            if (dmulscale32(xp1,yp2,-xp2,yp1) >= 0) {
+                goto skipitaddwall;
+            }
 
             // The wall is still not eligible for rendition: Let's do some more Frustrum culling !!
-            if (xp1 >= -yp1){
-                
-                if ((xp1 > yp1) || (yp1 == 0))
+            if (xp1 >= -yp1) {
+
+                if ((xp1 > yp1) || (yp1 == 0)) {
                     goto skipitaddwall;
+                }
 
                 //Project the point onto screen and see in which column it belongs.
                 pvWalls[*numscans].screenSpaceCoo[0][VEC_COL] = halfxdimen + scale(xp1,halfxdimen,yp1);
-                if (xp1 >= 0)
-                    pvWalls[*numscans].screenSpaceCoo[0][VEC_COL]++;   /* Fix for SIGNED divide */
+                if (xp1 >= 0) {
+                    pvWalls[*numscans].screenSpaceCoo[0][VEC_COL]++;    /* Fix for SIGNED divide */
+                }
 
-                if (pvWalls[*numscans].screenSpaceCoo[0][VEC_COL] >= xdimen)
+                if (pvWalls[*numscans].screenSpaceCoo[0][VEC_COL] >= xdimen) {
                     pvWalls[*numscans].screenSpaceCoo[0][VEC_COL] = xdimen-1;
+                }
 
                 pvWalls[*numscans].screenSpaceCoo[0][VEC_DIST] = yp1;
-            }
-            else{
-                
-                if (xp2 < -yp2)
+            } else {
+
+                if (xp2 < -yp2) {
                     goto skipitaddwall;
+                }
 
                 pvWalls[*numscans].screenSpaceCoo[0][VEC_COL] = 0;
                 tempint = yp1-yp2+xp1-xp2;
-                
-                if (tempint == 0)
+
+                if (tempint == 0) {
                     goto skipitaddwall;
-                
+                }
+
                 pvWalls[*numscans].screenSpaceCoo[0][VEC_DIST] = yp1 + scale(yp2-yp1,xp1+yp1,tempint);
             }
-            
-            if (pvWalls[*numscans].screenSpaceCoo[0][VEC_DIST] < 256)
-                goto skipitaddwall;
 
-            if (xp2 <= yp2){
-                
-                if ((xp2 < -yp2) || (yp2 == 0)) goto skipitaddwall;
-                pvWalls[*numscans].screenSpaceCoo[1][VEC_COL] = halfxdimen + scale(xp2,halfxdimen,yp2) - 1;
-                if (xp2 >= 0) pvWalls[*numscans].screenSpaceCoo[1][VEC_COL]++;   /* Fix for SIGNED divide */
-                if (pvWalls[*numscans].screenSpaceCoo[1][VEC_COL] >= xdimen) pvWalls[*numscans].screenSpaceCoo[1][VEC_COL] = xdimen-1;
-                pvWalls[*numscans].screenSpaceCoo[1][VEC_DIST] = yp2;
+            if (pvWalls[*numscans].screenSpaceCoo[0][VEC_DIST] < 256) {
+                goto skipitaddwall;
             }
-            else{
-                
-                if (xp1 > yp1) goto skipitaddwall;
+
+            if (xp2 <= yp2) {
+
+                if ((xp2 < -yp2) || (yp2 == 0)) {
+                    goto skipitaddwall;
+                }
+                pvWalls[*numscans].screenSpaceCoo[1][VEC_COL] = halfxdimen + scale(xp2,halfxdimen,yp2) - 1;
+                if (xp2 >= 0) {
+                    pvWalls[*numscans].screenSpaceCoo[1][VEC_COL]++;    /* Fix for SIGNED divide */
+                }
+                if (pvWalls[*numscans].screenSpaceCoo[1][VEC_COL] >= xdimen) {
+                    pvWalls[*numscans].screenSpaceCoo[1][VEC_COL] = xdimen-1;
+                }
+                pvWalls[*numscans].screenSpaceCoo[1][VEC_DIST] = yp2;
+            } else {
+
+                if (xp1 > yp1) {
+                    goto skipitaddwall;
+                }
                 pvWalls[*numscans].screenSpaceCoo[1][VEC_COL] = xdimen-1;
                 tempint = xp2-xp1+yp1-yp2;
-                if (tempint == 0) goto skipitaddwall;
+                if (tempint == 0) {
+                    goto skipitaddwall;
+                }
                 pvWalls[*numscans].screenSpaceCoo[1][VEC_DIST] = yp1 + scale(yp2-yp1,yp1-xp1,tempint);
             }
-            if ((pvWalls[*numscans].screenSpaceCoo[1][VEC_DIST] < 256) || (pvWalls[*numscans].screenSpaceCoo[0][VEC_COL] > pvWalls[*numscans].screenSpaceCoo[1][VEC_COL])) goto skipitaddwall;
+            if ((pvWalls[*numscans].screenSpaceCoo[1][VEC_DIST] < 256) || (pvWalls[*numscans].screenSpaceCoo[0][VEC_COL] > pvWalls[*numscans].screenSpaceCoo[1][VEC_COL])) {
+                goto skipitaddwall;
+            }
 
             // Made it all the way!
             // Time to add this wall information to the stack of wall potentially visible.
@@ -455,15 +468,14 @@ static void scansector (short sectnum, short *numscans, short *numbunches, Engin
             pvWalls[*numscans].cameraSpaceCoo[0][VEC_Y] = yp1;
             pvWalls[*numscans].cameraSpaceCoo[1][VEC_X] = xp2;
             pvWalls[*numscans].cameraSpaceCoo[1][VEC_Y] = yp2;
-            
+
 
             bunchWallsList[*numscans] = (*numscans)+1;
             (*numscans)++;
-            
+
 skipitaddwall:
 
-            if ((wall[z].point2 < z) && (scanfirst < *numscans))
-            {
+            if ((wall[z].point2 < z) && (scanfirst < *numscans)) {
                 bunchWallsList[(*numscans) - 1] = scanfirst;
                 scanfirst = *numscans;
             }
@@ -471,26 +483,23 @@ skipitaddwall:
 
         //FCS: TODO rename this p2[] to bunchList[] or something like that. This name is an abomination
         //     DONE, p2 is now called "bunchWallsList".
-        
+
         //Break down the list of walls for this sector into bunchs. Since a bunch is a
         // continuously visible list of wall: A sector can generate many bunches.
-        for(z=numscansbefore; z < *numscans; z++)
-        {
+        for (z=numscansbefore; z < *numscans; z++) {
             if ((wall[pvWalls[z].worldWallId].point2 !=
-                 pvWalls[bunchWallsList[z]].worldWallId) || (pvWalls[z].screenSpaceCoo[1][VEC_COL] >= pvWalls[bunchWallsList[z]].screenSpaceCoo[0][VEC_COL]))
-            {
+                 pvWalls[bunchWallsList[z]].worldWallId) || (pvWalls[z].screenSpaceCoo[1][VEC_COL] >= pvWalls[bunchWallsList[z]].screenSpaceCoo[0][VEC_COL])) {
                 // Create an entry in the bunch list
                 bunchfirst[(*numbunches)++] = bunchWallsList[z];
-                
+
                 //Mark the end of the bunch wall list.
                 bunchWallsList[z] = -1;
             }
         }
 
         //For each bunch, find the last wall and cache it in bunchlast.
-        for(z=bunchfrst; z < *numbunches; z++)
-        {
-            for(zz=bunchfirst[z]; bunchWallsList[zz]>=0; zz=bunchWallsList[zz]);
+        for (z=bunchfrst; z < *numbunches; z++) {
+            for (zz=bunchfirst[z]; bunchWallsList[zz]>=0; zz=bunchWallsList[zz]);
             bunchlast[z] = zz;
         }
 
@@ -500,26 +509,26 @@ skipitaddwall:
 
 /*
  FCS:
-    
+
  Goal : ????
  param 1: Z is the wallID in the list of potentially visible walls.
  param 2: Only used to lookup the xrepeat attribute of the wall.
- 
+
 */
 static void prepwall(int32_t z, walltype *wal)
 {
     int32_t i, l=0, ol=0, splc, sinc, x, topinc, top, botinc, bot, walxrepeat;
-    vector_t* wallCoo = pvWalls[z].cameraSpaceCoo;
-    
+    vector_t *wallCoo = pvWalls[z].cameraSpaceCoo;
+
     walxrepeat = (wal->xrepeat<<3);
 
     /* lwall calculation */
     i = pvWalls[z].screenSpaceCoo[0][VEC_COL]-halfxdimen;
-    
+
     //Let's use some of the camera space wall coordinate now.
     topinc = -(wallCoo[0][VEC_Y]>>2);
     botinc = ((wallCoo[1][VEC_Y]-wallCoo[0][VEC_Y])>>8);
-    
+
     top = mulscale5(wallCoo[0][VEC_X],xdimen)+mulscale2(topinc,i);
     bot = mulscale11(wallCoo[0][VEC_X]-wallCoo[1][VEC_X],xdimen)+mulscale2(botinc,i);
 
@@ -528,22 +537,19 @@ static void prepwall(int32_t z, walltype *wal)
 
     //X screenspce column of point Z.
     x = pvWalls[z].screenSpaceCoo[0][VEC_COL];
-    
-    if (bot != 0)
-    {
+
+    if (bot != 0) {
         l = divscale12(top,bot);
         swall[x] = mulscale21(l,sinc)+splc;
         l *= walxrepeat;
         lwall[x] = (l>>18);
     }
-    
+
     //If the wall is less than 4 column wide.
-    while (x+4 <= pvWalls[z].screenSpaceCoo[1][VEC_COL])
-    {
+    while (x+4 <= pvWalls[z].screenSpaceCoo[1][VEC_COL]) {
         top += topinc;
         bot += botinc;
-        if (bot != 0)
-        {
+        if (bot != 0) {
             ol = l;
             l = divscale12(top,bot);
             swall[x+4] = mulscale21(l,sinc)+splc;
@@ -559,14 +565,12 @@ static void prepwall(int32_t z, walltype *wal)
         swall[x+3] = ((swall[x+4]+swall[x+2])>>1);
         x += 4;
     }
-    
+
     //If the wall is less than 2 columns wide.
-    if (x+2 <= pvWalls[z].screenSpaceCoo[1][VEC_COL])
-    {
+    if (x+2 <= pvWalls[z].screenSpaceCoo[1][VEC_COL]) {
         top += (topinc>>1);
         bot += (botinc>>1);
-        if (bot != 0)
-        {
+        if (bot != 0) {
             ol = l;
             l = divscale12(top,bot);
             swall[x+2] = mulscale21(l,sinc)+splc;
@@ -577,30 +581,30 @@ static void prepwall(int32_t z, walltype *wal)
         swall[x+1] = ((swall[x]+swall[x+2])>>1);
         x += 2;
     }
-    
+
     //The wall is 1 column wide.
-    if (x+1 <= pvWalls[z].screenSpaceCoo[1][VEC_COL])
-    {
+    if (x+1 <= pvWalls[z].screenSpaceCoo[1][VEC_COL]) {
         bot += (botinc>>2);
-        if (bot != 0)
-        {
+        if (bot != 0) {
             l = divscale12(top+(topinc>>2),bot);
             swall[x+1] = mulscale21(l,sinc)+splc;
             lwall[x+1] = mulscale18(l,walxrepeat);
         }
     }
 
-    if (lwall[pvWalls[z].screenSpaceCoo[0][VEC_COL]] < 0)
+    if (lwall[pvWalls[z].screenSpaceCoo[0][VEC_COL]] < 0) {
         lwall[pvWalls[z].screenSpaceCoo[0][VEC_COL]] = 0;
-    
-    if ((lwall[pvWalls[z].screenSpaceCoo[1][VEC_COL]] >= walxrepeat) && (walxrepeat))
+    }
+
+    if ((lwall[pvWalls[z].screenSpaceCoo[1][VEC_COL]] >= walxrepeat) && (walxrepeat)) {
         lwall[pvWalls[z].screenSpaceCoo[1][VEC_COL]] = walxrepeat-1;
-    
-    if (wal->cstat&8)
-    {
+    }
+
+    if (wal->cstat&8) {
         walxrepeat--;
-        for(x=pvWalls[z].screenSpaceCoo[0][VEC_COL]; x<=pvWalls[z].screenSpaceCoo[1][VEC_COL]; x++)
+        for (x=pvWalls[z].screenSpaceCoo[0][VEC_COL]; x<=pvWalls[z].screenSpaceCoo[1][VEC_COL]; x++) {
             lwall[x] = walxrepeat-lwall[x];
+        }
     }
 }
 
@@ -616,10 +620,11 @@ static void hline (int32_t xr, int32_t yp, EngineState *engine_state)
     int32_t xl, r, s;
 
     xl = lastx[yp];
-    
-    if (xl > xr)
+
+    if (xl > xr) {
         return;
-    
+    }
+
     r = horizlookup2[yp - engine_state->horiz + horizycent];
     s = (getpalookup(mulscale16(r,globvis),globalshade)<<8);
 
@@ -637,12 +642,14 @@ static void slowhline (int32_t xr, int32_t yp, EngineState *engine_state)
     int32_t xl, r, a1, a2, a3;
 
     xl = lastx[yp];
-    if (xl > xr) return;
+    if (xl > xr) {
+        return;
+    }
     r = horizlookup2[yp - engine_state->horiz + horizycent];
     a1 = globalx1*r;
     a2 = globaly2*r;
     a3 = (int32_t)globalpalwritten + (getpalookup(mulscale16(r,globvis),globalshade)<<8);
-    
+
     if (!(globalorientation&256)) {
         mhline(globalbufplc,globaly1*r+globalxpanning-a1*(xr-xl),(xr-xl)<<16,0L,
                globalx2*r+globalypanning-a2*(xr-xl),ylookup[yp]+xl+frameoffset,a1,a2,a3);
@@ -668,64 +675,70 @@ static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
     sectortype *sec;
 
     sec = &sector[sectnum];
-    
-    if (palookup[sec->ceilingpal] != globalpalwritten)
-        globalpalwritten = palookup[sec->ceilingpal];
 
-    
+    if (palookup[sec->ceilingpal] != globalpalwritten) {
+        globalpalwritten = palookup[sec->ceilingpal];
+    }
+
+
     globalzd = sec->ceilingz - engine_state->posz;
-    
-    
-    if (globalzd > 0)
+
+
+    if (globalzd > 0) {
         return;
-    
-    
+    }
+
+
     globalpicnum = sec->ceilingpicnum;
-    
-    if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES)
+
+    if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
         globalpicnum = 0;
-    
+    }
+
     setgotpic(globalpicnum);
-    
+
     //Check the tile dimension are valid.
     if ((tiles[globalpicnum].dim.width <= 0) ||
-        (tiles[globalpicnum].dim.height <= 0))
+        (tiles[globalpicnum].dim.height <= 0)) {
         return;
-    
-    if (tiles[globalpicnum].animFlags&192)
+    }
+
+    if (tiles[globalpicnum].animFlags&192) {
         globalpicnum += animateoffs(globalpicnum);
+    }
 
     TILE_MakeAvailable(globalpicnum);
-    
+
     globalbufplc = tiles[globalpicnum].data;
 
     globalshade = (int32_t)sec->ceilingshade;
     globvis = globalcisibility;
-    if (sec->visibility != 0)
+    if (sec->visibility != 0) {
         globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
-    
+    }
+
     globalorientation = (int32_t)sec->ceilingstat;
 
 
-    if ((globalorientation&64) == 0){
+    if ((globalorientation&64) == 0) {
         globalx1 = singlobalang;
         globalx2 = singlobalang;
         globaly1 = cosglobalang;
         globaly2 = cosglobalang;
         globalxpanning = (engine_state->posx<<20);
         globalypanning = -(engine_state->posy<<20);
-    }
-    else{
+    } else {
         j = sec->wallptr;
         ox = wall[wall[j].point2].x - wall[j].x;
         oy = wall[wall[j].point2].y - wall[j].y;
         i = fixedPointSqrt(ox*ox+oy*oy);
-        
-        if (i == 0)
+
+        if (i == 0) {
             i = 1024;
-        else
+        } else {
             i = 1048576/i;
-        
+        }
+
         globalx1 = mulscale10(dmulscale10(ox,singlobalang,-oy,cosglobalang),i);
         globaly1 = mulscale10(dmulscale10(ox,cosglobalang,oy,singlobalang),i);
         globalx2 = -globalx1;
@@ -740,7 +753,7 @@ static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
         globalxpanning = globalx1*ox - globaly1*oy;
         globalypanning = globaly2*ox + globalx2*oy;
     }
-    
+
     globalx2 = mulscale16(globalx2,viewingrangerecip);
     globaly1 = mulscale16(globaly1,viewingrangerecip);
     globalxshift = (8-(picsiz[globalpicnum]&15));
@@ -750,7 +763,7 @@ static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
         globalyshift++;
     }
 
-    if ((globalorientation&0x4) > 0){
+    if ((globalorientation&0x4) > 0) {
         i = globalxpanning;
         globalxpanning = globalypanning;
         globalypanning = i;
@@ -761,17 +774,17 @@ static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
         globalx1 = globaly2;
         globaly2 = i;
     }
-    if ((globalorientation&0x10) > 0){
+    if ((globalorientation&0x10) > 0) {
         globalx1 = -globalx1;
         globaly1 = -globaly1;
         globalxpanning = -globalxpanning;
     }
-    if ((globalorientation&0x20) > 0){
+    if ((globalorientation&0x20) > 0) {
         globalx2 = -globalx2;
         globaly2 = -globaly2;
         globalypanning = -globalypanning;
     }
-    
+
     globalx1 <<= globalxshift;
     globaly1 <<= globalxshift;
     globalx2 <<= globalyshift;
@@ -793,37 +806,36 @@ static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
     globaly2 = mulscale16(globaly2,globalzd);
     globvis = klabs(mulscale10(globvis,globalzd));
 
-    if (!(globalorientation&0x180))
-    {
+    if (!(globalorientation&0x180)) {
         y1 = umost[x1];
         y2 = y1;
-        for(x=x1; x<=x2; x++)
-        {
+        for (x=x1; x<=x2; x++) {
             twall = umost[x]-1;
             bwall = min(uplc[x],dmost[x]);
-            if (twall < bwall-1)
-            {
-                if (twall >= y2)
-                {
-                    while (y1 < y2-1) hline(x-1, ++y1, engine_state);
-                    y1 = twall;
-                }
-                else
-                {
-                    while (y1 < twall)
+            if (twall < bwall-1) {
+                if (twall >= y2) {
+                    while (y1 < y2-1) {
                         hline(x-1, ++y1, engine_state);
-                    while (y1 > twall)
+                    }
+                    y1 = twall;
+                } else {
+                    while (y1 < twall) {
+                        hline(x-1, ++y1, engine_state);
+                    }
+                    while (y1 > twall) {
                         lastx[y1--] = x;
+                    }
                 }
-                while (y2 > bwall)
+                while (y2 > bwall) {
                     hline(x-1, --y2, engine_state);
-                while (y2 < bwall)
+                }
+                while (y2 < bwall) {
                     lastx[y2++] = x;
-            }
-            else
-            {
-                while (y1 < y2-1)
+                }
+            } else {
+                while (y1 < y2-1) {
                     hline(x-1,++y1, engine_state);
+                }
                 if (x == x2) {
                     globalx2 += globaly2;
                     globaly1 += globalx1;
@@ -835,50 +847,56 @@ static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
             globalx2 += globaly2;
             globaly1 += globalx1;
         }
-        while (y1 < y2-1) hline(x2, ++y1, engine_state);
+        while (y1 < y2-1) {
+            hline(x2, ++y1, engine_state);
+        }
         faketimerhandler();
         return;
     }
 
-    switch(globalorientation&0x180)
-    {
-    case 128:
-        msethlineshift(picsiz[globalpicnum]&15,picsiz[globalpicnum]>>4);
-        break;
-    case 256:
-		settrans(TRANS_NORMAL);
-        tsethlineshift(picsiz[globalpicnum]&15,picsiz[globalpicnum]>>4);
-        break;
-    case 384:
-        settrans(TRANS_REVERSE);
-        tsethlineshift(picsiz[globalpicnum]&15,picsiz[globalpicnum]>>4);
-        break;
+    switch (globalorientation&0x180) {
+        case 128:
+            msethlineshift(picsiz[globalpicnum]&15,picsiz[globalpicnum]>>4);
+            break;
+        case 256:
+            settrans(TRANS_NORMAL);
+            tsethlineshift(picsiz[globalpicnum]&15,picsiz[globalpicnum]>>4);
+            break;
+        case 384:
+            settrans(TRANS_REVERSE);
+            tsethlineshift(picsiz[globalpicnum]&15,picsiz[globalpicnum]>>4);
+            break;
     }
 
     y1 = umost[x1];
     y2 = y1;
-    for(x=x1; x<=x2; x++)
-    {
+    for (x=x1; x<=x2; x++) {
         twall = umost[x]-1;
         bwall = min(uplc[x],dmost[x]);
-        if (twall < bwall-1)
-        {
-            if (twall >= y2)
-            {
-                while (y1 < y2-1) slowhline(x-1, ++y1, engine_state);
+        if (twall < bwall-1) {
+            if (twall >= y2) {
+                while (y1 < y2-1) {
+                    slowhline(x-1, ++y1, engine_state);
+                }
                 y1 = twall;
+            } else {
+                while (y1 < twall) {
+                    slowhline(x-1, ++y1, engine_state);
+                }
+                while (y1 > twall) {
+                    lastx[y1--] = x;
+                }
             }
-            else
-            {
-                while (y1 < twall) slowhline(x-1, ++y1, engine_state);
-                while (y1 > twall) lastx[y1--] = x;
+            while (y2 > bwall) {
+                slowhline(x-1, --y2, engine_state);
             }
-            while (y2 > bwall) slowhline(x-1, --y2, engine_state);
-            while (y2 < bwall) lastx[y2++] = x;
-        }
-        else
-        {
-            while (y1 < y2-1) slowhline(x-1, ++y1, engine_state);
+            while (y2 < bwall) {
+                lastx[y2++] = x;
+            }
+        } else {
+            while (y1 < y2-1) {
+                slowhline(x-1, ++y1, engine_state);
+            }
             if (x == x2) {
                 globalx2 += globaly2;
                 globaly1 += globalx1;
@@ -890,7 +908,9 @@ static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
         globalx2 += globaly2;
         globaly1 += globalx1;
     }
-    while (y1 < y2-1) slowhline(x2, ++y1, engine_state);
+    while (y1 < y2-1) {
+        slowhline(x2, ++y1, engine_state);
+    }
     faketimerhandler();
 }
 
@@ -903,71 +923,75 @@ static void florscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
 
     //Retrieve the sector object
     sec = &sector[sectnum];
-    
+
     //Retrieve the floor palette.
-    if (palookup[sec->floorpal] != globalpalwritten)
+    if (palookup[sec->floorpal] != globalpalwritten) {
         globalpalwritten = palookup[sec->floorpal];
+    }
 
     globalzd = engine_state->posz - sec->floorz;
-    
+
     //We are UNDER the floor: Do NOT render anything.
-    if (globalzd > 0)
+    if (globalzd > 0) {
         return;
-    
+    }
+
     //Retrive the floor texture.
     globalpicnum = sec->floorpicnum;
-    if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES)
+    if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
         globalpicnum = 0;
-    
+    }
+
     //Lock the floor texture
     setgotpic(globalpicnum);
-    
-    
+
+
     //This tile has unvalid dimensions ( negative)
     if ((tiles[globalpicnum].dim.width <= 0) ||
-        (tiles[globalpicnum].dim.height <= 0))
+        (tiles[globalpicnum].dim.height <= 0)) {
         return;
-    
+    }
+
     //If this is an animated texture: Animate it.
-    if (tiles[globalpicnum].animFlags&192)
+    if (tiles[globalpicnum].animFlags&192) {
         globalpicnum += animateoffs(globalpicnum);
+    }
 
     //If the texture is not in RAM: Load it !!
     TILE_MakeAvailable(globalpicnum);
-    
+
     //Check where is the texture in RAM
     globalbufplc = tiles[globalpicnum].data;
 
     //Retrieve the shade of the sector (illumination level).
     globalshade = (int32_t)sec->floorshade;
-    
+
     globvis = globalcisibility;
-    if (sec->visibility != 0)
+    if (sec->visibility != 0) {
         globvis = mulscale4(globvis,(int32_t)((sec->visibility+16)));
-    
-    
+    }
+
+
     globalorientation = (int32_t)sec->floorstat;
 
 
-    if ((globalorientation&64) == 0)
-    {
+    if ((globalorientation&64) == 0) {
         globalx1 = singlobalang;
         globalx2 = singlobalang;
         globaly1 = cosglobalang;
         globaly2 = cosglobalang;
         globalxpanning = (engine_state->posx<<20);
         globalypanning = -(engine_state->posy<<20);
-    }
-    else
-    {
+    } else {
         j = sec->wallptr;
         ox = wall[wall[j].point2].x - wall[j].x;
         oy = wall[wall[j].point2].y - wall[j].y;
         i = fixedPointSqrt(ox*ox+oy*oy);
-        if (i == 0)
+        if (i == 0) {
             i = 1024;
-        else
+        } else {
             i = 1048576/i;
+        }
         globalx1 = mulscale10(dmulscale10(ox,singlobalang,-oy,cosglobalang),i);
         globaly1 = mulscale10(dmulscale10(ox,cosglobalang,oy,singlobalang),i);
         globalx2 = -globalx1;
@@ -982,8 +1006,8 @@ static void florscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
         globalxpanning = globalx1*ox - globaly1*oy;
         globalypanning = globaly2*ox + globalx2*oy;
     }
-    
-    
+
+
     globalx2 = mulscale16(globalx2,viewingrangerecip);
     globaly1 = mulscale16(globaly1,viewingrangerecip);
     globalxshift = (8-(picsiz[globalpicnum]&15));
@@ -993,8 +1017,7 @@ static void florscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
         globalyshift++;
     }
 
-    if ((globalorientation&0x4) > 0)
-    {
+    if ((globalorientation&0x4) > 0) {
         i = globalxpanning;
         globalxpanning = globalypanning;
         globalypanning = i;
@@ -1005,21 +1028,21 @@ static void florscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
         globalx1 = globaly2;
         globaly2 = i;
     }
-    
-    
-    if ((globalorientation&0x10) > 0){
+
+
+    if ((globalorientation&0x10) > 0) {
         globalx1 = -globalx1;
         globaly1 = -globaly1;
         globalxpanning = -globalxpanning;
     }
-    
-    if ((globalorientation&0x20) > 0){
+
+    if ((globalorientation&0x20) > 0) {
         globalx2 = -globalx2;
         globaly2 = -globaly2;
         globalypanning = -globalypanning;
     }
-    
-    
+
+
     globalx1 <<= globalxshift;
     globaly1 <<= globalxshift;
     globalx2 <<= globalyshift;
@@ -1042,37 +1065,36 @@ static void florscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
     globaly2 = mulscale16(globaly2,globalzd);
     globvis = klabs(mulscale10(globvis,globalzd));
 
-    if (!(globalorientation&0x180))
-    {
+    if (!(globalorientation&0x180)) {
         y1 = max(dplc[x1],umost[x1]);
         y2 = y1;
-        for(x=x1; x<=x2; x++)
-        {
+        for (x=x1; x<=x2; x++) {
             twall = max(dplc[x],umost[x])-1;
             bwall = dmost[x];
-            if (twall < bwall-1)
-            {
-                if (twall >= y2)
-                {
-                    while (y1 < y2-1)
+            if (twall < bwall-1) {
+                if (twall >= y2) {
+                    while (y1 < y2-1) {
                         hline(x-1, ++y1, engine_state);
+                    }
                     y1 = twall;
-                }
-                else
-                {
-                    while (y1 < twall)
+                } else {
+                    while (y1 < twall) {
                         hline(x-1, ++y1, engine_state);
-                    while (y1 > twall)
+                    }
+                    while (y1 > twall) {
                         lastx[y1--] = x;
+                    }
                 }
-                while (y2 > bwall)
+                while (y2 > bwall) {
                     hline(x-1, --y2, engine_state);
-                while (y2 < bwall)
+                }
+                while (y2 < bwall) {
                     lastx[y2++] = x;
-            }
-            else
-            {
-                while (y1 < y2-1) hline(x-1, ++y1, engine_state);
+                }
+            } else {
+                while (y1 < y2-1) {
+                    hline(x-1, ++y1, engine_state);
+                }
                 if (x == x2) {
                     globalx2 += globaly2;
                     globaly1 += globalx1;
@@ -1084,57 +1106,57 @@ static void florscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
             globalx2 += globaly2;
             globaly1 += globalx1;
         }
-        while (y1 < y2-1)
+        while (y1 < y2-1) {
             hline(x2, ++y1, engine_state);
-        
+        }
+
         faketimerhandler();
         return;
     }
 
-    switch(globalorientation&0x180)
-    {
-    case 128:
-        msethlineshift(picsiz[globalpicnum]&15,picsiz[globalpicnum]>>4);
-        break;
-    case 256:
-        settrans(TRANS_NORMAL);
-        tsethlineshift(picsiz[globalpicnum]&15,picsiz[globalpicnum]>>4);
-        break;
-    case 384:
-        settrans(TRANS_REVERSE);
-        tsethlineshift(picsiz[globalpicnum]&15,picsiz[globalpicnum]>>4);
-        break;
+    switch (globalorientation&0x180) {
+        case 128:
+            msethlineshift(picsiz[globalpicnum]&15,picsiz[globalpicnum]>>4);
+            break;
+        case 256:
+            settrans(TRANS_NORMAL);
+            tsethlineshift(picsiz[globalpicnum]&15,picsiz[globalpicnum]>>4);
+            break;
+        case 384:
+            settrans(TRANS_REVERSE);
+            tsethlineshift(picsiz[globalpicnum]&15,picsiz[globalpicnum]>>4);
+            break;
     }
 
     y1 = max(dplc[x1],umost[x1]);
     y2 = y1;
-    for(x=x1; x<=x2; x++)
-    {
+    for (x=x1; x<=x2; x++) {
         twall = max(dplc[x],umost[x])-1;
         bwall = dmost[x];
-        if (twall < bwall-1)
-        {
-            if (twall >= y2)
-            {
-                while (y1 < y2-1) slowhline(x-1, ++y1, engine_state);
-                y1 = twall;
-            }
-            else
-            {
-                while (y1 < twall)
+        if (twall < bwall-1) {
+            if (twall >= y2) {
+                while (y1 < y2-1) {
                     slowhline(x-1, ++y1, engine_state);
-                while (y1 > twall)
+                }
+                y1 = twall;
+            } else {
+                while (y1 < twall) {
+                    slowhline(x-1, ++y1, engine_state);
+                }
+                while (y1 > twall) {
                     lastx[y1--] = x;
+                }
             }
-            while (y2 > bwall)
+            while (y2 > bwall) {
                 slowhline(x-1, --y2, engine_state);
-            while (y2 < bwall)
+            }
+            while (y2 < bwall) {
                 lastx[y2++] = x;
-        }
-        else
-        {
-            while (y1 < y2-1)
+            }
+        } else {
+            while (y1 < y2-1) {
                 slowhline(x-1, ++y1, engine_state);
+            }
             if (x == x2) {
                 globalx2 += globaly2;
                 globaly1 += globalx1;
@@ -1146,9 +1168,10 @@ static void florscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
         globalx2 += globaly2;
         globaly1 += globalx1;
     }
-    while (y1 < y2-1)
+    while (y1 < y2-1) {
         slowhline(x2, ++y1, engine_state);
-    
+    }
+
     faketimerhandler();
 }
 
@@ -1183,34 +1206,39 @@ static void wallscan(int32_t x1, int32_t x2,
                      EngineState *engine_state)
 {
     int32_t i, x, xnice, ynice;
-    uint8_t* fpalookup;
+    uint8_t *fpalookup;
     int32_t y1ve[4], y2ve[4], u4, d4, z, tileWidth, tsizy;
     uint8_t  bad;
     int32_t bufplce[4], vplce[4], vince[4];
-    
+
     tileWidth = tiles[globalpicnum].dim.width;
     tsizy = tiles[globalpicnum].dim.height;
-    
+
     setgotpic(globalpicnum);
-    
-    if ((tileWidth <= 0) || (tsizy <= 0))
+
+    if ((tileWidth <= 0) || (tsizy <= 0)) {
         return;
-    
-    if ((uwal[x1] > ydimen) && (uwal[x2] > ydimen))
+    }
+
+    if ((uwal[x1] > ydimen) && (uwal[x2] > ydimen)) {
         return;
-    
-    if ((dwal[x1] < 0) && (dwal[x2] < 0))
+    }
+
+    if ((dwal[x1] < 0) && (dwal[x2] < 0)) {
         return;
+    }
 
     TILE_MakeAvailable(globalpicnum);
 
     xnice = (pow2long[picsiz[globalpicnum]&15] == tileWidth);
-    if (xnice)
+    if (xnice) {
         tileWidth--;
-    
+    }
+
     ynice = (pow2long[picsiz[globalpicnum]>>4] == tsizy);
-    if (ynice)
+    if (ynice) {
         tsizy = (picsiz[globalpicnum]>>4);
+    }
 
     fpalookup = palookup[globalpal];
 
@@ -1218,81 +1246,82 @@ static void wallscan(int32_t x1, int32_t x2,
 
     //Starting on the left column of the wall, check the occlusion arrays.
     x = x1;
-    while ((umost[x] > dmost[x]) && (x <= x2))
+    while ((umost[x] > dmost[x]) && (x <= x2)) {
         x++;
+    }
 
-    for(; (x<=x2)&&((x+frameoffset-(uint8_t*)NULL)&3); x++)
-    {
+    for (; (x<=x2)&&((x+frameoffset-(uint8_t *)NULL)&3); x++) {
         y1ve[0] = max(uwal[x],umost[x]);
         y2ve[0] = min(dwal[x],dmost[x]);
-        if (y2ve[0] <= y1ve[0])
+        if (y2ve[0] <= y1ve[0]) {
             continue;
+        }
 
         palookupoffse[0] = fpalookup+(getpalookup((int32_t)mulscale16(swal[x],globvis),globalshade)<<8);
 
         bufplce[0] = lwal[x] + globalxpanning;
-        
-        if (bufplce[0] >= tileWidth)
-        {
-            if (xnice == 0)
+
+        if (bufplce[0] >= tileWidth) {
+            if (xnice == 0) {
                 bufplce[0] %= tileWidth;
-            else
+            } else {
                 bufplce[0] &= tileWidth;
+            }
         }
 
-        if (ynice == 0)
+        if (ynice == 0) {
             bufplce[0] *= tsizy;
-        else
+        } else {
             bufplce[0] <<= tsizy;
+        }
 
         vince[0] = swal[x]*globalyscale;
         vplce[0] = globalzd + vince[0]*(y1ve[0] - engine_state->horiz + 1);
 
         vlineasm1(vince[0],palookupoffse[0],y2ve[0]-y1ve[0]-1,vplce[0],bufplce[0]+tiles[globalpicnum].data,x+frameoffset+ylookup[y1ve[0]]);
     }
-    
-    for(; x<=x2-3; x+=4)
-    {
+
+    for (; x<=x2-3; x+=4) {
         bad = 0;
-        for(z=3; z>=0; z--)
-        {
+        for (z=3; z>=0; z--) {
             y1ve[z] = max(uwal[x+z],umost[x+z]);
             y2ve[z] = min(dwal[x+z],dmost[x+z])-1;
 
-            if (y2ve[z] < y1ve[z])
-            {
+            if (y2ve[z] < y1ve[z]) {
                 bad += pow2char[z];
                 continue;
             }
 
             i = lwal[x+z] + globalxpanning;
             if (i >= tileWidth) {
-                if (xnice == 0) i %= tileWidth;
-                else i &= tileWidth;
+                if (xnice == 0) {
+                    i %= tileWidth;
+                } else {
+                    i &= tileWidth;
+                }
             }
-            if (ynice == 0)
+            if (ynice == 0) {
                 i *= tsizy;
-            else
+            } else {
                 i <<= tsizy;
+            }
             bufplce[z] = tiles[globalpicnum].data+i;
 
             vince[z] = swal[x+z]*globalyscale;
             vplce[z] = globalzd + vince[z]*(y1ve[z] - engine_state->horiz+1);
         }
 
-        if (bad == 15)
+        if (bad == 15) {
             continue;
+        }
 
         palookupoffse[0] = fpalookup+(getpalookup((int32_t)mulscale16(swal[x],globvis),globalshade)<<8);
         palookupoffse[3] = fpalookup+(getpalookup((int32_t)mulscale16(swal[x+3],globvis),globalshade)<<8);
 
-        if ((palookupoffse[0] == palookupoffse[3]) && ((bad&0x9) == 0))
-        {
+        if ((palookupoffse[0] == palookupoffse[3]) && ((bad&0x9) == 0)) {
             palookupoffse[1] = palookupoffse[0];
             palookupoffse[2] = palookupoffse[0];
-        }
-        else
-        {
+        } else {
             palookupoffse[1] = fpalookup+(getpalookup((int32_t)mulscale16(swal[x+1],globvis),globalshade)<<8);
             palookupoffse[2] = fpalookup+(getpalookup((int32_t)mulscale16(swal[x+2],globvis),globalshade)<<8);
         }
@@ -1302,49 +1331,56 @@ static void wallscan(int32_t x1, int32_t x2,
 
         if ((bad != 0) || (u4 >= d4)) {
             for (int j=0; j<4; j++) {
-                if (!(bad & (1<<j)))
+                if (!(bad & (1<<j))) {
                     prevlineasm1(vince[j], palookupoffse[j], y2ve[j]-y1ve[j], vplce[j], bufplce[j], ylookup[y1ve[j]]+x+frameoffset+j);
+                }
             }
             continue;
         }
 
         for (int j=0; j<4; j++) {
-            if (u4 > y1ve[j])
+            if (u4 > y1ve[j]) {
                 vplce[j] = prevlineasm1(vince[j], palookupoffse[j], u4-y1ve[j]-1, vplce[j], bufplce[j], ylookup[y1ve[j]] + x + frameoffset + j);
+            }
         }
 
-        if (d4 >= u4) 
+        if (d4 >= u4) {
             vlineasm4(d4-u4+1,ylookup[u4]+x+frameoffset,bufplce,vplce,vince);
+        }
 
         i = x+frameoffset+ylookup[d4+1];
-        
+
         for (int j=0; j<4; j++) {
-            if (y2ve[j] > d4)
+            if (y2ve[j] > d4) {
                 prevlineasm1(vince[j], palookupoffse[j], y2ve[j]-d4-1, vplce[j], bufplce[j], i+j);
+            }
         }
 
     }
-    
+
     for (; x<=x2; x++) {
         y1ve[0] = max(uwal[x],umost[x]);
         y2ve[0] = min(dwal[x],dmost[x]);
-        if (y2ve[0] <= y1ve[0])
+        if (y2ve[0] <= y1ve[0]) {
             continue;
+        }
 
         palookupoffse[0] = fpalookup+(getpalookup((int32_t)mulscale16(swal[x],globvis),globalshade)<<8);
 
         bufplce[0] = lwal[x] + globalxpanning;
         if (bufplce[0] >= tileWidth) {
-            if (xnice == 0)
+            if (xnice == 0) {
                 bufplce[0] %= tileWidth;
-            else
+            } else {
                 bufplce[0] &= tileWidth;
+            }
         }
-        
+
         if (ynice == 0) bufplce[0]
             *= tsizy;
-        else
+        else {
             bufplce[0] <<= tsizy;
+        }
 
         vince[0] = swal[x]*globalyscale;
         vplce[0] = globalzd + vince[0]*(y1ve[0]-engine_state->horiz+1);
@@ -1362,72 +1398,82 @@ static void maskwallscan(int32_t x1, int32_t x2,
                          EngineState *engine_state)
 {
     int32_t i, x, startx, xnice, ynice;
-    uint8_t* fpalookup;
+    uint8_t *fpalookup;
     int32_t y1ve[4], y2ve[4], u4, d4, dax, z, tileWidth, tileHeight;
-    uint8_t*  p;
+    uint8_t  *p;
     uint8_t  bad;
     int32_t bufplce_2[4], vplce[4], vince[4];
 
     tileWidth = tiles[globalpicnum].dim.width;
     tileHeight = tiles[globalpicnum].dim.height;
     setgotpic(globalpicnum);
-    
-    if ((tileWidth <= 0) || (tileHeight <= 0))
+
+    if ((tileWidth <= 0) || (tileHeight <= 0)) {
         return;
-    if ((uwal[x1] > ydimen) && (uwal[x2] > ydimen))
+    }
+    if ((uwal[x1] > ydimen) && (uwal[x2] > ydimen)) {
         return;
-    if ((dwal[x1] < 0) && (dwal[x2] < 0))
+    }
+    if ((dwal[x1] < 0) && (dwal[x2] < 0)) {
         return;
+    }
 
     TILE_MakeAvailable(globalpicnum);
 
     startx = x1;
 
     xnice = (pow2long[picsiz[globalpicnum]&15] == tileWidth);
-    if (xnice)
+    if (xnice) {
         tileWidth = (tileWidth-1);
-    
+    }
+
     ynice = (pow2long[picsiz[globalpicnum]>>4] == tileHeight);
-    if (ynice)
+    if (ynice) {
         tileHeight = (picsiz[globalpicnum]>>4);
+    }
 
     fpalookup = palookup[globalpal];
 
     setupmvlineasm(globalshiftval);
 
     x = startx;
-    while ((startumost[x+windowx1] > startdmost[x+windowx1]) && (x <= x2)) x++;
+    while ((startumost[x+windowx1] > startdmost[x+windowx1]) && (x <= x2)) {
+        x++;
+    }
 
     p = x+frameoffset;
 
-    for(; (x<=x2)&&((p-(uint8_t*)NULL)&3); x++,p++)
-    {
+    for (; (x<=x2)&&((p-(uint8_t *)NULL)&3); x++,p++) {
         y1ve[0] = max(uwal[x],startumost[x+windowx1]-windowy1);
         y2ve[0] = min(dwal[x],startdmost[x+windowx1]-windowy1);
-        if (y2ve[0] <= y1ve[0]) continue;
+        if (y2ve[0] <= y1ve[0]) {
+            continue;
+        }
 
         palookupoffse[0] = fpalookup+(getpalookup((int32_t)mulscale16(swal[x],globvis),globalshade)<<8);
 
         bufplce_2[0] = lwal[x] + globalxpanning;
         if (bufplce_2[0] >= tileWidth) {
-            if (xnice == 0) bufplce_2[0] %= tileWidth;
-            else bufplce_2[0] &= tileWidth;
+            if (xnice == 0) {
+                bufplce_2[0] %= tileWidth;
+            } else {
+                bufplce_2[0] &= tileWidth;
+            }
         }
-        if (ynice == 0)
+        if (ynice == 0) {
             bufplce_2[0] *= tileHeight;
-        else
+        } else {
             bufplce_2[0] <<= tileHeight;
+        }
 
         vince[0] = swal[x]*globalyscale;
         vplce[0] = globalzd + vince[0] * (y1ve[0] - engine_state->horiz + 1);
 
         mvlineasm1(vince[0],palookupoffse[0],y2ve[0]-y1ve[0]-1,vplce[0],bufplce_2[0]+tiles[globalpicnum].data,p+ylookup[y1ve[0]]);
     }
-    for(; x<=x2-3; x+=4,p+=4)
-    {
+    for (; x<=x2-3; x+=4,p+=4) {
         bad = 0;
-        for(z=3,dax=x+3; z>=0; z--,dax--)
-        {
+        for (z=3,dax=x+3; z>=0; z--,dax--) {
             y1ve[z] = max(uwal[dax],startumost[dax+windowx1]-windowy1);
             y2ve[z] = min(dwal[dax],startdmost[dax+windowx1]-windowy1)-1;
             if (y2ve[z] < y1ve[z]) {
@@ -1437,32 +1483,35 @@ static void maskwallscan(int32_t x1, int32_t x2,
 
             i = lwal[dax] + globalxpanning;
             if (i >= tileWidth) {
-                if (xnice == 0) i %= tileWidth;
-                else i &= tileWidth;
+                if (xnice == 0) {
+                    i %= tileWidth;
+                } else {
+                    i &= tileWidth;
+                }
             }
-            
-            if (ynice == 0)
+
+            if (ynice == 0) {
                 i *= tileHeight;
-            else
+            } else {
                 i <<= tileHeight;
-            
+            }
+
             bufplce_2[z] = tiles[globalpicnum].data+i;
 
             vince[z] = swal[dax]*globalyscale;
             vplce[z] = globalzd + vince[z]*(y1ve[z]-engine_state->horiz+1);
         }
-        if (bad == 15) continue;
+        if (bad == 15) {
+            continue;
+        }
 
         palookupoffse[0] = fpalookup+(getpalookup((int32_t)mulscale16(swal[x],globvis),globalshade)<<8);
         palookupoffse[3] = fpalookup+(getpalookup((int32_t)mulscale16(swal[x+3],globvis),globalshade)<<8);
 
-        if ((palookupoffse[0] == palookupoffse[3]) && ((bad&0x9) == 0))
-        {
+        if ((palookupoffse[0] == palookupoffse[3]) && ((bad&0x9) == 0)) {
             palookupoffse[1] = palookupoffse[0];
             palookupoffse[2] = palookupoffse[0];
-        }
-        else
-        {
+        } else {
             palookupoffse[1] = fpalookup+(getpalookup((int32_t)mulscale16(swal[x+1],globvis),globalshade)<<8);
             palookupoffse[2] = fpalookup+(getpalookup((int32_t)mulscale16(swal[x+2],globvis),globalshade)<<8);
         }
@@ -1470,45 +1519,75 @@ static void maskwallscan(int32_t x1, int32_t x2,
         u4 = max(max(y1ve[0],y1ve[1]),max(y1ve[2],y1ve[3]));
         d4 = min(min(y2ve[0],y2ve[1]),min(y2ve[2],y2ve[3]));
 
-        if ((bad > 0) || (u4 >= d4))
-        {
-            if (!(bad&1)) mvlineasm1(vince[0],palookupoffse[0],y2ve[0]-y1ve[0],vplce[0],bufplce_2[0],ylookup[y1ve[0]]+p+0);
-            if (!(bad&2)) mvlineasm1(vince[1],palookupoffse[1],y2ve[1]-y1ve[1],vplce[1],bufplce_2[1],ylookup[y1ve[1]]+p+1);
-            if (!(bad&4)) mvlineasm1(vince[2],palookupoffse[2],y2ve[2]-y1ve[2],vplce[2],bufplce_2[2],ylookup[y1ve[2]]+p+2);
-            if (!(bad&8)) mvlineasm1(vince[3],palookupoffse[3],y2ve[3]-y1ve[3],vplce[3],bufplce_2[3],ylookup[y1ve[3]]+p+3);
+        if ((bad > 0) || (u4 >= d4)) {
+            if (!(bad&1)) {
+                mvlineasm1(vince[0],palookupoffse[0],y2ve[0]-y1ve[0],vplce[0],bufplce_2[0],ylookup[y1ve[0]]+p+0);
+            }
+            if (!(bad&2)) {
+                mvlineasm1(vince[1],palookupoffse[1],y2ve[1]-y1ve[1],vplce[1],bufplce_2[1],ylookup[y1ve[1]]+p+1);
+            }
+            if (!(bad&4)) {
+                mvlineasm1(vince[2],palookupoffse[2],y2ve[2]-y1ve[2],vplce[2],bufplce_2[2],ylookup[y1ve[2]]+p+2);
+            }
+            if (!(bad&8)) {
+                mvlineasm1(vince[3],palookupoffse[3],y2ve[3]-y1ve[3],vplce[3],bufplce_2[3],ylookup[y1ve[3]]+p+3);
+            }
             continue;
         }
 
-        if (u4 > y1ve[0]) vplce[0] = mvlineasm1(vince[0],palookupoffse[0],u4-y1ve[0]-1,vplce[0],bufplce_2[0],ylookup[y1ve[0]]+p+0);
-        if (u4 > y1ve[1]) vplce[1] = mvlineasm1(vince[1],palookupoffse[1],u4-y1ve[1]-1,vplce[1],bufplce_2[1],ylookup[y1ve[1]]+p+1);
-        if (u4 > y1ve[2]) vplce[2] = mvlineasm1(vince[2],palookupoffse[2],u4-y1ve[2]-1,vplce[2],bufplce_2[2],ylookup[y1ve[2]]+p+2);
-        if (u4 > y1ve[3]) vplce[3] = mvlineasm1(vince[3],palookupoffse[3],u4-y1ve[3]-1,vplce[3],bufplce_2[3],ylookup[y1ve[3]]+p+3);
+        if (u4 > y1ve[0]) {
+            vplce[0] = mvlineasm1(vince[0],palookupoffse[0],u4-y1ve[0]-1,vplce[0],bufplce_2[0],ylookup[y1ve[0]]+p+0);
+        }
+        if (u4 > y1ve[1]) {
+            vplce[1] = mvlineasm1(vince[1],palookupoffse[1],u4-y1ve[1]-1,vplce[1],bufplce_2[1],ylookup[y1ve[1]]+p+1);
+        }
+        if (u4 > y1ve[2]) {
+            vplce[2] = mvlineasm1(vince[2],palookupoffse[2],u4-y1ve[2]-1,vplce[2],bufplce_2[2],ylookup[y1ve[2]]+p+2);
+        }
+        if (u4 > y1ve[3]) {
+            vplce[3] = mvlineasm1(vince[3],palookupoffse[3],u4-y1ve[3]-1,vplce[3],bufplce_2[3],ylookup[y1ve[3]]+p+3);
+        }
 
-        if (d4 >= u4) mvlineasm4(d4-u4+1,ylookup[u4]+p,bufplce_2,vplce,vince);
+        if (d4 >= u4) {
+            mvlineasm4(d4-u4+1,ylookup[u4]+p,bufplce_2,vplce,vince);
+        }
 
         i = p+ylookup[d4+1];
-        if (y2ve[0] > d4) mvlineasm1(vince[0],palookupoffse[0],y2ve[0]-d4-1,vplce[0],bufplce_2[0],i+0);
-        if (y2ve[1] > d4) mvlineasm1(vince[1],palookupoffse[1],y2ve[1]-d4-1,vplce[1],bufplce_2[1],i+1);
-        if (y2ve[2] > d4) mvlineasm1(vince[2],palookupoffse[2],y2ve[2]-d4-1,vplce[2],bufplce_2[2],i+2);
-        if (y2ve[3] > d4) mvlineasm1(vince[3],palookupoffse[3],y2ve[3]-d4-1,vplce[3],bufplce_2[3],i+3);
+        if (y2ve[0] > d4) {
+            mvlineasm1(vince[0],palookupoffse[0],y2ve[0]-d4-1,vplce[0],bufplce_2[0],i+0);
+        }
+        if (y2ve[1] > d4) {
+            mvlineasm1(vince[1],palookupoffse[1],y2ve[1]-d4-1,vplce[1],bufplce_2[1],i+1);
+        }
+        if (y2ve[2] > d4) {
+            mvlineasm1(vince[2],palookupoffse[2],y2ve[2]-d4-1,vplce[2],bufplce_2[2],i+2);
+        }
+        if (y2ve[3] > d4) {
+            mvlineasm1(vince[3],palookupoffse[3],y2ve[3]-d4-1,vplce[3],bufplce_2[3],i+3);
+        }
     }
-    for(; x<=x2; x++,p++)
-    {
+    for (; x<=x2; x++,p++) {
         y1ve[0] = max(uwal[x],startumost[x+windowx1]-windowy1);
         y2ve[0] = min(dwal[x],startdmost[x+windowx1]-windowy1);
-        if (y2ve[0] <= y1ve[0]) continue;
+        if (y2ve[0] <= y1ve[0]) {
+            continue;
+        }
 
         palookupoffse[0] = fpalookup+(getpalookup((int32_t)mulscale16(swal[x],globvis),globalshade)<<8);
 
         bufplce_2[0] = lwal[x] + globalxpanning;
         if (bufplce_2[0] >= tileWidth) {
-            if (xnice == 0) bufplce_2[0] %= tileWidth;
-            else bufplce_2[0] &= tileWidth;
+            if (xnice == 0) {
+                bufplce_2[0] %= tileWidth;
+            } else {
+                bufplce_2[0] &= tileWidth;
+            }
         }
-        if (ynice == 0)
+        if (ynice == 0) {
             bufplce_2[0] *= tileHeight;
-        else
+        } else {
             bufplce_2[0] <<= tileHeight;
+        }
 
         vince[0] = swal[x]*globalyscale;
         vplce[0] = globalzd + vince[0]*(y1ve[0]-engine_state->horiz+1);
@@ -1529,14 +1608,16 @@ static void parascan(int32_t dax1, int32_t dax2, int32_t sectnum,uint8_t  dastat
     sec = &sector[sectnum];
 
     horizbak = engine_state->horiz;
-    if (parallaxyscale != 65536)
+    if (parallaxyscale != 65536) {
         engine_state->horiz = mulscale16(engine_state->horiz-(ydimen>>1),parallaxyscale) + (ydimen>>1);
+    }
     globvis = globalpisibility;
     /* globalorientation = 0L; */
-    if (sec->visibility != 0) globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
+    if (sec->visibility != 0) {
+        globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
+    }
 
-    if (dastat == 0)
-    {
+    if (dastat == 0) {
         globalpal = sec->ceilingpal;
         globalpicnum = sec->ceilingpicnum;
         globalshade = (int32_t)sec->ceilingshade;
@@ -1544,9 +1625,7 @@ static void parascan(int32_t dax1, int32_t dax2, int32_t sectnum,uint8_t  dastat
         globalypanning = (int32_t)sec->ceilingypanning;
         topptr = umost;
         botptr = uplc;
-    }
-    else
-    {
+    } else {
         globalpal = sec->floorpal;
         globalpicnum = sec->floorpicnum;
         globalshade = (int32_t)sec->floorshade;
@@ -1556,15 +1635,19 @@ static void parascan(int32_t dax1, int32_t dax2, int32_t sectnum,uint8_t  dastat
         botptr = dmost;
     }
 
-    if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) globalpicnum = 0;
-    
-    if (tiles[globalpicnum].animFlags&192) 
+    if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
+        globalpicnum = 0;
+    }
+
+    if (tiles[globalpicnum].animFlags&192) {
         globalpicnum += animateoffs(globalpicnum);
-    
+    }
+
     globalshiftval = (picsiz[globalpicnum]>>4);
-    
-    if (pow2long[globalshiftval] != tiles[globalpicnum].dim.height)
+
+    if (pow2long[globalshiftval] != tiles[globalpicnum].dim.height) {
         globalshiftval++;
+    }
     globalshiftval = 32-globalshiftval;
     globalzd = (((tiles[globalpicnum].dim.height>>1)+parallaxyoffs)<<globalshiftval)+(globalypanning<<24);
     globalyscale = (8<<(globalshiftval-19));
@@ -1573,62 +1656,60 @@ static void parascan(int32_t dax1, int32_t dax2, int32_t sectnum,uint8_t  dastat
     k = 11 - (picsiz[globalpicnum]&15) - pskybits;
     x = -1;
 
-    for(z=bunchfirst[bunch]; z>=0; z=bunchWallsList[z])
-    {
+    for (z=bunchfirst[bunch]; z>=0; z=bunchWallsList[z]) {
         wallnum = pvWalls[z].worldWallId;
         nextsectnum = wall[wallnum].nextsector;
 
-        if (dastat == 0) j = sector[nextsectnum].ceilingstat;
-        else j = sector[nextsectnum].floorstat;
-
-        if ((nextsectnum < 0) || (wall[wallnum].cstat&32) || ((j&1) == 0))
-        {
-            if (x == -1) x = pvWalls[z].screenSpaceCoo[0][VEC_COL];
-
-            if (parallaxtype == 0)
-            {
-                n = mulscale16(xdimenrecip,viewingrange);
-                for(j=pvWalls[z].screenSpaceCoo[0][VEC_COL]; j<=pvWalls[z].screenSpaceCoo[1][VEC_COL]; j++)
-                    lplc[j] = (((mulscale23(j-halfxdimen,n)+globalang)&2047)>>k);
-            }
-            else
-            {
-                for(j=pvWalls[z].screenSpaceCoo[0][VEC_COL]; j<=pvWalls[z].screenSpaceCoo[1][VEC_COL]; j++)
-                    lplc[j] = ((((int32_t)radarang2[j]+globalang)&2047)>>k);
-            }
-            if (parallaxtype == 2)
-            {
-                n = mulscale16(xdimscale,viewingrange);
-                for(j=pvWalls[z].screenSpaceCoo[0][VEC_COL]; j<=pvWalls[z].screenSpaceCoo[1][VEC_COL]; j++)
-		    swplc[j] = mulscale14(fixedPointSin(((int32_t)radarang2[j]+512)),n);
-            }
-            else
-                clearbuf(&swplc[pvWalls[z].screenSpaceCoo[0][VEC_COL]],pvWalls[z].screenSpaceCoo[1][VEC_COL]-pvWalls[z].screenSpaceCoo[0][VEC_COL]+1,mulscale16(xdimscale,viewingrange));
+        if (dastat == 0) {
+            j = sector[nextsectnum].ceilingstat;
+        } else {
+            j = sector[nextsectnum].floorstat;
         }
-        else if (x >= 0)
-        {
+
+        if ((nextsectnum < 0) || (wall[wallnum].cstat&32) || ((j&1) == 0)) {
+            if (x == -1) {
+                x = pvWalls[z].screenSpaceCoo[0][VEC_COL];
+            }
+
+            if (parallaxtype == 0) {
+                n = mulscale16(xdimenrecip,viewingrange);
+                for (j=pvWalls[z].screenSpaceCoo[0][VEC_COL]; j<=pvWalls[z].screenSpaceCoo[1][VEC_COL]; j++) {
+                    lplc[j] = (((mulscale23(j-halfxdimen,n)+globalang)&2047)>>k);
+                }
+            } else {
+                for (j=pvWalls[z].screenSpaceCoo[0][VEC_COL]; j<=pvWalls[z].screenSpaceCoo[1][VEC_COL]; j++) {
+                    lplc[j] = ((((int32_t)radarang2[j]+globalang)&2047)>>k);
+                }
+            }
+            if (parallaxtype == 2) {
+                n = mulscale16(xdimscale,viewingrange);
+                for (j=pvWalls[z].screenSpaceCoo[0][VEC_COL]; j<=pvWalls[z].screenSpaceCoo[1][VEC_COL]; j++) {
+                    swplc[j] = mulscale14(fixedPointSin(((int32_t)radarang2[j]+512)),n);
+                }
+            } else {
+                clearbuf(&swplc[pvWalls[z].screenSpaceCoo[0][VEC_COL]],pvWalls[z].screenSpaceCoo[1][VEC_COL]-pvWalls[z].screenSpaceCoo[0][VEC_COL]+1,mulscale16(xdimscale,viewingrange));
+            }
+        } else if (x >= 0) {
             l = globalpicnum;
             m = (picsiz[globalpicnum]&15);
             globalpicnum = l+pskyoff[lplc[x]>>m];
 
-            if (((lplc[x]^lplc[pvWalls[z].screenSpaceCoo[0][VEC_COL]-1])>>m) == 0)
+            if (((lplc[x]^lplc[pvWalls[z].screenSpaceCoo[0][VEC_COL]-1])>>m) == 0) {
                 wallscan(x,pvWalls[z].screenSpaceCoo[0][VEC_COL]-1,topptr,botptr,swplc,lplc, engine_state);
-            else
-            {
+            } else {
                 j = x;
-                while (x < pvWalls[z].screenSpaceCoo[0][VEC_COL])
-                {
+                while (x < pvWalls[z].screenSpaceCoo[0][VEC_COL]) {
                     n = l+pskyoff[lplc[x]>>m];
-                    if (n != globalpicnum)
-                    {
+                    if (n != globalpicnum) {
                         wallscan(j,x-1,topptr,botptr,swplc,lplc,engine_state);
                         j = x;
                         globalpicnum = n;
                     }
                     x++;
                 }
-                if (j < x)
+                if (j < x) {
                     wallscan(j,x-1,topptr,botptr,swplc,lplc,engine_state);
+                }
             }
 
             globalpicnum = l;
@@ -1636,30 +1717,27 @@ static void parascan(int32_t dax1, int32_t dax2, int32_t sectnum,uint8_t  dastat
         }
     }
 
-    if (x >= 0)
-    {
+    if (x >= 0) {
         l = globalpicnum;
         m = (picsiz[globalpicnum]&15);
         globalpicnum = l+pskyoff[lplc[x]>>m];
 
-        if (((lplc[x]^lplc[pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL]])>>m) == 0)
+        if (((lplc[x]^lplc[pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL]])>>m) == 0) {
             wallscan(x,pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],topptr,botptr,swplc,lplc,engine_state);
-        else
-        {
+        } else {
             j = x;
-            while (x <= pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL])
-            {
+            while (x <= pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL]) {
                 n = l+pskyoff[lplc[x]>>m];
-                if (n != globalpicnum)
-                {
+                if (n != globalpicnum) {
                     wallscan(j,x-1,topptr,botptr,swplc,lplc,engine_state);
                     j = x;
                     globalpicnum = n;
                 }
                 x++;
             }
-            if (j <= x)
+            if (j <= x) {
                 wallscan(j,x,topptr,botptr,swplc,lplc,engine_state);
+            }
         }
         globalpicnum = l;
     }
@@ -1678,21 +1756,20 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
 
     sec = &sector[sectnum];
 
-    if (dastat == 0)
-    {
-        if (engine_state->posz <= getceilzofslope((short) sectnum,engine_state->posx,engine_state->posy))
-            return;  /* Back-face culling */
+    if (dastat == 0) {
+        if (engine_state->posz <= getceilzofslope((short) sectnum,engine_state->posx,engine_state->posy)) {
+            return;    /* Back-face culling */
+        }
         globalorientation = sec->ceilingstat;
         globalpicnum = sec->ceilingpicnum;
         globalshade = sec->ceilingshade;
         globalpal = sec->ceilingpal;
         daslope = sec->ceilingheinum;
         daz = sec->ceilingz;
-    }
-    else
-    {
-        if (engine_state->posz >= getflorzofslope((short) sectnum,engine_state->posx,engine_state->posy))
-            return;  /* Back-face culling */
+    } else {
+        if (engine_state->posz >= getflorzofslope((short) sectnum,engine_state->posx,engine_state->posy)) {
+            return;    /* Back-face culling */
+        }
         globalorientation = sec->floorstat;
         globalpicnum = sec->floorpicnum;
         globalshade = sec->floorshade;
@@ -1701,15 +1778,17 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
         daz = sec->floorz;
     }
 
-    if ((tiles[globalpicnum].animFlags&192) != 0)
+    if ((tiles[globalpicnum].animFlags&192) != 0) {
         globalpicnum += animateoffs(globalpicnum);
-    
+    }
+
     setgotpic(globalpicnum);
-    
+
     if ((tiles[globalpicnum].dim.width <= 0) ||
-        (tiles[globalpicnum].dim.height <= 0))
+        (tiles[globalpicnum].dim.height <= 0)) {
         return;
-    
+    }
+
     TILE_MakeAvailable(globalpicnum);
 
     wal = &wall[sec->wallptr];
@@ -1731,8 +1810,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
     globalzx = -dmulscale17(wx,globaly2,-wy,globalx2) + mulscale10(1-engine_state->horiz,globalzd);
     globalz = -dmulscale25(wx,globaly,-wy,globalx);
 
-    if (globalorientation&64)  /* Relative alignment */
-    {
+    if (globalorientation&64) { /* Relative alignment */
         dx = mulscale14(wall[wal->point2].x-wal->x,dasqr);
         dy = mulscale14(wall[wal->point2].y-wal->y,dasqr);
 
@@ -1753,8 +1831,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
         globalx2 = dmulscale16(x,dx,y,dy);
         globaly2 = mulscale12(dmulscale16(-y,dx,x,dy),i);
     }
-    if (globalorientation&0x4)
-    {
+    if (globalorientation&0x4) {
         i = globalx;
         globalx = -globaly;
         globaly = -i;
@@ -1791,19 +1868,18 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
     globaly2 <<= j;
     globaly <<= j;
 
-    if (dastat == 0)
-    {
+    if (dastat == 0) {
         globalx1 += (((int32_t)sec->ceilingxpanning)<<24);
         globaly1 += (((int32_t)sec->ceilingypanning)<<24);
-    }
-    else
-    {
+    } else {
         globalx1 += (((int32_t)sec->floorxpanning)<<24);
         globaly1 += (((int32_t)sec->floorypanning)<<24);
     }
 
     globvis = globalvisibility;
-    if (sec->visibility != 0) globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
+    if (sec->visibility != 0) {
+        globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
+    }
     globvis = mulscale13(globvis,daz);
     globvis = mulscale16(globvis,xdimscale);
     j =(int32_t) FP_OFF(palookup[globalpal]);
@@ -1816,56 +1892,60 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
     l = (globalzd>>16);
 
     shinc = mulscale16(globalz,xdimenscale);
-    if (shinc > 0)
+    if (shinc > 0) {
         shoffs = (4<<15);
-    else
-        shoffs = ((16380-ydimen)<<15);	// JBF: was 2044     16380
-    if (dastat == 0) y1 = umost[dax1];
-    else y1 = max(umost[dax1],dplc[dax1]);
+    } else {
+        shoffs = ((16380-ydimen)<<15);    // JBF: was 2044     16380
+    }
+    if (dastat == 0) {
+        y1 = umost[dax1];
+    } else {
+        y1 = max(umost[dax1],dplc[dax1]);
+    }
     m1 = mulscale16(y1,globalzd) + (globalzx>>6);
     /* Avoid visibility overflow by crossing horizon */
-    if (globalzd > 0) m1 += (globalzd>>16);
-    else m1 -= (globalzd>>16);
+    if (globalzd > 0) {
+        m1 += (globalzd>>16);
+    } else {
+        m1 -= (globalzd>>16);
+    }
     m2 = m1+l;
     mptr1 = (int32_t *)&slopalookup[y1+(shoffs>>15)];
     mptr2 = mptr1+1;
 
-    for(x=dax1; x<=dax2; x++)
-    {
+    for (x=dax1; x<=dax2; x++) {
         if (dastat == 0) {
             y1 = umost[x];
             y2 = min(dmost[x],uplc[x])-1;
-        }
-        else {
+        } else {
             y1 = max(umost[x],dplc[x]);
             y2 = dmost[x]-1;
         }
-        if (y1 <= y2)
-        {
+        if (y1 <= y2) {
             nptr1 = (int32_t *)&slopalookup[y1+(shoffs>>15)];
             nptr2 = (int32_t *)&slopalookup[y2+(shoffs>>15)];
-            while (nptr1 <= mptr1)
-            {
+            while (nptr1 <= mptr1) {
                 *mptr1-- = j + (getpalookup((int32_t)mulscale24(krecip(m1),globvis),globalshade)<<8);
                 m1 -= l;
             }
-            while (nptr2 >= mptr2)
-            {
+            while (nptr2 >= mptr2) {
                 *mptr2++ = j + (getpalookup((int32_t)mulscale24(krecip(m2),globvis),globalshade)<<8);
                 m2 += l;
             }
 
             globalx3 = (globalx2>>10);
             globaly3 = (globaly2>>10);
-	    int32_t a3 = mulscale16(y2,globalzd) + (globalzx>>6);
+            int32_t a3 = mulscale16(y2,globalzd) + (globalzx>>6);
             slopevlin(ylookup[y2]+x+frameoffset,
                       krecip(a3>>3),
                       (int32_t)nptr2,y2-y1+1,
                       globalx1,
                       globaly1,
-		      a3);
+                      a3);
 
-            if ((x&15) == 0) faketimerhandler();
+            if ((x&15) == 0) {
+                faketimerhandler();
+            }
         }
         globalx2 += globalx;
         globaly2 += globaly;
@@ -1892,34 +1972,28 @@ static int owallmost(short *mostbuf, int32_t w, int32_t z, EngineState *engine_s
     ix2 = pvWalls[w].screenSpaceCoo[1][VEC_COL];
     iy2 = pvWalls[w].screenSpaceCoo[1][VEC_DIST];
 
-    if ((bad&3) == 3)
-    {
+    if ((bad&3) == 3) {
         clearbufbyte(&mostbuf[ix1],(ix2-ix1+1)*sizeof(mostbuf[0]),0L);
         return(bad);
     }
 
-    if ((bad&12) == 12)
-    {
+    if ((bad&12) == 12) {
         clearbufbyte(&mostbuf[ix1],(ix2-ix1+1)*sizeof(mostbuf[0]),ydimen+(ydimen<<16));
         return(bad);
     }
 
-    if (bad&3)
-    {
+    if (bad&3) {
         t = divscale30(z-s1,s2-s1);
         inty = pvWalls[w].screenSpaceCoo[0][VEC_DIST] + mulscale30(pvWalls[w].screenSpaceCoo[1][VEC_DIST]-pvWalls[w].screenSpaceCoo[0][VEC_DIST],t);
         xcross = pvWalls[w].screenSpaceCoo[0][VEC_COL] + scale(mulscale30(pvWalls[w].screenSpaceCoo[1][VEC_DIST],t),pvWalls[w].screenSpaceCoo[1][VEC_COL]-pvWalls[w].screenSpaceCoo[0][VEC_COL],inty);
 
-        if ((bad&3) == 2)
-        {
+        if ((bad&3) == 2) {
             if (pvWalls[w].screenSpaceCoo[0][VEC_COL] <= xcross) {
                 iy2 = inty;
                 ix2 = xcross;
             }
             clearbufbyte(&mostbuf[xcross+1],(pvWalls[w].screenSpaceCoo[1][VEC_COL]-xcross)*sizeof(mostbuf[0]),0L);
-        }
-        else
-        {
+        } else {
             if (xcross <= pvWalls[w].screenSpaceCoo[1][VEC_COL]) {
                 iy1 = inty;
                 ix1 = xcross;
@@ -1928,22 +2002,18 @@ static int owallmost(short *mostbuf, int32_t w, int32_t z, EngineState *engine_s
         }
     }
 
-    if (bad&12)
-    {
+    if (bad&12) {
         t = divscale30(z-s3,s4-s3);
         inty = pvWalls[w].screenSpaceCoo[0][VEC_DIST] + mulscale30(pvWalls[w].screenSpaceCoo[1][VEC_DIST]-pvWalls[w].screenSpaceCoo[0][VEC_DIST],t);
         xcross = pvWalls[w].screenSpaceCoo[0][VEC_COL] + scale(mulscale30(pvWalls[w].screenSpaceCoo[1][VEC_DIST],t),pvWalls[w].screenSpaceCoo[1][VEC_COL]-pvWalls[w].screenSpaceCoo[0][VEC_COL],inty);
 
-        if ((bad&12) == 8)
-        {
+        if ((bad&12) == 8) {
             if (pvWalls[w].screenSpaceCoo[0][VEC_COL] <= xcross) {
                 iy2 = inty;
                 ix2 = xcross;
             }
             clearbufbyte(&mostbuf[xcross+1],(pvWalls[w].screenSpaceCoo[1][VEC_COL]-xcross)*sizeof(mostbuf[0]),ydimen+(ydimen<<16));
-        }
-        else
-        {
+        } else {
             if (xcross <= pvWalls[w].screenSpaceCoo[1][VEC_COL]) {
                 iy1 = inty;
                 ix1 = xcross;
@@ -1956,10 +2026,18 @@ static int owallmost(short *mostbuf, int32_t w, int32_t z, EngineState *engine_s
     yinc = ((scale(z,xdimenscale,iy2)<<4)-y) / (ix2-ix1+1);
     qinterpolatedown16short((int32_t *)&mostbuf[ix1],ix2-ix1+1,y+(engine_state->horiz<<16),yinc);
 
-    if (mostbuf[ix1] < 0) mostbuf[ix1] = 0;
-    if (mostbuf[ix1] > ydimen) mostbuf[ix1] = ydimen;
-    if (mostbuf[ix2] < 0) mostbuf[ix2] = 0;
-    if (mostbuf[ix2] > ydimen) mostbuf[ix2] = ydimen;
+    if (mostbuf[ix1] < 0) {
+        mostbuf[ix1] = 0;
+    }
+    if (mostbuf[ix1] > ydimen) {
+        mostbuf[ix1] = ydimen;
+    }
+    if (mostbuf[ix2] < 0) {
+        mostbuf[ix2] = 0;
+    }
+    if (mostbuf[ix2] > ydimen) {
+        mostbuf[ix2] = ydimen;
+    }
 
     return(bad);
 }
@@ -1971,20 +2049,22 @@ static int wallmost(short *mostbuf, int32_t w, int32_t sectnum, uint8_t  dastat,
     int32_t x1, y1, z1, x2, y2, z2, xv, yv, dx, dy, dasqr, oz1, oz2;
     int32_t s1, s2, s3, s4, ix1, ix2, iy1, iy2;
 
-    if (dastat == 0){
+    if (dastat == 0) {
         z = sector[sectnum].ceilingz - engine_state->posz;
-        if ((sector[sectnum].ceilingstat&2) == 0)
+        if ((sector[sectnum].ceilingstat&2) == 0) {
             return(owallmost(mostbuf, w, z, engine_state));
-    }
-    else{
+        }
+    } else {
         z = sector[sectnum].floorz - engine_state->posz;
-        if ((sector[sectnum].floorstat&2) == 0)
+        if ((sector[sectnum].floorstat&2) == 0) {
             return(owallmost(mostbuf, w, z, engine_state));
+        }
     }
 
     i = pvWalls[w].worldWallId;
-    if (i == sector[sectnum].wallptr)
+    if (i == sector[sectnum].wallptr) {
         return(owallmost(mostbuf, w, z, engine_state));
+    }
 
     x1 = wall[i].x;
     x2 = wall[wall[i].point2].x-x1;
@@ -1997,56 +2077,54 @@ static int wallmost(short *mostbuf, int32_t w, int32_t sectnum, uint8_t  dastat,
     dy = wall[i].y-wall[fw].y;
     dasqr = krecip(fixedPointSqrt(dx*dx+dy*dy));
 
-    if (pvWalls[w].screenSpaceCoo[0][VEC_COL] == 0){
+    if (pvWalls[w].screenSpaceCoo[0][VEC_COL] == 0) {
         xv = cosglobalang+sinviewingrangeglobalang;
         yv = singlobalang-cosviewingrangeglobalang;
-    }
-    else{
+    } else {
         xv = x1 - engine_state->posx;
         yv = y1 - engine_state->posy;
     }
     i = xv*(y1 - engine_state->posy) - yv*(x1 - engine_state->posx);
     j = yv*x2 - xv*y2;
-    
-    if (klabs(j) > klabs(i>>3))
+
+    if (klabs(j) > klabs(i>>3)) {
         i = divscale28(i,j);
-    
-    if (dastat == 0){
+    }
+
+    if (dastat == 0) {
         t = mulscale15(sector[sectnum].ceilingheinum,dasqr);
         z1 = sector[sectnum].ceilingz;
-    }
-    else{
+    } else {
         t = mulscale15(sector[sectnum].floorheinum,dasqr);
         z1 = sector[sectnum].floorz;
     }
-    
+
     z1 = dmulscale24(dx*t, mulscale20(y2,i)+((y1-wall[fw].y)<<8), -dy*t,mulscale20(x2, i)+((x1-wall[fw].x)<<8))+((z1-engine_state->posz)<<7);
 
 
-    if (pvWalls[w].screenSpaceCoo[1][VEC_COL] == xdimen-1){
+    if (pvWalls[w].screenSpaceCoo[1][VEC_COL] == xdimen-1) {
         xv = cosglobalang-sinviewingrangeglobalang;
         yv = singlobalang+cosviewingrangeglobalang;
-    }
-    else{
+    } else {
         xv = (x2+x1) - engine_state->posx;
         yv = (y2+y1) - engine_state->posy;
     }
-    
+
     i = xv*(y1 - engine_state->posy) - yv*(x1-engine_state->posx);
     j = yv*x2-xv*y2;
-    
-    if (klabs(j) > klabs(i>>3))
+
+    if (klabs(j) > klabs(i>>3)) {
         i = divscale28(i,j);
-    
-    if (dastat == 0){
+    }
+
+    if (dastat == 0) {
         t = mulscale15(sector[sectnum].ceilingheinum,dasqr);
         z2 = sector[sectnum].ceilingz;
-    }
-    else{
+    } else {
         t = mulscale15(sector[sectnum].floorheinum,dasqr);
         z2 = sector[sectnum].floorz;
     }
-    
+
     z2 = dmulscale24(dx*t,mulscale20(y2,i)+((y1-wall[fw].y)<<8),-dy*t,mulscale20(x2,i)+((x1-wall[fw].x)<<8))+((z2-engine_state->posz)<<7);
 
 
@@ -2063,32 +2141,31 @@ static int wallmost(short *mostbuf, int32_t w, int32_t sectnum, uint8_t  dastat,
     oz1 = z1;
     oz2 = z2;
 
-    if ((bad&3) == 3){
+    if ((bad&3) == 3) {
         clearbufbyte(&mostbuf[ix1],(ix2-ix1+1)*sizeof(mostbuf[0]),0L);
         return(bad);
     }
 
-    if ((bad&12) == 12){
+    if ((bad&12) == 12) {
         clearbufbyte(&mostbuf[ix1],(ix2-ix1+1)*sizeof(mostbuf[0]),ydimen+(ydimen<<16));
         return(bad);
     }
 
-    if (bad&3){
+    if (bad&3) {
         /* inty = intz / (globaluclip>>16) */
         t = divscale30(oz1-s1,s2-s1+oz1-oz2);
         inty = pvWalls[w].screenSpaceCoo[0][VEC_DIST] + mulscale30(pvWalls[w].screenSpaceCoo[1][VEC_DIST]-pvWalls[w].screenSpaceCoo[0][VEC_DIST],t);
         intz = oz1 + mulscale30(oz2-oz1,t);
         xcross = pvWalls[w].screenSpaceCoo[0][VEC_COL] + scale(mulscale30(pvWalls[w].screenSpaceCoo[1][VEC_DIST],t),pvWalls[w].screenSpaceCoo[1][VEC_COL]-pvWalls[w].screenSpaceCoo[0][VEC_COL],inty);
 
-        if ((bad&3) == 2){
-            if (pvWalls[w].screenSpaceCoo[0][VEC_COL] <= xcross){
+        if ((bad&3) == 2) {
+            if (pvWalls[w].screenSpaceCoo[0][VEC_COL] <= xcross) {
                 z2 = intz;
                 iy2 = inty;
                 ix2 = xcross;
             }
             clearbufbyte(&mostbuf[xcross+1],(pvWalls[w].screenSpaceCoo[1][VEC_COL]-xcross)*sizeof(mostbuf[0]),0L);
-        }
-        else{
+        } else {
             if (xcross <= pvWalls[w].screenSpaceCoo[1][VEC_COL]) {
                 z1 = intz;
                 iy1 = inty;
@@ -2098,22 +2175,21 @@ static int wallmost(short *mostbuf, int32_t w, int32_t sectnum, uint8_t  dastat,
         }
     }
 
-    if (bad&12){
+    if (bad&12) {
         /* inty = intz / (globaldclip>>16) */
         t = divscale30(oz1-s3,s4-s3+oz1-oz2);
         inty = pvWalls[w].screenSpaceCoo[0][VEC_DIST] + mulscale30(pvWalls[w].screenSpaceCoo[1][VEC_DIST]-pvWalls[w].screenSpaceCoo[0][VEC_DIST],t);
         intz = oz1 + mulscale30(oz2-oz1,t);
         xcross = pvWalls[w].screenSpaceCoo[0][VEC_COL] + scale(mulscale30(pvWalls[w].screenSpaceCoo[1][VEC_DIST],t),pvWalls[w].screenSpaceCoo[1][VEC_COL]-pvWalls[w].screenSpaceCoo[0][VEC_COL],inty);
 
-        if ((bad&12) == 8){
+        if ((bad&12) == 8) {
             if (pvWalls[w].screenSpaceCoo[0][VEC_COL] <= xcross) {
                 z2 = intz;
                 iy2 = inty;
                 ix2 = xcross;
             }
             clearbufbyte(&mostbuf[xcross+1],(pvWalls[w].screenSpaceCoo[1][VEC_COL]-xcross)*sizeof(mostbuf[0]),ydimen+(ydimen<<16));
-        }
-        else{
+        } else {
             if (xcross <= pvWalls[w].screenSpaceCoo[1][VEC_COL]) {
                 z1 = intz;
                 iy1 = inty;
@@ -2127,14 +2203,18 @@ static int wallmost(short *mostbuf, int32_t w, int32_t sectnum, uint8_t  dastat,
     yinc = ((scale(z2,xdimenscale,iy2)<<4)-y) / (ix2-ix1+1);
     qinterpolatedown16short((int32_t *)&mostbuf[ix1],ix2-ix1+1,y+(engine_state->horiz<<16),yinc);
 
-    if (mostbuf[ix1] < 0)
+    if (mostbuf[ix1] < 0) {
         mostbuf[ix1] = 0;
-    if (mostbuf[ix1] > ydimen)
+    }
+    if (mostbuf[ix1] > ydimen) {
         mostbuf[ix1] = ydimen;
-    if (mostbuf[ix2] < 0)
+    }
+    if (mostbuf[ix2] < 0) {
         mostbuf[ix2] = 0;
-    if (mostbuf[ix2] > ydimen)
+    }
+    if (mostbuf[ix2] > ydimen) {
         mostbuf[ix2] = ydimen;
+    }
 
     return(bad);
 }
@@ -2155,46 +2235,47 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
 
     andwstat1 = 0xff;
     andwstat2 = 0xff;
-    for(; z>=0; z=bunchWallsList[z]){ /* uplc/dplc calculation */
-    
+    for (; z>=0; z=bunchWallsList[z]) { /* uplc/dplc calculation */
+
         andwstat1 &= wallmost(uplc,z,sectnum,(uint8_t )0, engine_state);
         andwstat2 &= wallmost(dplc,z,sectnum,(uint8_t )1, engine_state);
     }
 
-	/* draw ceilings */
-    if ((andwstat1&3) != 3){
-        if ((sec->ceilingstat&3) == 2)
+    /* draw ceilings */
+    if ((andwstat1&3) != 3) {
+        if ((sec->ceilingstat&3) == 2) {
             grouscan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],sectnum,0,engine_state);
-        else if ((sec->ceilingstat&1) == 0)
+        } else if ((sec->ceilingstat&1) == 0) {
             ceilscan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],sectnum,engine_state);
-        else
+        } else {
             parascan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],sectnum,0,bunch,engine_state);
+        }
     }
 
-	/* draw floors */
-    if ((andwstat2&12) != 12){
-        if ((sec->floorstat&3) == 2)
+    /* draw floors */
+    if ((andwstat2&12) != 12) {
+        if ((sec->floorstat&3) == 2) {
             grouscan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],sectnum,1,engine_state);
-        else if ((sec->floorstat&1) == 0)
+        } else if ((sec->floorstat&1) == 0) {
             florscan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],sectnum,engine_state);
-        else
+        } else {
             parascan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],sectnum,1,bunch,engine_state);
+        }
     }
 
     /* DRAW WALLS SECTION! */
-    for(z=bunchfirst[bunch]; z>=0; z=bunchWallsList[z]){
-        
+    for (z=bunchfirst[bunch]; z>=0; z=bunchWallsList[z]) {
+
         x1 = pvWalls[z].screenSpaceCoo[0][VEC_COL];
         x2 = pvWalls[z].screenSpaceCoo[1][VEC_COL];
-        if (umost[x2] >= dmost[x2])
-        {
+        if (umost[x2] >= dmost[x2]) {
 
-            for(x=x1; x<x2; x++)
-                if (umost[x] < dmost[x]) 
-					break;
+            for (x=x1; x<x2; x++)
+                if (umost[x] < dmost[x]) {
+                    break;
+                }
 
-            if (x >= x2)
-            {
+            if (x >= x2) {
                 smostwall[smostwallcnt] = z;
                 smostwalltype[smostwallcnt] = 0;
                 smostwallcnt++;
@@ -2212,15 +2293,13 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
         startsmostwallcnt = smostwallcnt;
         startsmostcnt = engine_state->smostcnt;
 
-        if ((searchit == 2) && (searchx >= x1) && (searchx <= x2))
-        {
-            if (searchy <= uplc[searchx]){ /* ceiling */
+        if ((searchit == 2) && (searchx >= x1) && (searchx <= x2)) {
+            if (searchy <= uplc[searchx]) { /* ceiling */
                 searchsector = sectnum;
                 searchwall = wallnum;
                 searchstat = 1;
                 searchit = 1;
-            }
-            else if (searchy >= dplc[searchx]){ /* floor */
+            } else if (searchy >= dplc[searchx]) { /* floor */
                 searchsector = sectnum;
                 searchwall = wallnum;
                 searchstat = 2;
@@ -2228,33 +2307,37 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
             }
         }
 
-        if (nextsectnum >= 0){
+        if (nextsectnum >= 0) {
             getzsofslope((short)sectnum,wal->x,wal->y,&cz[0],&fz[0]);
             getzsofslope((short)sectnum,wall[wal->point2].x,wall[wal->point2].y,&cz[1],&fz[1]);
             getzsofslope((short)nextsectnum,wal->x,wal->y,&cz[2],&fz[2]);
             getzsofslope((short)nextsectnum,wall[wal->point2].x,wall[wal->point2].y,&cz[3],&fz[3]);
             getzsofslope((short)nextsectnum,engine_state->posx,engine_state->posy,&cz[4],&fz[4]);
 
-            if ((wal->cstat&48) == 16)
+            if ((wal->cstat&48) == 16) {
                 engine_state->maskwall[engine_state->maskwallcnt++] = z;
+            }
 
-            if (((sec->ceilingstat&1) == 0) || ((nextsec->ceilingstat&1) == 0)){
-                if ((cz[2] <= cz[0]) && (cz[3] <= cz[1])){
+            if (((sec->ceilingstat&1) == 0) || ((nextsec->ceilingstat&1) == 0)) {
+                if ((cz[2] <= cz[0]) && (cz[3] <= cz[1])) {
                     if (globparaceilclip)
-                        for(x=x1; x<=x2; x++)
+                        for (x=x1; x<=x2; x++)
                             if (uplc[x] > umost[x])
-                                if (umost[x] <= dmost[x]){
+                                if (umost[x] <= dmost[x]) {
                                     umost[x] = uplc[x];
-                                    if (umost[x] > dmost[x]) (*numhits)--;
+                                    if (umost[x] > dmost[x]) {
+                                        (*numhits)--;
+                                    }
                                 }
-                }
-                else{
+                } else {
                     wallmost(dwall,z,nextsectnum,(uint8_t )0,engine_state);
                     if ((cz[2] > fz[0]) || (cz[3] > fz[1]))
-                        for(i=x1; i<=x2; i++) if (dwall[i] > dplc[i]) dwall[i] = dplc[i];
+                        for (i=x1; i<=x2; i++) if (dwall[i] > dplc[i]) {
+                                dwall[i] = dplc[i];
+                            }
 
                     if ((searchit == 2) && (searchx >= x1) && (searchx <= x2))
-                        if (searchy <= dwall[searchx]) /* wall */{
+                        if (searchy <= dwall[searchx]) { /* wall */
                             searchsector = sectnum;
                             searchwall = wallnum;
                             searchstat = 0;
@@ -2263,28 +2346,38 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
 
                     globalorientation = (int32_t)wal->cstat;
                     globalpicnum = wal->picnum;
-                    if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) globalpicnum = 0;
+                    if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
+                        globalpicnum = 0;
+                    }
                     globalxpanning = (int32_t)wal->xpanning;
                     globalypanning = (int32_t)wal->ypanning;
                     globalshiftval = (picsiz[globalpicnum]>>4);
-                    if (pow2long[globalshiftval] != tiles[globalpicnum].dim.height) globalshiftval++;
+                    if (pow2long[globalshiftval] != tiles[globalpicnum].dim.height) {
+                        globalshiftval++;
+                    }
                     globalshiftval = 32-globalshiftval;
-                    
+
                     //Animated
-                    if (tiles[globalpicnum].animFlags&192)
+                    if (tiles[globalpicnum].animFlags&192) {
                         globalpicnum += animateoffs(globalpicnum);
-                    
+                    }
+
                     globalshade = (int32_t)wal->shade;
                     globvis = globalvisibility;
-                    if (sec->visibility != 0) globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
+                    if (sec->visibility != 0) {
+                        globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
+                    }
                     globalpal = (int32_t)wal->pal;
                     globalyscale = (wal->yrepeat<<(globalshiftval-19));
-                    if ((globalorientation&4) == 0)
+                    if ((globalorientation&4) == 0) {
                         globalzd = (((engine_state->posz-nextsec->ceilingz)*globalyscale)<<8);
-                    else
+                    } else {
                         globalzd = (((engine_state->posz-sec->ceilingz)*globalyscale)<<8);
+                    }
                     globalzd += (globalypanning<<24);
-                    if (globalorientation&256) globalyscale = -globalyscale, globalzd = -globalzd;
+                    if (globalorientation&256) {
+                        globalyscale = -globalyscale, globalzd = -globalzd;
+                    }
 
                     if (gotswall == 0) {
                         gotswall = 1;
@@ -2292,29 +2385,31 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                     }
                     wallscan(x1,x2,uplc,dwall,swall,lwall, engine_state);
 
-                    if ((cz[2] >= cz[0]) && (cz[3] >= cz[1])){
-                        for(x=x1; x<=x2; x++)
+                    if ((cz[2] >= cz[0]) && (cz[3] >= cz[1])) {
+                        for (x=x1; x<=x2; x++)
                             if (dwall[x] > umost[x])
-                                if (umost[x] <= dmost[x]){
+                                if (umost[x] <= dmost[x]) {
                                     umost[x] = dwall[x];
-                                    if (umost[x] > dmost[x]) (*numhits)--;
+                                    if (umost[x] > dmost[x]) {
+                                        (*numhits)--;
+                                    }
                                 }
-                    }
-                    else
-                    {
-                        for(x=x1; x<=x2; x++)
-                            if (umost[x] <= dmost[x]){
+                    } else {
+                        for (x=x1; x<=x2; x++)
+                            if (umost[x] <= dmost[x]) {
                                 i = max(uplc[x],dwall[x]);
-                                if (i > umost[x]){
+                                if (i > umost[x]) {
                                     umost[x] = i;
-                                    if (umost[x] > dmost[x]) (*numhits)--;
+                                    if (umost[x] > dmost[x]) {
+                                        (*numhits)--;
+                                    }
                                 }
                             }
                     }
                 }
-                if ((cz[2] < cz[0]) || (cz[3] < cz[1]) || (engine_state->posz < cz[4])){
+                if ((cz[2] < cz[0]) || (cz[3] < cz[1]) || (engine_state->posz < cz[4])) {
                     i = x2-x1+1;
-                    if (engine_state->smostcnt+i < MAXYSAVES){
+                    if (engine_state->smostcnt+i < MAXYSAVES) {
                         smoststart[smostwallcnt] = engine_state->smostcnt;
                         smostwall[smostwallcnt] = z;
                         smostwalltype[smostwallcnt] = 1;   /* 1 for umost */
@@ -2326,80 +2421,94 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                     }
                 }
             }
-            if (((sec->floorstat&1) == 0) || ((nextsec->floorstat&1) == 0)){
-                if ((fz[2] >= fz[0]) && (fz[3] >= fz[1])){
+            if (((sec->floorstat&1) == 0) || ((nextsec->floorstat&1) == 0)) {
+                if ((fz[2] >= fz[0]) && (fz[3] >= fz[1])) {
                     if (globparaflorclip)
-                        for(x=x1; x<=x2; x++)
+                        for (x=x1; x<=x2; x++)
                             if (dplc[x] < dmost[x])
-                                if (umost[x] <= dmost[x]){
+                                if (umost[x] <= dmost[x]) {
                                     dmost[x] = dplc[x];
-                                    if (umost[x] > dmost[x]) (*numhits)--;
+                                    if (umost[x] > dmost[x]) {
+                                        (*numhits)--;
+                                    }
                                 }
-                }
-                else{
+                } else {
                     wallmost(uwall,z,nextsectnum,(uint8_t )1,engine_state);
                     if ((fz[2] < cz[0]) || (fz[3] < cz[1]))
-                        for(i=x1; i<=x2; i++) if (uwall[i] < uplc[i]) uwall[i] = uplc[i];
+                        for (i=x1; i<=x2; i++) if (uwall[i] < uplc[i]) {
+                                uwall[i] = uplc[i];
+                            }
 
                     if ((searchit == 2) && (searchx >= x1) && (searchx <= x2))
-                        if (searchy >= uwall[searchx]) /* wall */{
+                        if (searchy >= uwall[searchx]) { /* wall */
                             searchsector = sectnum;
                             searchwall = wallnum;
-                            if ((wal->cstat&2) > 0) searchwall = wal->nextwall;
+                            if ((wal->cstat&2) > 0) {
+                                searchwall = wal->nextwall;
+                            }
                             searchstat = 0;
                             searchit = 1;
                         }
 
-                    if ((wal->cstat&2) > 0){
+                    if ((wal->cstat&2) > 0) {
                         wallnum = wal->nextwall;
                         wal = &wall[wallnum];
                         globalorientation = (int32_t)wal->cstat;
                         globalpicnum = wal->picnum;
-                        if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) globalpicnum = 0;
+                        if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
+                            globalpicnum = 0;
+                        }
                         globalxpanning = (int32_t)wal->xpanning;
                         globalypanning = (int32_t)wal->ypanning;
-                        
-                        if (tiles[globalpicnum].animFlags&192) 
+
+                        if (tiles[globalpicnum].animFlags&192) {
                             globalpicnum += animateoffs(globalpicnum);
-                        
+                        }
+
                         globalshade = (int32_t)wal->shade;
                         globalpal = (int32_t)wal->pal;
                         wallnum = pvWalls[z].worldWallId;
                         wal = &wall[wallnum];
-                    }
-                    else{
+                    } else {
                         globalorientation = (int32_t)wal->cstat;
                         globalpicnum = wal->picnum;
-                        
-                        if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) 
+
+                        if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
                             globalpicnum = 0;
-                        
+                        }
+
                         globalxpanning = (int32_t)wal->xpanning;
                         globalypanning = (int32_t)wal->ypanning;
-                        
-                        if (tiles[globalpicnum].animFlags&192) 
+
+                        if (tiles[globalpicnum].animFlags&192) {
                             globalpicnum += animateoffs(globalpicnum);
+                        }
                         globalshade = (int32_t)wal->shade;
                         globalpal = (int32_t)wal->pal;
                     }
                     globvis = globalvisibility;
-                    if (sec->visibility != 0)
+                    if (sec->visibility != 0) {
                         globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
+                    }
                     globalshiftval = (picsiz[globalpicnum]>>4);
-                    
-                    if (pow2long[globalshiftval] != tiles[globalpicnum].dim.height)
+
+                    if (pow2long[globalshiftval] != tiles[globalpicnum].dim.height) {
                         globalshiftval++;
-                    
+                    }
+
                     globalshiftval = 32-globalshiftval;
                     globalyscale = (wal->yrepeat<<(globalshiftval-19));
-                    
-                    if ((globalorientation&4) == 0)
+
+                    if ((globalorientation&4) == 0) {
                         globalzd = (((engine_state->posz-nextsec->floorz)*globalyscale)<<8);
-                    else
+                    } else {
                         globalzd = (((engine_state->posz-sec->ceilingz)*globalyscale)<<8);
-                    
+                    }
+
                     globalzd += (globalypanning<<24);
-                    if (globalorientation&256) globalyscale = -globalyscale, globalzd = -globalzd;
+                    if (globalorientation&256) {
+                        globalyscale = -globalyscale, globalzd = -globalzd;
+                    }
 
                     if (gotswall == 0) {
                         gotswall = 1;
@@ -2407,31 +2516,31 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                     }
                     wallscan(x1,x2,uwall,dplc,swall,lwall,engine_state);
 
-                    if ((fz[2] <= fz[0]) && (fz[3] <= fz[1]))
-                    {
-                        for(x=x1; x<=x2; x++)
+                    if ((fz[2] <= fz[0]) && (fz[3] <= fz[1])) {
+                        for (x=x1; x<=x2; x++)
                             if (uwall[x] < dmost[x])
-                                if (umost[x] <= dmost[x]){
+                                if (umost[x] <= dmost[x]) {
                                     dmost[x] = uwall[x];
-                                    if (umost[x] > dmost[x]) (*numhits)--;
+                                    if (umost[x] > dmost[x]) {
+                                        (*numhits)--;
+                                    }
                                 }
-                    }
-                    else
-                    {
-                        for(x=x1; x<=x2; x++)
-                            if (umost[x] <= dmost[x]){
+                    } else {
+                        for (x=x1; x<=x2; x++)
+                            if (umost[x] <= dmost[x]) {
                                 i = min(dplc[x],uwall[x]);
-                                if (i < dmost[x])
-                                {
+                                if (i < dmost[x]) {
                                     dmost[x] = i;
-                                    if (umost[x] > dmost[x]) (*numhits)--;
+                                    if (umost[x] > dmost[x]) {
+                                        (*numhits)--;
+                                    }
                                 }
                             }
                     }
                 }
-                if ((fz[2] > fz[0]) || (fz[3] > fz[1]) || (engine_state->posz > fz[4])){
+                if ((fz[2] > fz[0]) || (fz[3] > fz[1]) || (engine_state->posz > fz[4])) {
                     i = x2-x1+1;
-                    if (engine_state->smostcnt+i < MAXYSAVES){
+                    if (engine_state->smostcnt+i < MAXYSAVES) {
                         smoststart[smostwallcnt] = engine_state->smostcnt;
                         smostwall[smostwallcnt] = z;
                         smostwalltype[smostwallcnt] = 2;   /* 2 for dmost */
@@ -2443,14 +2552,15 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                     }
                 }
             }
-            if (*numhits < 0) return;
-            if ((!(wal->cstat&32)) && ((visitedSectors[nextsectnum>>3]&pow2char[nextsectnum&7]) == 0)){
-                if (umost[x2] < dmost[x2])
+            if (*numhits < 0) {
+                return;
+            }
+            if ((!(wal->cstat&32)) && ((visitedSectors[nextsectnum>>3]&pow2char[nextsectnum&7]) == 0)) {
+                if (umost[x2] < dmost[x2]) {
                     scansector((short) nextsectnum, numscans, numbunches, engine_state);
-                else
-                {
-                    for(x=x1; x<x2; x++)
-                        if (umost[x] < dmost[x]){
+                } else {
+                    for (x=x1; x<x2; x++)
+                        if (umost[x] < dmost[x]) {
                             scansector((short) nextsectnum, numscans, numbunches, engine_state);
                             break;
                         }
@@ -2459,7 +2569,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                      * If can't see sector beyond, then cancel smost array and just
                      *  store wall!
                      */
-                    if (x == x2){
+                    if (x == x2) {
                         smostwallcnt = startsmostwallcnt;
                         engine_state->smostcnt = startsmostcnt;
                         smostwall[smostwallcnt] = z;
@@ -2469,52 +2579,55 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                 }
             }
         }
-        if ((nextsectnum < 0) || (wal->cstat&32))   /* White/1-way wall */
-        {
+        if ((nextsectnum < 0) || (wal->cstat&32)) { /* White/1-way wall */
             globalorientation = (int32_t)wal->cstat;
-            if (nextsectnum < 0)
+            if (nextsectnum < 0) {
                 globalpicnum = wal->picnum;
-            else
+            } else {
                 globalpicnum = wal->overpicnum;
-            
-            if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES)
+            }
+
+            if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
                 globalpicnum = 0;
-            
+            }
+
             globalxpanning = (int32_t)wal->xpanning;
             globalypanning = (int32_t)wal->ypanning;
-            
-            if (tiles[globalpicnum].animFlags&192)
+
+            if (tiles[globalpicnum].animFlags&192) {
                 globalpicnum += animateoffs(globalpicnum);
-            
+            }
+
             globalshade = (int32_t)wal->shade;
             globvis = globalvisibility;
-            if (sec->visibility != 0)
+            if (sec->visibility != 0) {
                 globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
-            
+            }
+
             globalpal = (int32_t)wal->pal;
             globalshiftval = (picsiz[globalpicnum]>>4);
-            if (pow2long[globalshiftval] != tiles[globalpicnum].dim.height)
+            if (pow2long[globalshiftval] != tiles[globalpicnum].dim.height) {
                 globalshiftval++;
-            
+            }
+
             globalshiftval = 32-globalshiftval;
             globalyscale = (wal->yrepeat<<(globalshiftval-19));
-            if (nextsectnum >= 0)
-            {
-                if ((globalorientation&4) == 0)
+            if (nextsectnum >= 0) {
+                if ((globalorientation&4) == 0) {
                     globalzd = engine_state->posz - nextsec->ceilingz;
-                else
+                } else {
                     globalzd = engine_state->posz - sec->ceilingz;
-            }
-            else
-            {
-                if ((globalorientation&4) == 0)
+                }
+            } else {
+                if ((globalorientation&4) == 0) {
                     globalzd = engine_state->posz - sec->ceilingz;
-                else
+                } else {
                     globalzd = engine_state->posz - sec->floorz;
+                }
             }
             globalzd = ((globalzd*globalyscale)<<8) + (globalypanning<<24);
-            
-            if (globalorientation&256){
+
+            if (globalorientation&256) {
                 globalyscale = -globalyscale;
                 globalzd = -globalzd;
             }
@@ -2523,12 +2636,11 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                 gotswall = 1;
                 prepwall(z,wal);
             }
-            
+
             wallscan(x1,x2,uplc,dplc,swall,lwall,engine_state);
 
-            for(x=x1; x<=x2; x++)
-                if (umost[x] <= dmost[x])
-                {
+            for (x=x1; x<=x2; x++)
+                if (umost[x] <= dmost[x]) {
                     umost[x] = 1;
                     dmost[x] = 0;
                     (*numhits)--;
@@ -2537,12 +2649,15 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
             smostwalltype[smostwallcnt] = 0;
             smostwallcnt++;
 
-            if ((searchit == 2) && (searchx >= x1) && (searchx <= x2)){
+            if ((searchit == 2) && (searchx >= x1) && (searchx <= x2)) {
                 searchit = 1;
                 searchsector = sectnum;
                 searchwall = wallnum;
-                if (nextsectnum < 0) searchstat = 0;
-                else searchstat = 4;
+                if (nextsectnum < 0) {
+                    searchstat = 0;
+                } else {
+                    searchstat = 4;
+                }
             }
         }
     }
@@ -2553,28 +2668,30 @@ static void dosetaspect(void)
 {
     int32_t i, j, k, x, xinc;
 
-    if (xyaspect != oxyaspect){
+    if (xyaspect != oxyaspect) {
         oxyaspect = xyaspect;
         j = xyaspect*320;
         horizlookup2[horizycent-1] = divscale26(131072,j);
-        for(i=ydim*4-1; i>=0; i--)
-            if (i != (horizycent-1)){
+        for (i=ydim*4-1; i>=0; i--)
+            if (i != (horizycent-1)) {
                 horizlookup[i] = divscale28(1,i-(horizycent-1));
                 horizlookup2[i] = divscale14(klabs(horizlookup[i]),j);
             }
     }
-    
-    
-    if ((xdimen != oxdimen) || (viewingrange != oviewingrange)){
+
+
+    if ((xdimen != oxdimen) || (viewingrange != oviewingrange)) {
         oxdimen = xdimen;
         oviewingrange = viewingrange;
         xinc = mulscale32(viewingrange*320,xdimenrecip);
         x = (640<<16)-mulscale1(xinc,xdimen);
-        for(i=0; i<xdimen; i++){
+        for (i=0; i<xdimen; i++) {
             j = (x&65535);
             k = (x>>16);
             x += xinc;
-            if (j != 0) j = mulscale16((int32_t)radarang[k+1]-(int32_t)radarang[k],j);
+            if (j != 0) {
+                j = mulscale16((int32_t)radarang[k+1]-(int32_t)radarang[k],j);
+            }
             radarang2[i] = (short)(((int32_t)radarang[k]+j)>>6);
         }
     }
@@ -2582,13 +2699,13 @@ static void dosetaspect(void)
 
 
 /*
-  FCS: Geez one more horrible algorithm to decipher :| :/ :( cry smiley..... 
+  FCS: Geez one more horrible algorithm to decipher :| :/ :( cry smiley.....
   Algorithm:
 
   1.
   Take wall 1 vector [point1,point2] and using two cross products determine if the two endpoints of wall 2 are on the same side of Wall 1 plan.
   If they are then we can determine according to globalposx and globalposy if  wall2 is before or after wall1's plan.
-  
+
   2. Do the same thing again but this time with wall2's plan. Try to find if wall1 is in front of behind wall2's plan.
 
   Key concept: If a cross-product is equal to 0 this mean they are parallel.
@@ -2600,7 +2717,7 @@ int wallfront(int32_t pvWallID1, int32_t pvWallID2, EngineState *engine_state)
     walltype *wal;
     int32_t x11, y11, x21, y21, x12, y12, x22, y22, dx, dy, t1, t2;
 
-	//It seems we are going to work in Worldspace coordinates.
+    //It seems we are going to work in Worldspace coordinates.
     wal = &wall[pvWalls[pvWallID1].worldWallId];
     x11 = wal->x;
     y11 = wal->y;
@@ -2615,51 +2732,50 @@ int wallfront(int32_t pvWallID1, int32_t pvWallID2, EngineState *engine_state)
     y22 = wal->y;
 
 
-	//This is part 1
+    //This is part 1
 
-	//Wall 1's vector
+    //Wall 1's vector
     dx = x21-x11;
     dy = y21-y11;
 
-	//This is a cross-product between Wall 1 vector and the [Wall 1 Point 1-> Wall 2 Point 1] vector 
+    //This is a cross-product between Wall 1 vector and the [Wall 1 Point 1-> Wall 2 Point 1] vector
     t1 = dmulscale2(x12-x11,dy,-dx,y12-y11); /* p1(l2) vs. l1 */
-	//This is a cross-product between Wall 1 vector and the [Wall 1 Point 1-> Wall 2 Point 2] vector 
+    //This is a cross-product between Wall 1 vector and the [Wall 1 Point 1-> Wall 2 Point 2] vector
     t2 = dmulscale2(x22-x11,dy,-dx,y22-y11); /* p2(l2) vs. l1 */
 
-	//If the vectors a parallel, then the cross-product is zero.
+    //If the vectors a parallel, then the cross-product is zero.
     if (t1 == 0) {
-		//wall2's point1 is on wall1's plan.
+        //wall2's point1 is on wall1's plan.
         t1 = t2;
-        if (t1 == 0) // Those two walls are on the same plan.
-		{
-			//Wall 2's point 2 is on wall1's plan.
-			return(-1);
-		}
+        if (t1 == 0) { // Those two walls are on the same plan.
+            //Wall 2's point 2 is on wall1's plan.
+            return(-1);
+        }
     }
-    if (t2 == 0) 
-		t2 = t1;
+    if (t2 == 0) {
+        t2 = t1;
+    }
 
-	
-	//This XOR just determine if the cross-product have the same sign and hence if both points are on the same side of wall 1 plan.
-	//Test if both points of wall2 are on the same side of wall 1 (in front or behind).
-    if ((t1^t2) >= 0)
-    {
-		//cross-product have the same sign: Both points of wall2 are on the same side of wall1 : An answer is possible !!
 
-		//Now is time to take into account the camera position and determine which of wall1 or wall2 is seen first.
+    //This XOR just determine if the cross-product have the same sign and hence if both points are on the same side of wall 1 plan.
+    //Test if both points of wall2 are on the same side of wall 1 (in front or behind).
+    if ((t1^t2) >= 0) {
+        //cross-product have the same sign: Both points of wall2 are on the same side of wall1 : An answer is possible !!
+
+        //Now is time to take into account the camera position and determine which of wall1 or wall2 is seen first.
         t2 = dmulscale2(engine_state->posx - x11,dy,-dx,engine_state->posy-y11); /* pos vs. l1 */
 
-		//Test the cross product sign difference.
-		//If (t2^t1) >= 0 then  both cross product had different sign so wall1 is in front of wall2
-		//otherwise wall2 is in front of wall1
+        //Test the cross product sign difference.
+        //If (t2^t1) >= 0 then  both cross product had different sign so wall1 is in front of wall2
+        //otherwise wall2 is in front of wall1
         return((t2^t1) >= 0);
     }
 
 
-	//This is part 2
-	//Do it again but this time will wall2's plan.
+    //This is part 2
+    //Do it again but this time will wall2's plan.
 
-	//Wall 2's vector
+    //Wall 2's vector
     dx = x22-x12;
     dy = y22-y12;
 
@@ -2667,18 +2783,19 @@ int wallfront(int32_t pvWallID1, int32_t pvWallID2, EngineState *engine_state)
     t2 = dmulscale2(x21-x12,dy,-dx,y21-y12); /* p2(l1) vs. l2 */
     if (t1 == 0) {
         t1 = t2;
-        if (t1 == 0) 
-			return(-1);
+        if (t1 == 0) {
+            return(-1);
+        }
     }
-    if (t2 == 0) 
-		t2 = t1;
-    if ((t1^t2) >= 0)
-    {
+    if (t2 == 0) {
+        t2 = t1;
+    }
+    if ((t1^t2) >= 0) {
         t2 = dmulscale2(engine_state->posx - x12,dy,-dx,engine_state->posy-y12); /* pos vs. l2 */
         return((t2^t1) < 0);
     }
 
-	//FCS: No wall is in front of the other's plan: This means they are crossing.
+    //FCS: No wall is in front of the other's plan: This means they are crossing.
     return(-2);
 }
 
@@ -2688,45 +2805,40 @@ static int bunchfront(int32_t firstBunchID, int32_t secondBunchID, EngineState *
 {
     int32_t x1b1, x2b1, x1b2, x2b2;
 
-    
-    x1b1 = pvWalls[bunchfirst[firstBunchID]].screenSpaceCoo[0][VEC_COL];
-    x2b2 = pvWalls[bunchlast[secondBunchID]].screenSpaceCoo[1][VEC_COL]+1; 
-    if (x1b1 >= x2b2)
-	{
-		//Bunch 1 left side is completely on the right of bunch2's right in screenspace: They do not overlap.
-        return(-1);
-	}
 
-    
+    x1b1 = pvWalls[bunchfirst[firstBunchID]].screenSpaceCoo[0][VEC_COL];
+    x2b2 = pvWalls[bunchlast[secondBunchID]].screenSpaceCoo[1][VEC_COL]+1;
+    if (x1b1 >= x2b2) {
+        //Bunch 1 left side is completely on the right of bunch2's right in screenspace: They do not overlap.
+        return(-1);
+    }
+
+
     x1b2 = pvWalls[bunchfirst[secondBunchID]].screenSpaceCoo[0][VEC_COL];
     x2b1 = pvWalls[bunchlast[firstBunchID]].screenSpaceCoo[1][VEC_COL]+1;
-    if (x1b2 >= x2b1) 
-	{
-		//Bunch 2 left side is completely on the right of bunch 1 right side: They do not overlap.
-		return(-1);
-	}
+    if (x1b2 >= x2b1) {
+        //Bunch 2 left side is completely on the right of bunch 1 right side: They do not overlap.
+        return(-1);
+    }
 
 
-    if (x1b1 >= x1b2)
-    {
-		//Get the last wall in the bunch2.
-		int lastWallID;
-        for(lastWallID=bunchfirst[secondBunchID]; 
-			pvWalls[lastWallID].screenSpaceCoo[1][VEC_COL]<x1b1; 
-			lastWallID=bunchWallsList[lastWallID]);
+    if (x1b1 >= x1b2) {
+        //Get the last wall in the bunch2.
+        int lastWallID;
+        for (lastWallID=bunchfirst[secondBunchID];
+             pvWalls[lastWallID].screenSpaceCoo[1][VEC_COL]<x1b1;
+             lastWallID=bunchWallsList[lastWallID]);
 
         return(wallfront(bunchfirst[firstBunchID],lastWallID,engine_state));
-    }
-	else
-	{
-		//Get the last wall in the bunch.
-		int lastWallID;
-		for(lastWallID=bunchfirst[firstBunchID]; 
-			pvWalls[lastWallID].screenSpaceCoo[1][VEC_COL]<x1b2; 
-			lastWallID=bunchWallsList[lastWallID]);
+    } else {
+        //Get the last wall in the bunch.
+        int lastWallID;
+        for (lastWallID=bunchfirst[firstBunchID];
+             pvWalls[lastWallID].screenSpaceCoo[1][VEC_COL]<x1b2;
+             lastWallID=bunchWallsList[lastWallID]);
 
-		return(wallfront(lastWallID,bunchfirst[secondBunchID],engine_state));
-	}
+        return(wallfront(lastWallID,bunchfirst[secondBunchID],engine_state));
+    }
 }
 
 
@@ -2737,11 +2849,11 @@ static int bunchfront(int32_t firstBunchID, int32_t secondBunchID, EngineState *
 /*
       FCS: Draw every walls in Front to Back Order.
 */
-EngineState* drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daang, int32_t dahoriz, short currentSectorNumber)
+EngineState *drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daang, int32_t dahoriz, short currentSectorNumber)
 {
     int32_t i, j, closest;
-	//Ceiling and Floor height at the player position.
-	int32_t cz, fz;
+    //Ceiling and Floor height at the player position.
+    int32_t cz, fz;
     short *shortptr1, *shortptr2;
     static int pixelRenderable = 0;
 
@@ -2752,34 +2864,36 @@ EngineState* drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daan
     short numhits;
 
     short numbunches;
-    
+
     char  buffer[MAXWALLS];
-    
+
     static EngineState engine_state;
-    
-	// When visualizing the rendering process, part of the screen
-	// are not updated: In order to avoid the "ghost effect", we
-	// clear the framebuffer to black.
-	if (CLEAR_FRAMEBUFFER)
-		clear2dscreen();
-    
-    
+
+    // When visualizing the rendering process, part of the screen
+    // are not updated: In order to avoid the "ghost effect", we
+    // clear the framebuffer to black.
+    if (CLEAR_FRAMEBUFFER) {
+        clear2dscreen();
+    }
+
+
     //CODE EXPLORATION
     /*
     if( KB_KeyDown[0x39]){ // 0x39 = SPACE
         //CODE EXPLORATION
         WriteLastPaletteToFile();
         WriteTranslucToFile();
-    }        
+    }
     */
 
-	pixelRenderable+=100;
-	if (pixelRenderable >= MAX_PIXEL_RENDERERED)
-		pixelRenderable =  0 ;
+    pixelRenderable+=100;
+    if (pixelRenderable >= MAX_PIXEL_RENDERERED) {
+        pixelRenderable =  0 ;
+    }
 
-	//pixelsAllowed = pixelRenderable;
-	pixelsAllowed = 100000000;
-	//printf("%d\n",pixelsAllowed);
+    //pixelsAllowed = pixelRenderable;
+    pixelsAllowed = 100000000;
+    //printf("%d\n",pixelsAllowed);
 
     beforedrawrooms = 0;
 
@@ -2807,26 +2921,27 @@ EngineState* drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daan
     cosviewingrangeglobalang = mulscale16(cosglobalang,viewingrange);
     sinviewingrangeglobalang = mulscale16(singlobalang,viewingrange);
 
-    if ((xyaspect != oxyaspect) || (xdimen != oxdimen) || (viewingrange != oviewingrange))
+    if ((xyaspect != oxyaspect) || (xdimen != oxdimen) || (viewingrange != oviewingrange)) {
         dosetaspect();
+    }
 
     frameoffset = frameplace+viewoffset;
 
-	//Clear the bit vector that keep track of what sector has been flooded in.
+    //Clear the bit vector that keep track of what sector has been flooded in.
     clearbufbyte(visitedSectors,(int32_t)((numsectors+7)>>3),0L);
 
-	//Clear the occlusion array.
+    //Clear the occlusion array.
     shortptr1 = (short *)&startumost[windowx1];
     shortptr2 = (short *)&startdmost[windowx1];
-    
+
     for (i=0; i<xdimen; i++) {
         umost[i] = shortptr1[i]-windowy1;
         dmost[i] = shortptr2[i]-windowy1;
     }
 
-	//NumHits is the number of column to draw.
+    //NumHits is the number of column to draw.
     numhits = xdimen;
-	//Num walls to potentially render.
+    //Num walls to potentially render.
     numscans = 0;
 
     numbunches = 0;
@@ -2835,54 +2950,60 @@ EngineState* drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daan
     engine_state.smostcnt = 0;
     engine_state.spritesortcnt = 0;
 
-    if (currentSectorNumber >= MAXSECTORS)
+    if (currentSectorNumber >= MAXSECTORS) {
         currentSectorNumber -= MAXSECTORS;
-    else
-    {
-		// Even if the player leaves the map, the engine will keep on rendering from the last visited sector.
-		// Save it.
+    } else {
+        // Even if the player leaves the map, the engine will keep on rendering from the last visited sector.
+        // Save it.
         i = currentSectorNumber;
         updatesector(engine_state.posx, engine_state.posy, &currentSectorNumber);
-		//Seem the player has left the map since updatesector cannot locate him -> Restore to the last known sector.
-        if (currentSectorNumber < 0) 
-			currentSectorNumber = i;
+        //Seem the player has left the map since updatesector cannot locate him -> Restore to the last known sector.
+        if (currentSectorNumber < 0) {
+            currentSectorNumber = i;
+        }
     }
 
     globparaceilclip = 1;
     globparaflorclip = 1;
 
-	//Update the ceiling and floor Z coordinate for the player's 2D position.
+    //Update the ceiling and floor Z coordinate for the player's 2D position.
     getzsofslope(currentSectorNumber, engine_state.posx, engine_state.posy, &cz, &fz);
 
-    if (engine_state.posz < cz) globparaceilclip = 0;
-    if (engine_state.posz > fz) globparaflorclip = 0;
+    if (engine_state.posz < cz) {
+        globparaceilclip = 0;
+    }
+    if (engine_state.posz > fz) {
+        globparaflorclip = 0;
+    }
 
-	//Build the list of potentially visible wall in to "bunches".
+    //Build the list of potentially visible wall in to "bunches".
     scansector(currentSectorNumber, &numscans, &numbunches, &engine_state);
 
     // Are we drawing a mirror?
-    if (inpreparemirror)
-    {
+    if (inpreparemirror) {
         inpreparemirror = 0;
         mirrorsx1 = xdimen-1;
         mirrorsx2 = 0;
-        for(i=numscans-1; i>=0; i--)
-        {
-            if (wall[pvWalls[i].worldWallId].nextsector < 0) continue;
-            if (pvWalls[i].screenSpaceCoo[0][VEC_COL] < mirrorsx1) mirrorsx1 = pvWalls[i].screenSpaceCoo[0][VEC_COL];
-            if (pvWalls[i].screenSpaceCoo[1][VEC_COL] > mirrorsx2) mirrorsx2 = pvWalls[i].screenSpaceCoo[1][VEC_COL];
+        for (i=numscans-1; i>=0; i--) {
+            if (wall[pvWalls[i].worldWallId].nextsector < 0) {
+                continue;
+            }
+            if (pvWalls[i].screenSpaceCoo[0][VEC_COL] < mirrorsx1) {
+                mirrorsx1 = pvWalls[i].screenSpaceCoo[0][VEC_COL];
+            }
+            if (pvWalls[i].screenSpaceCoo[1][VEC_COL] > mirrorsx2) {
+                mirrorsx2 = pvWalls[i].screenSpaceCoo[1][VEC_COL];
+            }
         }
 
-        for(i=0; i<mirrorsx1; i++)
-            if (umost[i] <= dmost[i])
-            {
+        for (i=0; i<mirrorsx1; i++)
+            if (umost[i] <= dmost[i]) {
                 umost[i] = 1;
                 dmost[i] = 0;
                 numhits--;
             }
-        for(i=mirrorsx2+1; i<xdimen; i++)
-            if (umost[i] <= dmost[i])
-            {
+        for (i=mirrorsx2+1; i<xdimen; i++)
+            if (umost[i] <= dmost[i]) {
                 umost[i] = 1;
                 dmost[i] = 0;
                 numhits--;
@@ -2901,38 +3022,38 @@ EngineState* drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daan
     // numhits is the number of column of pixels to draw: (if the screen is 320x200 then numhits starts at 200).
     // Due to rounding error, not all columns may be drawn so an additional stop condition is here:
     // When every bunches have been tested for rendition.
-    while ((numbunches > 0) && (numhits > 0))
-    {
+    while ((numbunches > 0) && (numhits > 0)) {
         // buffer is used to mark which bunches have been elected as "closest".
         // if tempbug[x] == 1 then it should be skipped.
         clearbuf(&buffer[0],(int32_t)((numbunches+3)>>2),0L);
 
-		/* Almost works, but not quite :( */
-		closest = 0; 
-        buffer[closest] = 1;       
-        for(i=1; i<numbunches; i++)
-        {
-            if ((j = bunchfront(i,closest,&engine_state)) < 0)
-				continue;
+        /* Almost works, but not quite :( */
+        closest = 0;
+        buffer[closest] = 1;
+        for (i=1; i<numbunches; i++) {
+            if ((j = bunchfront(i,closest,&engine_state)) < 0) {
+                continue;
+            }
             buffer[i] = 1;
-            if (j == 0){
-				buffer[closest] = 1;
-				closest = i;
-			}
+            if (j == 0) {
+                buffer[closest] = 1;
+                closest = i;
+            }
         }
-        
-		/* Double-check */
-        for(i=0; i<numbunches; i++) 
-        {
-            if (buffer[i]) 
-				continue;
-            if ((j = bunchfront(i,closest,&engine_state)) < 0)
-				continue;
+
+        /* Double-check */
+        for (i=0; i<numbunches; i++) {
+            if (buffer[i]) {
+                continue;
+            }
+            if ((j = bunchfront(i,closest,&engine_state)) < 0) {
+                continue;
+            }
             buffer[i] = 1;
-            if (j == 0){
-				buffer[closest] = 1;
-				closest = i, i = 0;
-			}
+            if (j == 0) {
+                buffer[closest] = 1;
+                closest = i, i = 0;
+            }
         }
 
         //Draw every solid walls with ceiling/floor in the bunch "closest"
@@ -2944,7 +3065,7 @@ EngineState* drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daan
         bunchfirst[closest] = bunchfirst[numbunches];
         bunchlast[closest] = bunchlast[numbunches];
     }
-    
+
     return &engine_state;
 }
 
@@ -2967,20 +3088,25 @@ static void transmaskvline(int32_t x, EngineState *engine_state)
     int32_t vplc, vinc, i;
     short y1v, y2v;
 
-    if ((x < 0) || (x >= xdimen)) return;
+    if ((x < 0) || (x >= xdimen)) {
+        return;
+    }
 
     y1v = max(uwall[x],startumost[x+windowx1]-windowy1);
     y2v = min(dwall[x],startdmost[x+windowx1]-windowy1);
     y2v--;
-    if (y2v < y1v) return;
+    if (y2v < y1v) {
+        return;
+    }
 
     vinc = swall[x]*globalyscale;
     vplc = globalzd + vinc*(y1v - engine_state->horiz + 1);
 
     i = lwall[x]+globalxpanning;
-    
-    if (i >= tiles[globalpicnum].dim.width)
+
+    if (i >= tiles[globalpicnum].dim.width) {
         i %= tiles[globalpicnum].dim.width;
+    }
 
     tvlineasm1(vinc,
                FP_OFF(palookup[globalpal]) + (getpalookup((int32_t)mulscale16(swall[x],globvis),globalshade)<<8),  // palookupoffs
@@ -2999,7 +3125,9 @@ static void transmaskvline2 (int32_t x, EngineState *engine_state)
     int32_t bufplce[4], vplce[4], vince[4];
     int32_t asm1l, asm2l;
 
-    if ((x < 0) || (x >= xdimen)) return;
+    if ((x < 0) || (x >= xdimen)) {
+        return;
+    }
     if (x == xdimen-1) {
         transmaskvline(x, engine_state);
         return;
@@ -3031,46 +3159,46 @@ static void transmaskvline2 (int32_t x, EngineState *engine_state)
     vplce[1] = globalzd + vince[1] * (y1ve[1] - engine_state->horiz + 1);
 
     i = lwall[x] + globalxpanning;
-    if (i >= tiles[globalpicnum].dim.width)
+    if (i >= tiles[globalpicnum].dim.width) {
         i %= tiles[globalpicnum].dim.width;
+    }
     bufplce[0] = tiles[globalpicnum].data+i*tiles[globalpicnum].dim.height;
 
     i = lwall[x2] + globalxpanning;
-    if (i >= tiles[globalpicnum].dim.width)
+    if (i >= tiles[globalpicnum].dim.width) {
         i %= tiles[globalpicnum].dim.width;
+    }
     bufplce[1] = tiles[globalpicnum].data+i*tiles[globalpicnum].dim.height;
 
-    
+
     y1 = max(y1ve[0],y1ve[1]);
     y2 = min(y2ve[0],y2ve[1]);
 
     i = x+frameoffset;
 
-    if (y1ve[0] != y1ve[1])
-    {
-        if (y1ve[0] < y1)
+    if (y1ve[0] != y1ve[1]) {
+        if (y1ve[0] < y1) {
             vplce[0] = tvlineasm1(vince[0],palookupoffse[0],y1-y1ve[0]-1,vplce[0],bufplce[0],ylookup[y1ve[0]]+i);
-        else
+        } else {
             vplce[1] = tvlineasm1(vince[1],palookupoffse[1],y1-y1ve[1]-1,vplce[1],bufplce[1],ylookup[y1ve[1]]+i+1);
+        }
     }
 
-    if (y2 > y1)
-    {
+    if (y2 > y1) {
         asm1l = vince[1];
         asm2l = ylookup[y2]+i+1;
         tvlineasm2(vplce[1],vince[0],bufplce[0],bufplce[1],vplce[0],ylookup[y1]+i, &asm1l, &asm2l);
         transarea += ((y2-y1)<<1);
-    }
-    else
-    {
+    } else {
         asm1l = vplce[0];
         asm2l = vplce[1];
     }
 
-    if (y2ve[0] > y2ve[1])
+    if (y2ve[0] > y2ve[1]) {
         tvlineasm1(vince[0],palookupoffse[0],y2ve[0]-y2-1,asm1l,bufplce[0],ylookup[y2+1]+i);
-    else if (y2ve[0] < y2ve[1])
+    } else if (y2ve[0] < y2ve[1]) {
         tvlineasm1(vince[1],palookupoffse[1],y2ve[1]-y2-1,asm2l,bufplce[1],ylookup[y2+1]+i+1);
+    }
 
     faketimerhandler();
 }
@@ -3080,19 +3208,28 @@ static void transmaskwallscan(int32_t x1, int32_t x2, EngineState *engine_state)
     int32_t x;
 
     setgotpic(globalpicnum);
-    
+
     //Tile dimensions are invalid
     if ((tiles[globalpicnum].dim.width <= 0) ||
-        (tiles[globalpicnum].dim.height <= 0))
+        (tiles[globalpicnum].dim.height <= 0)) {
         return;
+    }
 
     TILE_MakeAvailable(globalpicnum);
 
     x = x1;
-    while ((startumost[x+windowx1] > startdmost[x+windowx1]) && (x <= x2)) x++;
-    if ((x <= x2) && (x&1)) transmaskvline(x, engine_state), x++;
-    while (x < x2) transmaskvline2(x, engine_state), x += 2;
-    while (x <= x2) transmaskvline(x, engine_state), x++;
+    while ((startumost[x+windowx1] > startdmost[x+windowx1]) && (x <= x2)) {
+        x++;
+    }
+    if ((x <= x2) && (x&1)) {
+        transmaskvline(x, engine_state), x++;
+    }
+    while (x < x2) {
+        transmaskvline2(x, engine_state), x += 2;
+    }
+    while (x <= x2) {
+        transmaskvline(x, engine_state), x++;
+    }
     faketimerhandler();
 }
 
@@ -3117,14 +3254,15 @@ int loadboard(char  *filename, int32_t *daposx, int32_t *daposy,
     memset(sector, 0, sizeof(sector));
     memset(wall, 0, sizeof(wall));
 
-    if ((fil = kopen4load(filename, 0)) == -1)
-    {
+    if ((fil = kopen4load(filename, 0)) == -1) {
         mapversion = 7L;
         return(-1);
     }
 
     kread32(fil,&mapversion);
-    if (mapversion != 7L) return(-1);
+    if (mapversion != 7L) {
+        return(-1);
+    }
 
     initspritelists();
 
@@ -3135,8 +3273,7 @@ int loadboard(char  *filename, int32_t *daposx, int32_t *daposy,
     kread16(fil,dacursectnum);
     kread16(fil,&numsectors);
 
-    for (x = 0, sect = &sector[0]; x < numsectors; x++, sect++)
-    {
+    for (x = 0, sect = &sector[0]; x < numsectors; x++, sect++) {
         kread16(fil,&sect->wallptr);
         kread16(fil,&sect->wallnum);
         kread32(fil,&sect->ceilingz);
@@ -3163,8 +3300,7 @@ int loadboard(char  *filename, int32_t *daposx, int32_t *daposy,
     }
 
     kread16(fil,&numwalls);
-    for (x = 0, w = &wall[0]; x < numwalls; x++, w++)
-    {
+    for (x = 0, w = &wall[0]; x < numwalls; x++, w++) {
         kread32(fil,&w->x);
         kread32(fil,&w->y);
         kread16(fil,&w->point2);
@@ -3185,8 +3321,7 @@ int loadboard(char  *filename, int32_t *daposx, int32_t *daposy,
     }
 
     kread16(fil,&numsprites);
-    for (x = 0, s = &sprite[0]; x < numsprites; x++, s++)
-    {
+    for (x = 0, s = &sprite[0]; x < numsprites; x++, s++) {
         kread32(fil,&s->x);
         kread32(fil,&s->y);
         kread32(fil,&s->z);
@@ -3213,8 +3348,9 @@ int loadboard(char  *filename, int32_t *daposx, int32_t *daposy,
     }
 
 
-    for(i=0; i<numsprites; i++)
+    for (i=0; i<numsprites; i++) {
         insertsprite(sprite[i].sectnum,sprite[i].statnum);
+    }
 
     /* Must be after loading sectors, etc! */
     updatesector(*daposx,*daposy,dacursectnum);
@@ -3267,8 +3403,7 @@ int saveboard(char  *filename, int32_t *daposx, int32_t *daposy,
 
     if ((fil = open(filename,
                     O_BINARY|O_TRUNC|O_CREAT|O_WRONLY,
-                    permissions)) == -1)
-    {
+                    permissions)) == -1) {
         return(-1);
     }
 
@@ -3281,8 +3416,7 @@ int saveboard(char  *filename, int32_t *daposx, int32_t *daposy,
     write16(fil,*dacursectnum);
 
     write16(fil,numsectors);
-    for (x = 0, sect = &sector[0]; x < numsectors; x++, sect++)
-    {
+    for (x = 0, sect = &sector[0]; x < numsectors; x++, sect++) {
         write16(fil,sect->wallptr);
         write16(fil,sect->wallnum);
         write32(fil,sect->ceilingz);
@@ -3309,8 +3443,7 @@ int saveboard(char  *filename, int32_t *daposx, int32_t *daposy,
     }
 
     write16(fil,numwalls);
-    for (x = 0, w = &wall[0]; x < numwalls; x++, w++)
-    {
+    for (x = 0, w = &wall[0]; x < numwalls; x++, w++) {
         write32(fil,w->x);
         write32(fil,w->y);
         write16(fil,w->point2);
@@ -3331,22 +3464,18 @@ int saveboard(char  *filename, int32_t *daposx, int32_t *daposy,
     }
 
     numsprites = 0;
-    for(j=0; j<MAXSTATUS; j++)
-    {
+    for (j=0; j<MAXSTATUS; j++) {
         i = headspritestat[j];
-        while (i != -1)
-        {
+        while (i != -1) {
             numsprites++;
             i = nextspritestat[i];
         }
     }
     write16(fil,numsprites);
 
-    for(j=0; j<MAXSTATUS; j++)
-    {
+    for (j=0; j<MAXSTATUS; j++) {
         i = headspritestat[j];
-        while (i != -1)
-        {
+        while (i != -1) {
             spritetype *s = &sprite[i];
             write32(fil,s->x);
             write32(fil,s->y);
@@ -3386,18 +3515,20 @@ static void loadtables(void)
     int32_t i, fil;
     static uint8_t  tablesloaded = 0;
 
-    if (tablesloaded == 0)
-    {
+    if (tablesloaded == 0) {
 
-        if ((fil = TCkopen4load("tables.dat",0)) != -1)
-        {
-	    for (i = 0; i < 2048; i++)
-		kread16(fil,&sintable[i]);
+        if ((fil = TCkopen4load("tables.dat",0)) != -1) {
+            for (i = 0; i < 2048; i++) {
+                kread16(fil,&sintable[i]);
+            }
 
-            for (i = 0; i < 640; i++)
+            for (i = 0; i < 640; i++) {
                 kread16(fil,&radarang[i]);
+            }
 
-            for(i=0; i<640; i++) radarang[1279-i] = -radarang[i];
+            for (i=0; i<640; i++) {
+                radarang[1279-i] = -radarang[i];
+            }
             kread(fil,textfont,1024);
             kread(fil,smalltextfont,1024);
             kread(fil,britable,1024);
@@ -3414,8 +3545,7 @@ static void initfastcolorlookup(int32_t rscale, int32_t gscale, int32_t bscale)
     uint8_t  *pal1;
 
     j = 0;
-    for(i=64; i>=0; i--)
-    {
+    for (i=64; i>=0; i--) {
         /*j = (i-64)*(i-64);*/
         rdist[i] = rdist[128-i] = j*rscale;
         gdist[i] = gdist[128-i] = j*gscale;
@@ -3427,20 +3557,23 @@ static void initfastcolorlookup(int32_t rscale, int32_t gscale, int32_t bscale)
     clearbufbyte((void *)FP_OFF(colhead),sizeof(colhead),0L);
 
     pal1 = &palette[768-3];
-    for(i=255; i>=0; i--,pal1-=3)
-    {
+    for (i=255; i>=0; i--,pal1-=3) {
         j = (pal1[0]>>3)*FASTPALGRIDSIZ*FASTPALGRIDSIZ+(pal1[1]>>3)*FASTPALGRIDSIZ+(pal1[2]>>3)+FASTPALGRIDSIZ*FASTPALGRIDSIZ+FASTPALGRIDSIZ+1;
-        if (colhere[j>>3]&pow2char[j&7]) colnext[i] = colhead[j];
-        else colnext[i] = -1;
+        if (colhere[j>>3]&pow2char[j&7]) {
+            colnext[i] = colhead[j];
+        } else {
+            colnext[i] = -1;
+        }
         colhead[j] = i;
         colhere[j>>3] |= pow2char[j&7];
     }
 
     i = 0;
-    for(x=-FASTPALGRIDSIZ*FASTPALGRIDSIZ; x<=FASTPALGRIDSIZ*FASTPALGRIDSIZ; x+=FASTPALGRIDSIZ*FASTPALGRIDSIZ)
-        for(y=-FASTPALGRIDSIZ; y<=FASTPALGRIDSIZ; y+=FASTPALGRIDSIZ)
-            for(z=-1; z<=1; z++)
+    for (x=-FASTPALGRIDSIZ*FASTPALGRIDSIZ; x<=FASTPALGRIDSIZ*FASTPALGRIDSIZ; x+=FASTPALGRIDSIZ*FASTPALGRIDSIZ)
+        for (y=-FASTPALGRIDSIZ; y<=FASTPALGRIDSIZ; y+=FASTPALGRIDSIZ)
+            for (z=-1; z<=1; z++) {
                 colscan[i++] = x+y+z;
+            }
     i = colscan[13];
     colscan[13] = colscan[26];
     colscan[26] = i;
@@ -3450,48 +3583,53 @@ extern uint8_t lastPalette[768];
 static void loadpalette(void)
 {
     int32_t k, fil;
-    
 
-    if (paletteloaded != 0)
+
+    if (paletteloaded != 0) {
         return;
-    
-    if ((fil = TCkopen4load("palette.dat",0)) == -1)
+    }
+
+    if ((fil = TCkopen4load("palette.dat",0)) == -1) {
         return;
+    }
 
     kread(fil,palette,768);
-    
+
     //CODE EXPLORATION
     //WritePaletteToFile(palette,"palette.tga",16, 16);
     memcpy(lastPalette, palette, 768);
-    
-    
+
+
     kread16(fil,&numpalookups);
-    
+
     //CODE EXPLORATION
     //printf("Num palettes lookup: %d.\n",numpalookups);
-    
-    if ((palookup[0] = (uint8_t  *)kkmalloc(numpalookups<<8)) == NULL)
+
+    if ((palookup[0] = (uint8_t *)kkmalloc(numpalookups<<8)) == NULL) {
         allocache(&palookup[0],numpalookups<<8,&permanentlock);
-    
+    }
+
     //Transluctent pallete is 65KB.
-    if ((transluc = (uint8_t  *)kkmalloc(65536)) == NULL)
+    if ((transluc = (uint8_t *)kkmalloc(65536)) == NULL) {
         allocache(&transluc,65536,&permanentlock);
+    }
 
     globalpalwritten = palookup[0];
     globalpal = 0;
-    
 
-   
+
+
 
     kread(fil,palookup[globalpal],numpalookups<<8);
 
 
     /*kread(fil,transluc,65536);*/
-    for (k = 0; k < (65536 / 4); k++)
+    for (k = 0; k < (65536 / 4); k++) {
         kread32(fil, ((int32_t *) transluc) + k);
+    }
 
 
-    
+
     kclose(fil);
 
     initfastcolorlookup(30L,59L,11L);
@@ -3505,7 +3643,7 @@ static void loadpalette(void)
 int setgamemode(uint8_t  davidoption, int32_t daxdim, int32_t daydim)
 {
     strcpy(kensmessage,"!!!! BUILD engine&tools programmed by Ken Silverman of E.G. RI.  (c) Copyright 1995 Ken Silverman.  Summary:  BUILD = Ken. !!!!");
-   
+
     return(_setgamemode(davidoption, daxdim, daydim));
 }
 
@@ -3531,11 +3669,13 @@ void initengine(void)
     searchit = 0;
     searchstat = -1;
 
-    for(i=0; i<MAXPALOOKUPS; i++)
+    for (i=0; i<MAXPALOOKUPS; i++) {
         palookup[i] = NULL;
+    }
 
-    for(i=0 ; i < MAXTILES ; i++)
+    for (i=0 ; i < MAXTILES ; i++) {
         tiles[i].data = NULL;
+    }
 
     validmodecnt = 0;
 
@@ -3561,7 +3701,9 @@ void uninitengine(void)
         kkfree(pic);
         pic = NULL;
     }
-    if (artfil != -1) kclose(artfil);
+    if (artfil != -1) {
+        kclose(artfil);
+    }
     _uninitengine(); /* video driver specific. */
 }
 
@@ -3571,91 +3713,100 @@ void uninitengine(void)
 static int clippoly4(int32_t cx1, int32_t cy1, int32_t cx2, int32_t cy2)
 {
     int32_t n, nn, z, zz, x, x1, x2, y, y1, y2, t;
-    
+
     nn = 0;
     z = 0;
-    do
-    {
+    do {
         zz = ((z+1)&3);
-        
-        
+
+
         x1 = pvWalls[z] .cameraSpaceCoo[0][VEC_X];
         x2 = pvWalls[zz].cameraSpaceCoo[0][VEC_X]-x1;
 
-        if ((cx1 <= x1) && (x1 <= cx2)){
+        if ((cx1 <= x1) && (x1 <= cx2)) {
             pvWalls[nn] .cameraSpaceCoo[1][VEC_X] = x1;
             pvWalls[nn] .cameraSpaceCoo[1][VEC_Y] = pvWalls[z] .cameraSpaceCoo[0][VEC_Y];
             nn++;
         }
-        
-        if (x2 <= 0)
+
+        if (x2 <= 0) {
             x = cx2;
-        else
+        } else {
             x = cx1;
-        
+        }
+
         t = x-x1;
-        
-        if (((t-x2)^t) < 0){
+
+        if (((t-x2)^t) < 0) {
             pvWalls[nn] .cameraSpaceCoo[1][VEC_X] = x;
             pvWalls[nn] .cameraSpaceCoo[1][VEC_Y] = pvWalls[z].cameraSpaceCoo[0][VEC_Y] +
-            scale(t,pvWalls[zz].cameraSpaceCoo[0][VEC_Y]-pvWalls[z].cameraSpaceCoo[0][VEC_Y],x2);
+                                                    scale(t,pvWalls[zz].cameraSpaceCoo[0][VEC_Y]-pvWalls[z].cameraSpaceCoo[0][VEC_Y],x2);
             nn++;
         }
-        
-        if (x2 <= 0)
+
+        if (x2 <= 0) {
             x = cx1;
-        else
+        } else {
             x = cx2;
-        
+        }
+
         t = x-x1;
-        
-        if (((t-x2)^t) < 0){
+
+        if (((t-x2)^t) < 0) {
             pvWalls[nn] .cameraSpaceCoo[1][VEC_X] = x;
             pvWalls[nn] .cameraSpaceCoo[1][VEC_Y] = pvWalls[z] .cameraSpaceCoo[0][VEC_Y]+
-            scale(t,pvWalls[zz].cameraSpaceCoo[0][VEC_Y]-pvWalls[z].cameraSpaceCoo[0][VEC_Y],x2);
+                                                    scale(t,pvWalls[zz].cameraSpaceCoo[0][VEC_Y]-pvWalls[z].cameraSpaceCoo[0][VEC_Y],x2);
             nn++;
         }
         z = zz;
     } while (z != 0);
-    if (nn < 3) return(0);
+    if (nn < 3) {
+        return(0);
+    }
 
     n = 0;
     z = 0;
-    do
-    {
+    do {
         zz = z+1;
-        if (zz == nn)
+        if (zz == nn) {
             zz = 0;
-        
+        }
+
         y1 = pvWalls[z] .cameraSpaceCoo[1][VEC_Y];
         y2 = pvWalls[zz].cameraSpaceCoo[1][VEC_Y]-y1;
 
-        if ((cy1 <= y1) && (y1 <= cy2)){
+        if ((cy1 <= y1) && (y1 <= cy2)) {
             pvWalls[n] .cameraSpaceCoo[0][VEC_Y] = y1;
             pvWalls[n] .cameraSpaceCoo[0][VEC_X] = pvWalls[z] .cameraSpaceCoo[1][VEC_X];
             n++;
         }
-        if (y2 <= 0) y = cy2;
-        else y = cy1;
+        if (y2 <= 0) {
+            y = cy2;
+        } else {
+            y = cy1;
+        }
         t = y-y1;
-        if (((t-y2)^t) < 0){
+        if (((t-y2)^t) < 0) {
             pvWalls[n] .cameraSpaceCoo[0][VEC_Y] = y;
             pvWalls[n] .cameraSpaceCoo[0][VEC_X] =
-            pvWalls[z] .cameraSpaceCoo[1][VEC_X]+scale(t,
-                                                       pvWalls[zz].cameraSpaceCoo[1][VEC_X]-
-                                                       pvWalls[z] .cameraSpaceCoo[1][VEC_X],y2);
+                pvWalls[z] .cameraSpaceCoo[1][VEC_X]+scale(t,
+                        pvWalls[zz].cameraSpaceCoo[1][VEC_X]-
+                        pvWalls[z] .cameraSpaceCoo[1][VEC_X],y2);
             n++;
         }
-        
-        if (y2 <= 0) y = cy1;
-        else y = cy2;
+
+        if (y2 <= 0) {
+            y = cy1;
+        } else {
+            y = cy2;
+        }
         t = y-y1;
-        if (((t-y2)^t) < 0){
+        if (((t-y2)^t) < 0) {
             pvWalls[n] .cameraSpaceCoo[0][VEC_Y] = y;
             pvWalls[n] .cameraSpaceCoo[0][VEC_X] =
-            pvWalls[z] .cameraSpaceCoo[1][VEC_X]+scale(t,
-                                                       pvWalls[zz].cameraSpaceCoo[1][VEC_X]-
-                                                       pvWalls[z ].cameraSpaceCoo[1][VEC_X],y2);
+                pvWalls[z] .cameraSpaceCoo[1][VEC_X]+scale(t,
+                        pvWalls[zz].cameraSpaceCoo[1][VEC_X]-
+                        pvWalls[z ].cameraSpaceCoo[1][VEC_X],y2);
             n++;
         }
         z = zz;
@@ -3671,44 +3822,40 @@ static void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short pi
 {
     int32_t cosang, sinang, v, nextv, dax1, dax2, oy, bx, by, ny1, ny2;
     int32_t i, x, y, x1, y1, x2, y2, gx1, gy1;
-    uint8_t* bufplc;
-    uint8_t* palookupoffs;
-    uint8_t* p;
+    uint8_t *bufplc;
+    uint8_t *palookupoffs;
+    uint8_t *p;
     int32_t xoff, yoff, npoints, yplc, yinc, lx, rx, xx, xend;
     int32_t xv, yv, xv2, yv2, qlinemode=0, y1ve[4], y2ve[4], u4, d4;
     uint8_t  bad;
     int32_t bufplce[4], vplce[4], vince[4];
 
     short tileWidht, tileHeight;
-    
+
     tileWidht = tiles[picnum].dim.width;
     tileHeight = tiles[picnum].dim.height;
-    
+
     if (dastat&16) {
         xoff = 0;
         yoff = 0;
-    }
-    else{
+    } else {
         xoff = (int32_t)((int8_t )((tiles[picnum].animFlags>>8)&255))+(tileWidht>>1);
         yoff = (int32_t)((int8_t )((tiles[picnum].animFlags>>16)&255))+(tileHeight>>1);
     }
 
-    if (dastat&4)
+    if (dastat&4) {
         yoff = tileHeight-yoff;
+    }
 
     cosang = fixedPointSin((a+512));
     sinang = fixedPointSin(a);
 
-    if ((dastat&2) != 0)  /* Auto window size scaling */
-    {
-        if ((dastat&8) == 0)
-        {
+    if ((dastat&2) != 0) { /* Auto window size scaling */
+        if ((dastat&8) == 0) {
             x = xdimenscale;   /* = scale(xdimen,yxaspect,320); */
             sx = ((cx1+cx2+2)<<15)+scale(sx-(320<<15),xdimen,320);
             sy = ((cy1+cy2+2)<<15)+mulscale16(sy-(200<<15),x);
-        }
-        else
-        {
+        } else {
             /*
              * If not clipping to startmosts, & auto-scaling on, as a
              *  hard-coded bonus, scale to full screen instead
@@ -3722,45 +3869,44 @@ static void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short pi
 
     xv = mulscale14(cosang,z);
     yv = mulscale14(sinang,z);
-    if (((dastat&2) != 0) || ((dastat&8) == 0)) /* Don't aspect unscaled perms */
-    {
+    if (((dastat&2) != 0) || ((dastat&8) == 0)) { /* Don't aspect unscaled perms */
         xv2 = mulscale16(xv,xyaspect);
         yv2 = mulscale16(yv,xyaspect);
-    }
-    else
-    {
+    } else {
         xv2 = xv;
         yv2 = yv;
     }
 
-    
+
     //Taking care of the Y coordinates.
     pvWalls[0].cameraSpaceCoo[0][VEC_Y] = sy - (yv*xoff + xv*yoff);
     pvWalls[1].cameraSpaceCoo[0][VEC_Y] = pvWalls[0].cameraSpaceCoo[0][VEC_Y] + yv * tileWidht;
     pvWalls[3].cameraSpaceCoo[0][VEC_Y] = pvWalls[0].cameraSpaceCoo[0][VEC_Y] + xv * tileHeight;
-    
+
     pvWalls[2].cameraSpaceCoo[0][VEC_Y] = pvWalls[1].cameraSpaceCoo[0][VEC_Y] +
                                           pvWalls[3].cameraSpaceCoo[0][VEC_Y] -
                                           pvWalls[0].cameraSpaceCoo[0][VEC_Y] ;
-    
+
     i = (cy1<<16);
-    
+
     if ((pvWalls[0].cameraSpaceCoo[0][VEC_Y]<i) &&
         (pvWalls[1].cameraSpaceCoo[0][VEC_Y]<i) &&
         (pvWalls[2].cameraSpaceCoo[0][VEC_Y]<i) &&
-        (pvWalls[3].cameraSpaceCoo[0][VEC_Y]<i))
+        (pvWalls[3].cameraSpaceCoo[0][VEC_Y]<i)) {
         return;
-    
+    }
+
     i = (cy2<<16);
-    
+
     if ((pvWalls[0].cameraSpaceCoo[0][VEC_Y]>i) &&
         (pvWalls[1].cameraSpaceCoo[0][VEC_Y]>i) &&
         (pvWalls[2].cameraSpaceCoo[0][VEC_Y]>i) &&
-        (pvWalls[3].cameraSpaceCoo[0][VEC_Y]>i))
+        (pvWalls[3].cameraSpaceCoo[0][VEC_Y]>i)) {
         return;
+    }
 
-    
-    
+
+
     //Taking care of the X coordinates.
     pvWalls[0].cameraSpaceCoo[0][VEC_X] = sx - (xv2*xoff - yv2*yoff);
     pvWalls[1].cameraSpaceCoo[0][VEC_X] = pvWalls[0].cameraSpaceCoo[0][VEC_X] + xv2 * tileWidht;
@@ -3768,57 +3914,60 @@ static void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short pi
     pvWalls[2].cameraSpaceCoo[0][VEC_X] = pvWalls[1].cameraSpaceCoo[0][VEC_X] +
                                           pvWalls[3].cameraSpaceCoo[0][VEC_X] -
                                           pvWalls[0].cameraSpaceCoo[0][VEC_X] ;
-    
+
     i = (cx1<<16);
     if ((pvWalls[0].cameraSpaceCoo[0][VEC_X]<i) &&
         (pvWalls[1].cameraSpaceCoo[0][VEC_X]<i) &&
         (pvWalls[2].cameraSpaceCoo[0][VEC_X]<i) &&
-        (pvWalls[3].cameraSpaceCoo[0][VEC_X]<i))
+        (pvWalls[3].cameraSpaceCoo[0][VEC_X]<i)) {
         return;
-    
+    }
+
     i = (cx2<<16);
     if ((pvWalls[0].cameraSpaceCoo[0][VEC_X]>i) &&
         (pvWalls[1].cameraSpaceCoo[0][VEC_X]>i) &&
         (pvWalls[2].cameraSpaceCoo[0][VEC_X]>i) &&
-        (pvWalls[3].cameraSpaceCoo[0][VEC_X]>i))
+        (pvWalls[3].cameraSpaceCoo[0][VEC_X]>i)) {
         return;
-    
-    
-    
-    
-    
-    
-    
+    }
+
+
+
+
+
+
+
 
     gx1 = pvWalls[0].cameraSpaceCoo[0][VEC_X];
     gy1 = pvWalls[0].cameraSpaceCoo[0][VEC_Y];   /* back up these before clipping */
 
-    if ((npoints = clippoly4(cx1<<16,cy1<<16,(cx2+1)<<16,(cy2+1)<<16)) < 3) return;
+    if ((npoints = clippoly4(cx1<<16,cy1<<16,(cx2+1)<<16,(cy2+1)<<16)) < 3) {
+        return;
+    }
 
     lx = pvWalls[0].cameraSpaceCoo[0][VEC_X];
     rx = pvWalls[0].cameraSpaceCoo[0][VEC_X];
 
     nextv = 0;
-    for(v=npoints-1; v>=0; v--)
-    {
+    for (v=npoints-1; v>=0; v--) {
         x1 = pvWalls[    v].cameraSpaceCoo[0][VEC_X];
         x2 = pvWalls[nextv].cameraSpaceCoo[0][VEC_X];
         dax1 = (x1>>16);
-        if (x1 < lx) lx = x1;
+        if (x1 < lx) {
+            lx = x1;
+        }
         dax2 = (x2>>16);
-        if (x1 > rx) rx = x1;
-        if (dax1 != dax2)
-        {
+        if (x1 > rx) {
+            rx = x1;
+        }
+        if (dax1 != dax2) {
             y1 = pvWalls[    v].cameraSpaceCoo[0][VEC_Y];
             y2 = pvWalls[nextv].cameraSpaceCoo[0][VEC_Y];
             yinc = divscale16(y2-y1,x2-x1);
-            if (dax2 > dax1)
-            {
+            if (dax2 > dax1) {
                 yplc = y1 + mulscale16((dax1<<16)+65535-x1,yinc);
                 qinterpolatedown16short((int32_t *)(&uplc[dax1]),dax2-dax1,yplc,yinc);
-            }
-            else
-            {
+            } else {
                 yplc = y2 + mulscale16((dax2<<16)+65535-x2,yinc);
                 qinterpolatedown16short((int32_t *)(&dplc[dax2]),dax1-dax2,yplc,yinc);
             }
@@ -3827,7 +3976,7 @@ static void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short pi
     }
 
     TILE_MakeAvailable(picnum);
-    
+
     setgotpic(picnum);
     bufplc = tiles[picnum].data;
 
@@ -3836,13 +3985,10 @@ static void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short pi
     i = divscale32(1L,z);
     xv = mulscale14(sinang,i);
     yv = mulscale14(cosang,i);
-    if (((dastat&2) != 0) || ((dastat&8) == 0)) /* Don't aspect unscaled perms */
-    {
+    if (((dastat&2) != 0) || ((dastat&8) == 0)) { /* Don't aspect unscaled perms */
         yv2 = mulscale16(-xv,yxaspect);
         xv2 = mulscale16(yv,yxaspect);
-    }
-    else
-    {
+    } else {
         yv2 = -xv;
         xv2 = yv;
     }
@@ -3855,21 +4001,20 @@ static void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short pi
     y = (oy<<16)+65535-gy1;
     bx = dmulscale16(x,xv2,y,xv);
     by = dmulscale16(x,yv2,y,yv);
-    
+
     if (dastat&4) {
         yv = -yv;
         yv2 = -yv2;
         by = (tileHeight<<16)-1-by;
     }
 
-    if ((dastat&1) == 0)
-    {
-        if (((a&1023) == 0) && (tileHeight <= 256))  /* vlineasm4 has 256 high limit! */
-        {
-            if (dastat&64)
+    if ((dastat&1) == 0) {
+        if (((a&1023) == 0) && (tileHeight <= 256)) { /* vlineasm4 has 256 high limit! */
+            if (dastat&64) {
                 setupvlineasm(24L);
-            else
+            } else {
                 setupmvlineasm(24L);
+            }
 
             by <<= 8;
             yv <<= 8;
@@ -3877,22 +4022,25 @@ static void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short pi
             palookupoffse[0] = palookupoffse[1] = palookupoffse[2] = palookupoffse[3] = palookupoffs;
             vince[0] = vince[1] = vince[2] = vince[3] = yv;
 
-            for(x=x1; x<x2; x+=4)
-            {
+            for (x=x1; x<x2; x+=4) {
                 bad = 15;
                 xend = min(x2-x,4);
-                for(xx=0; xx<xend; xx++)
-                {
+                for (xx=0; xx<xend; xx++) {
                     bx += xv2;
 
                     y1 = uplc[x+xx];
                     y2 = dplc[x+xx];
-                    if ((dastat&8) == 0)
-                    {
-                        if (startumost[x+xx] > y1) y1 = startumost[x+xx];
-                        if (startdmost[x+xx] < y2) y2 = startdmost[x+xx];
+                    if ((dastat&8) == 0) {
+                        if (startumost[x+xx] > y1) {
+                            y1 = startumost[x+xx];
+                        }
+                        if (startdmost[x+xx] < y2) {
+                            y2 = startdmost[x+xx];
+                        }
                     }
-                    if (y2 <= y1) continue;
+                    if (y2 <= y1) {
+                        continue;
+                    }
 
                     by += yv*(y1-oy);
                     oy = y1;
@@ -3909,187 +4057,227 @@ static void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short pi
                 u4 = max(max(y1ve[0],y1ve[1]),max(y1ve[2],y1ve[3]));
                 d4 = min(min(y2ve[0],y2ve[1]),min(y2ve[2],y2ve[3]));
 
-                if (dastat&64)
-                {
-                    if ((bad != 0) || (u4 >= d4))
-                    {
-                        if (!(bad&1)) 
+                if (dastat&64) {
+                    if ((bad != 0) || (u4 >= d4)) {
+                        if (!(bad&1)) {
                             prevlineasm1(vince[0],palookupoffse[0],y2ve[0]-y1ve[0],vplce[0],bufplce[0],ylookup[y1ve[0]]+p+0);
-                        if (!(bad&2)) 
+                        }
+                        if (!(bad&2)) {
                             prevlineasm1(vince[1],palookupoffse[1],y2ve[1]-y1ve[1],vplce[1],bufplce[1],ylookup[y1ve[1]]+p+1);
-                        if (!(bad&4)) 
+                        }
+                        if (!(bad&4)) {
                             prevlineasm1(vince[2],palookupoffse[2],y2ve[2]-y1ve[2],vplce[2],bufplce[2],ylookup[y1ve[2]]+p+2);
-                        if (!(bad&8)) 
+                        }
+                        if (!(bad&8)) {
                             prevlineasm1(vince[3],palookupoffse[3],y2ve[3]-y1ve[3],vplce[3],bufplce[3],ylookup[y1ve[3]]+p+3);
+                        }
                         continue;
                     }
 
-                    if (u4 > y1ve[0]) 
+                    if (u4 > y1ve[0]) {
                         vplce[0] = prevlineasm1(vince[0],palookupoffse[0],u4-y1ve[0]-1,vplce[0],bufplce[0],ylookup[y1ve[0]]+p+0);
-                    if (u4 > y1ve[1]) 
+                    }
+                    if (u4 > y1ve[1]) {
                         vplce[1] = prevlineasm1(vince[1],palookupoffse[1],u4-y1ve[1]-1,vplce[1],bufplce[1],ylookup[y1ve[1]]+p+1);
-                    if (u4 > y1ve[2]) 
+                    }
+                    if (u4 > y1ve[2]) {
                         vplce[2] = prevlineasm1(vince[2],palookupoffse[2],u4-y1ve[2]-1,vplce[2],bufplce[2],ylookup[y1ve[2]]+p+2);
-                    if (u4 > y1ve[3]) 
+                    }
+                    if (u4 > y1ve[3]) {
                         vplce[3] = prevlineasm1(vince[3],palookupoffse[3],u4-y1ve[3]-1,vplce[3],bufplce[3],ylookup[y1ve[3]]+p+3);
+                    }
 
-                    if (d4 >= u4) vlineasm4(d4-u4+1,ylookup[u4]+p, bufplce,vplce,vince);
+                    if (d4 >= u4) {
+                        vlineasm4(d4-u4+1,ylookup[u4]+p, bufplce,vplce,vince);
+                    }
 
                     i = p+ylookup[d4+1];
-                    if (y2ve[0] > d4) 
+                    if (y2ve[0] > d4) {
                         prevlineasm1(vince[0],palookupoffse[0],y2ve[0]-d4-1,vplce[0],bufplce[0],i+0);
-                    if (y2ve[1] > d4) 
+                    }
+                    if (y2ve[1] > d4) {
                         prevlineasm1(vince[1],palookupoffse[1],y2ve[1]-d4-1,vplce[1],bufplce[1],i+1);
-                    if (y2ve[2] > d4) 
+                    }
+                    if (y2ve[2] > d4) {
                         prevlineasm1(vince[2],palookupoffse[2],y2ve[2]-d4-1,vplce[2],bufplce[2],i+2);
-                    if (y2ve[3] > d4) 
+                    }
+                    if (y2ve[3] > d4) {
                         prevlineasm1(vince[3],palookupoffse[3],y2ve[3]-d4-1,vplce[3],bufplce[3],i+3);
-                }
-                else
-                {
-                    if ((bad != 0) || (u4 >= d4))
-                    {
-                        if (!(bad&1)) mvlineasm1(vince[0],palookupoffse[0],y2ve[0]-y1ve[0],vplce[0],bufplce[0],ylookup[y1ve[0]]+p+0);
-                        if (!(bad&2)) mvlineasm1(vince[1],palookupoffse[1],y2ve[1]-y1ve[1],vplce[1],bufplce[1],ylookup[y1ve[1]]+p+1);
-                        if (!(bad&4)) mvlineasm1(vince[2],palookupoffse[2],y2ve[2]-y1ve[2],vplce[2],bufplce[2],ylookup[y1ve[2]]+p+2);
-                        if (!(bad&8)) mvlineasm1(vince[3],palookupoffse[3],y2ve[3]-y1ve[3],vplce[3],bufplce[3],ylookup[y1ve[3]]+p+3);
+                    }
+                } else {
+                    if ((bad != 0) || (u4 >= d4)) {
+                        if (!(bad&1)) {
+                            mvlineasm1(vince[0],palookupoffse[0],y2ve[0]-y1ve[0],vplce[0],bufplce[0],ylookup[y1ve[0]]+p+0);
+                        }
+                        if (!(bad&2)) {
+                            mvlineasm1(vince[1],palookupoffse[1],y2ve[1]-y1ve[1],vplce[1],bufplce[1],ylookup[y1ve[1]]+p+1);
+                        }
+                        if (!(bad&4)) {
+                            mvlineasm1(vince[2],palookupoffse[2],y2ve[2]-y1ve[2],vplce[2],bufplce[2],ylookup[y1ve[2]]+p+2);
+                        }
+                        if (!(bad&8)) {
+                            mvlineasm1(vince[3],palookupoffse[3],y2ve[3]-y1ve[3],vplce[3],bufplce[3],ylookup[y1ve[3]]+p+3);
+                        }
                         continue;
                     }
 
-                    if (u4 > y1ve[0]) vplce[0] = mvlineasm1(vince[0],palookupoffse[0],u4-y1ve[0]-1,vplce[0],bufplce[0],ylookup[y1ve[0]]+p+0);
-                    if (u4 > y1ve[1]) vplce[1] = mvlineasm1(vince[1],palookupoffse[1],u4-y1ve[1]-1,vplce[1],bufplce[1],ylookup[y1ve[1]]+p+1);
-                    if (u4 > y1ve[2]) vplce[2] = mvlineasm1(vince[2],palookupoffse[2],u4-y1ve[2]-1,vplce[2],bufplce[2],ylookup[y1ve[2]]+p+2);
-                    if (u4 > y1ve[3]) vplce[3] = mvlineasm1(vince[3],palookupoffse[3],u4-y1ve[3]-1,vplce[3],bufplce[3],ylookup[y1ve[3]]+p+3);
+                    if (u4 > y1ve[0]) {
+                        vplce[0] = mvlineasm1(vince[0],palookupoffse[0],u4-y1ve[0]-1,vplce[0],bufplce[0],ylookup[y1ve[0]]+p+0);
+                    }
+                    if (u4 > y1ve[1]) {
+                        vplce[1] = mvlineasm1(vince[1],palookupoffse[1],u4-y1ve[1]-1,vplce[1],bufplce[1],ylookup[y1ve[1]]+p+1);
+                    }
+                    if (u4 > y1ve[2]) {
+                        vplce[2] = mvlineasm1(vince[2],palookupoffse[2],u4-y1ve[2]-1,vplce[2],bufplce[2],ylookup[y1ve[2]]+p+2);
+                    }
+                    if (u4 > y1ve[3]) {
+                        vplce[3] = mvlineasm1(vince[3],palookupoffse[3],u4-y1ve[3]-1,vplce[3],bufplce[3],ylookup[y1ve[3]]+p+3);
+                    }
 
-                    if (d4 >= u4) mvlineasm4(d4-u4+1,ylookup[u4]+p,bufplce,vplce,vince);
+                    if (d4 >= u4) {
+                        mvlineasm4(d4-u4+1,ylookup[u4]+p,bufplce,vplce,vince);
+                    }
 
                     i = p+ylookup[d4+1];
-                    if (y2ve[0] > d4) mvlineasm1(vince[0],palookupoffse[0],y2ve[0]-d4-1,vplce[0],bufplce[0],i+0);
-                    if (y2ve[1] > d4) mvlineasm1(vince[1],palookupoffse[1],y2ve[1]-d4-1,vplce[1],bufplce[1],i+1);
-                    if (y2ve[2] > d4) mvlineasm1(vince[2],palookupoffse[2],y2ve[2]-d4-1,vplce[2],bufplce[2],i+2);
-                    if (y2ve[3] > d4) mvlineasm1(vince[3],palookupoffse[3],y2ve[3]-d4-1,vplce[3],bufplce[3],i+3);
+                    if (y2ve[0] > d4) {
+                        mvlineasm1(vince[0],palookupoffse[0],y2ve[0]-d4-1,vplce[0],bufplce[0],i+0);
+                    }
+                    if (y2ve[1] > d4) {
+                        mvlineasm1(vince[1],palookupoffse[1],y2ve[1]-d4-1,vplce[1],bufplce[1],i+1);
+                    }
+                    if (y2ve[2] > d4) {
+                        mvlineasm1(vince[2],palookupoffse[2],y2ve[2]-d4-1,vplce[2],bufplce[2],i+2);
+                    }
+                    if (y2ve[3] > d4) {
+                        mvlineasm1(vince[3],palookupoffse[3],y2ve[3]-d4-1,vplce[3],bufplce[3],i+3);
+                    }
                 }
 
                 faketimerhandler();
             }
-        }
-        else
-        {
-            if (dastat&64)
-            {
-                if ((xv2&0x0000ffff) == 0)
-                {
+        } else {
+            if (dastat&64) {
+                if ((xv2&0x0000ffff) == 0) {
                     qlinemode = 1;
                     setuprhlineasm4(0L,yv2<<16,(xv2>>16)*tileHeight+(yv2>>16),palookupoffs,0L,0L);
-                }
-                else
-                {
+                } else {
                     qlinemode = 0;
                     setuprhlineasm4(xv2<<16,yv2<<16,(xv2>>16)*tileHeight+(yv2>>16),palookupoffs,tileHeight,0L);
                 }
-            }
-            else
+            } else {
                 setuprmhlineasm4(xv2<<16,yv2<<16,(xv2>>16)*tileHeight+(yv2>>16),palookupoffs,tileHeight,0L);
+            }
 
             y1 = uplc[x1];
-            if (((dastat&8) == 0) && (startumost[x1] > y1)) y1 = startumost[x1];
+            if (((dastat&8) == 0) && (startumost[x1] > y1)) {
+                y1 = startumost[x1];
+            }
             y2 = y1;
-            for(x=x1; x<x2; x++)
-            {
+            for (x=x1; x<x2; x++) {
                 ny1 = uplc[x]-1;
                 ny2 = dplc[x];
-                if ((dastat&8) == 0)
-                {
-                    if (startumost[x]-1 > ny1) ny1 = startumost[x]-1;
-                    if (startdmost[x] < ny2) ny2 = startdmost[x];
+                if ((dastat&8) == 0) {
+                    if (startumost[x]-1 > ny1) {
+                        ny1 = startumost[x]-1;
+                    }
+                    if (startdmost[x] < ny2) {
+                        ny2 = startdmost[x];
+                    }
                 }
 
-                if (ny1 < ny2-1)
-                {
-                    if (ny1 >= y2)
-                    {
-                        while (y1 < y2-1)
-                        {
+                if (ny1 < ny2-1) {
+                    if (ny1 >= y2) {
+                        while (y1 < y2-1) {
                             y1++;
-                            if ((y1&31) == 0) faketimerhandler();
+                            if ((y1&31) == 0) {
+                                faketimerhandler();
+                            }
 
                             /* x,y1 */
                             bx += xv*(y1-oy);
                             by += yv*(y1-oy);
                             oy = y1;
                             if (dastat&64) {
-                                if (qlinemode)
+                                if (qlinemode) {
                                     rhlineasm4(x-lastx[y1],(bx>>16)*tileHeight+(by>>16)+bufplc,0L,0L    ,by<<16,ylookup[y1]+x+frameplace);
-                                else
+                                } else {
                                     rhlineasm4(x-lastx[y1],(bx>>16)*tileHeight+(by>>16)+bufplc,0L,bx<<16,by<<16,ylookup[y1]+x+frameplace);
-                            } else
+                                }
+                            } else {
                                 rmhlineasm4(x-lastx[y1],(bx>>16)*tileHeight+(by>>16)+bufplc,0L,bx<<16,by<<16,ylookup[y1]+x+frameplace);
+                            }
                         }
                         y1 = ny1;
-                    }
-                    else
-                    {
-                        while (y1 < ny1)
-                        {
+                    } else {
+                        while (y1 < ny1) {
                             y1++;
-                            if ((y1&31) == 0) faketimerhandler();
+                            if ((y1&31) == 0) {
+                                faketimerhandler();
+                            }
 
                             /* x,y1 */
                             bx += xv*(y1-oy);
                             by += yv*(y1-oy);
                             oy = y1;
                             if (dastat&64) {
-                                if (qlinemode)
+                                if (qlinemode) {
                                     rhlineasm4(x-lastx[y1],(bx>>16)*tileHeight+(by>>16)+bufplc,0L,0L,by<<16,ylookup[y1]+x+frameplace);
-                                else
+                                } else {
                                     rhlineasm4(x-lastx[y1],(bx>>16)*tileHeight+(by>>16)+bufplc,0L,bx<<16,by<<16,ylookup[y1]+x+frameplace);
-                            } else
+                                }
+                            } else {
                                 rmhlineasm4(x-lastx[y1],(bx>>16)*tileHeight+(by>>16)+bufplc,0L,bx<<16,by<<16,ylookup[y1]+x+frameplace);
+                            }
                         }
-                        while (y1 > ny1) lastx[y1--] = x;
+                        while (y1 > ny1) {
+                            lastx[y1--] = x;
+                        }
                     }
-                    while (y2 > ny2)
-                    {
+                    while (y2 > ny2) {
                         y2--;
-                        if ((y2&31) == 0) faketimerhandler();
+                        if ((y2&31) == 0) {
+                            faketimerhandler();
+                        }
 
                         /* x,y2 */
                         bx += xv*(y2-oy);
                         by += yv*(y2-oy);
                         oy = y2;
                         if (dastat&64) {
-                            if (qlinemode)
+                            if (qlinemode) {
                                 rhlineasm4(x-lastx[y2],(bx>>16)*tileHeight+(by>>16)+bufplc,0L,0L    ,by<<16,ylookup[y2]+x+frameplace);
-                            else
+                            } else {
                                 rhlineasm4(x-lastx[y2],(bx>>16)*tileHeight+(by>>16)+bufplc,0L,bx<<16,by<<16,ylookup[y2]+x+frameplace);
-                        } else
+                            }
+                        } else {
                             rmhlineasm4(x-lastx[y2],(bx>>16)*tileHeight+(by>>16)+bufplc,0L,bx<<16,by<<16,ylookup[y2]+x+frameplace);
+                        }
                     }
-                    while (y2 < ny2) lastx[y2++] = x;
-                }
-                else
-                {
-                    while (y1 < y2-1)
-                    {
+                    while (y2 < ny2) {
+                        lastx[y2++] = x;
+                    }
+                } else {
+                    while (y1 < y2-1) {
                         y1++;
-                        if ((y1&31) == 0) faketimerhandler();
+                        if ((y1&31) == 0) {
+                            faketimerhandler();
+                        }
 
                         /* x,y1 */
                         bx += xv*(y1-oy);
                         by += yv*(y1-oy);
                         oy = y1;
-                        if (dastat&64)
-                        {
-                            if (qlinemode)
+                        if (dastat&64) {
+                            if (qlinemode) {
                                 rhlineasm4(x-lastx[y1],(bx>>16)*tileHeight+(by>>16)+bufplc,0L,0L    ,by<<16,ylookup[y1]+x+frameplace);
-                            else
+                            } else {
                                 rhlineasm4(x-lastx[y1],(bx>>16)*tileHeight+(by>>16)+bufplc,0L,bx<<16,by<<16,ylookup[y1]+x+frameplace);
-                        }
-                        else
+                            }
+                        } else {
                             rmhlineasm4(x-lastx[y1],(bx>>16)*tileHeight+(by>>16)+bufplc,0L,bx<<16,by<<16,ylookup[y1]+x+frameplace);
+                        }
                     }
-                    if (x == x2-1)
-                    {
+                    if (x == x2-1) {
                         bx += xv2;
                         by += yv2;
                         break;
@@ -4097,98 +4285,100 @@ static void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short pi
 
                     y1 = uplc[x+1];
 
-                    if (((dastat&8) == 0) && (startumost[x+1] > y1))
+                    if (((dastat&8) == 0) && (startumost[x+1] > y1)) {
                         y1 = startumost[x+1];
+                    }
 
                     y2 = y1;
                 }
                 bx += xv2;
                 by += yv2;
             }
-            while (y1 < y2-1)
-            {
+            while (y1 < y2-1) {
                 y1++;
-                if ((y1&31) == 0) faketimerhandler();
+                if ((y1&31) == 0) {
+                    faketimerhandler();
+                }
 
                 /* x2,y1 */
                 bx += xv*(y1-oy);
                 by += yv*(y1-oy);
                 oy = y1;
                 if (dastat&64) {
-                    if (qlinemode)
+                    if (qlinemode) {
                         rhlineasm4(x2-lastx[y1],(bx>>16)*tileHeight+(by>>16)+bufplc,0L,0L    ,by<<16,ylookup[y1]+x2+frameplace);
-                    else
+                    } else {
                         rhlineasm4(x2-lastx[y1],(bx>>16)*tileHeight+(by>>16)+bufplc,0L,bx<<16,by<<16,ylookup[y1]+x2+frameplace);
-                } else
+                    }
+                } else {
                     rmhlineasm4(x2-lastx[y1],(bx>>16)*tileHeight+(by>>16)+bufplc,0L,bx<<16,by<<16,ylookup[y1]+x2+frameplace);
+                }
             }
         }
-    }
-    else
-    {
-        if ((dastat&1) == 0)
-        {
-            if (dastat&64)
+    } else {
+        if ((dastat&1) == 0) {
+            if (dastat&64) {
                 setupspritevline(palookupoffs,(xv>>16)*tileHeight,xv<<16,tileHeight,yv,0L);
-            else
+            } else {
                 msetupspritevline(palookupoffs,(xv>>16)*tileHeight,xv<<16,tileHeight,yv,0L);
-        }
-        else
-        {
+            }
+        } else {
             tsetupspritevline(palookupoffs,(xv>>16)*tileHeight,xv<<16,tileHeight,yv);
 
-            if (dastat&32) 
-				settrans(TRANS_REVERSE);
-            else 
-				settrans(TRANS_NORMAL);
+            if (dastat&32) {
+                settrans(TRANS_REVERSE);
+            } else {
+                settrans(TRANS_NORMAL);
+            }
         }
 
-        for(x=x1; x<x2; x++)
-        {
+        for (x=x1; x<x2; x++) {
             bx += xv2;
             by += yv2;
 
             y1 = uplc[x];
             y2 = dplc[x];
-            if ((dastat&8) == 0)
-            {
-                if (startumost[x] > y1) y1 = startumost[x];
-                if (startdmost[x] < y2) y2 = startdmost[x];
+            if ((dastat&8) == 0) {
+                if (startumost[x] > y1) {
+                    y1 = startumost[x];
+                }
+                if (startdmost[x] < y2) {
+                    y2 = startdmost[x];
+                }
             }
-            if (y2 <= y1) continue;
+            if (y2 <= y1) {
+                continue;
+            }
 
-            switch(y1-oy)
-            {
-            case -1:
-                bx -= xv;
-                by -= yv;
-                oy = y1;
-                break;
-            case 0:
-                break;
-            case 1:
-                bx += xv;
-                by += yv;
-                oy = y1;
-                break;
-            default:
-                bx += xv*(y1-oy);
-                by += yv*(y1-oy);
-                oy = y1;
-                break;
+            switch (y1-oy) {
+                case -1:
+                    bx -= xv;
+                    by -= yv;
+                    oy = y1;
+                    break;
+                case 0:
+                    break;
+                case 1:
+                    bx += xv;
+                    by += yv;
+                    oy = y1;
+                    break;
+                default:
+                    bx += xv*(y1-oy);
+                    by += yv*(y1-oy);
+                    oy = y1;
+                    break;
             }
 
             p = ylookup[y1]+x+frameplace;
 
-            if ((dastat&1) == 0)
-            {
-                if (dastat&64)
+            if ((dastat&1) == 0) {
+                if (dastat&64) {
                     spritevline(0L,by<<16,y2-y1+1,bx<<16,(bx>>16)*tileHeight+(by>>16)+bufplc,p);
-                else
+                } else {
                     mspritevline(0L,by<<16,y2-y1+1,bx<<16,(bx>>16)*tileHeight+(by>>16)+bufplc,p);
-            }
-            else
-            {
+                }
+            } else {
                 DrawSpriteVerticalLine(by<<16,y2-y1+1,bx<<16,(bx>>16)*tileHeight+(by>>16)+bufplc,p);
                 transarea += (y2-y1);
             }
@@ -4203,38 +4393,37 @@ void nextpage(void)
     int32_t i;
     permfifotype *per;
 
-    if (game_mode.qsetmode == 200)
-    {
-        for(i=permtail; i!=permhead; i=((i+1)&(MAXPERMS-1)))
-        {
+    if (game_mode.qsetmode == 200) {
+        for (i=permtail; i!=permhead; i=((i+1)&(MAXPERMS-1))) {
             per = &permfifo[i];
-            if ((per->pagesleft > 0) && (per->pagesleft <= numpages))
+            if ((per->pagesleft > 0) && (per->pagesleft <= numpages)) {
                 dorotatesprite(per->sx,per->sy,per->z,per->a,per->picnum,per->dashade,per->dapalnum,per->dastat,per->cx1,per->cy1,per->cx2,per->cy2);
+            }
         }
     } /* if */
 
     _nextpage();  /* video driver specific. */
 
 
-    if (game_mode.qsetmode == 200)
-    {
-        for(i=permtail; i!=permhead; i=((i+1)&(MAXPERMS-1)))
-        {
+    if (game_mode.qsetmode == 200) {
+        for (i=permtail; i!=permhead; i=((i+1)&(MAXPERMS-1))) {
             per = &permfifo[i];
             if (per->pagesleft >= 130)
                 dorotatesprite(per->sx,per->sy,per->z,per->a,per->picnum,
                                per->dashade,per->dapalnum,per->dastat,
                                per->cx1,per->cy1,per->cx2,per->cy2);
-            if (per->pagesleft&127) per->pagesleft--;
-            if (((per->pagesleft&127) == 0) && (i == permtail))
+            if (per->pagesleft&127) {
+                per->pagesleft--;
+            }
+            if (((per->pagesleft&127) == 0) && (i == permtail)) {
                 permtail = ((permtail+1)&(MAXPERMS-1));
+            }
         }
     } /* if */
 
     faketimerhandler();
 
-    if ((totalclock >= lastageclock+8) || (totalclock < lastageclock))
-    {
+    if ((totalclock >= lastageclock+8) || (totalclock < lastageclock)) {
         lastageclock = totalclock;
         agecache();
     }
@@ -4258,25 +4447,44 @@ int clipinsidebox(int32_t x, int32_t y, short wallnum, int32_t walldist)
     x2 = wal->x+walldist-x;
     y2 = wal->y+walldist-y;
 
-    if ((x1 < 0) && (x2 < 0)) return(0);
-    if ((y1 < 0) && (y2 < 0)) return(0);
-    if ((x1 >= r) && (x2 >= r)) return(0);
-    if ((y1 >= r) && (y2 >= r)) return(0);
+    if ((x1 < 0) && (x2 < 0)) {
+        return(0);
+    }
+    if ((y1 < 0) && (y2 < 0)) {
+        return(0);
+    }
+    if ((x1 >= r) && (x2 >= r)) {
+        return(0);
+    }
+    if ((y1 >= r) && (y2 >= r)) {
+        return(0);
+    }
 
     x2 -= x1;
     y2 -= y1;
-    if (x2*(walldist-y1) >= y2*(walldist-x1))  /* Front */
-    {
-        if (x2 > 0) x2 *= (0-y1);
-        else x2 *= (r-y1);
-        if (y2 > 0) y2 *= (r-x1);
-        else y2 *= (0-x1);
+    if (x2*(walldist-y1) >= y2*(walldist-x1)) { /* Front */
+        if (x2 > 0) {
+            x2 *= (0-y1);
+        } else {
+            x2 *= (r-y1);
+        }
+        if (y2 > 0) {
+            y2 *= (r-x1);
+        } else {
+            y2 *= (0-x1);
+        }
         return(x2 < y2);
     }
-    if (x2 > 0) x2 *= (r-y1);
-    else x2 *= (0-y1);
-    if (y2 > 0) y2 *= (0-x1);
-    else y2 *= (r-x1);
+    if (x2 > 0) {
+        x2 *= (r-y1);
+    } else {
+        x2 *= (0-y1);
+    }
+    if (y2 > 0) {
+        y2 *= (0-x1);
+    } else {
+        y2 *= (r-x1);
+    }
     return((x2 >= y2)<<1);
 }
 
@@ -4288,28 +4496,47 @@ static int clipinsideboxline(int32_t x, int32_t y, int32_t x1, int32_t y1, int32
 
     x1 += walldist-x;
     x2 += walldist-x;
-    if ((x1 < 0) && (x2 < 0)) return(0);
-    if ((x1 >= r) && (x2 >= r)) return(0);
+    if ((x1 < 0) && (x2 < 0)) {
+        return(0);
+    }
+    if ((x1 >= r) && (x2 >= r)) {
+        return(0);
+    }
 
     y1 += walldist-y;
     y2 += walldist-y;
-    if ((y1 < 0) && (y2 < 0)) return(0);
-    if ((y1 >= r) && (y2 >= r)) return(0);
+    if ((y1 < 0) && (y2 < 0)) {
+        return(0);
+    }
+    if ((y1 >= r) && (y2 >= r)) {
+        return(0);
+    }
 
     x2 -= x1;
     y2 -= y1;
-    if (x2*(walldist-y1) >= y2*(walldist-x1))  /* Front */
-    {
-        if (x2 > 0) x2 *= (0-y1);
-        else x2 *= (r-y1);
-        if (y2 > 0) y2 *= (r-x1);
-        else y2 *= (0-x1);
+    if (x2*(walldist-y1) >= y2*(walldist-x1)) { /* Front */
+        if (x2 > 0) {
+            x2 *= (0-y1);
+        } else {
+            x2 *= (r-y1);
+        }
+        if (y2 > 0) {
+            y2 *= (r-x1);
+        } else {
+            y2 *= (0-x1);
+        }
         return(x2 < y2);
     }
-    if (x2 > 0) x2 *= (r-y1);
-    else x2 *= (0-y1);
-    if (y2 > 0) y2 *= (0-x1);
-    else y2 *= (r-x1);
+    if (x2 > 0) {
+        x2 *= (r-y1);
+    } else {
+        x2 *= (0-y1);
+    }
+    if (y2 > 0) {
+        y2 *= (0-x1);
+    } else {
+        y2 *= (r-x1);
+    }
     return((x2 >= y2)<<1);
 }
 
@@ -4317,41 +4544,59 @@ static int clipinsideboxline(int32_t x, int32_t y, int32_t x1, int32_t y1, int32
 void drawline256 (int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint8_t  col)
 {
     int32_t dx, dy, i, j, inc, plc, daend;
-    uint8_t* p;
+    uint8_t *p;
     col = palookup[0][col];
 
     dx = x2-x1;
     dy = y2-y1;
-    if (dx >= 0)
-    {
-        if ((x1 >= wx2) || (x2 < wx1)) return;
-        if (x1 < wx1) y1 += scale(wx1-x1,dy,dx), x1 = wx1;
-        if (x2 > wx2) y2 += scale(wx2-x2,dy,dx), x2 = wx2;
+    if (dx >= 0) {
+        if ((x1 >= wx2) || (x2 < wx1)) {
+            return;
+        }
+        if (x1 < wx1) {
+            y1 += scale(wx1-x1,dy,dx), x1 = wx1;
+        }
+        if (x2 > wx2) {
+            y2 += scale(wx2-x2,dy,dx), x2 = wx2;
+        }
+    } else {
+        if ((x2 >= wx2) || (x1 < wx1)) {
+            return;
+        }
+        if (x2 < wx1) {
+            y2 += scale(wx1-x2,dy,dx), x2 = wx1;
+        }
+        if (x1 > wx2) {
+            y1 += scale(wx2-x1,dy,dx), x1 = wx2;
+        }
     }
-    else
-    {
-        if ((x2 >= wx2) || (x1 < wx1)) return;
-        if (x2 < wx1) y2 += scale(wx1-x2,dy,dx), x2 = wx1;
-        if (x1 > wx2) y1 += scale(wx2-x1,dy,dx), x1 = wx2;
-    }
-    if (dy >= 0)
-    {
-        if ((y1 >= wy2) || (y2 < wy1)) return;
-        if (y1 < wy1) x1 += scale(wy1-y1,dx,dy), y1 = wy1;
-        if (y2 > wy2) x2 += scale(wy2-y2,dx,dy), y2 = wy2;
-    }
-    else
-    {
-        if ((y2 >= wy2) || (y1 < wy1)) return;
-        if (y2 < wy1) x2 += scale(wy1-y2,dx,dy), y2 = wy1;
-        if (y1 > wy2) x1 += scale(wy2-y1,dx,dy), y1 = wy2;
+    if (dy >= 0) {
+        if ((y1 >= wy2) || (y2 < wy1)) {
+            return;
+        }
+        if (y1 < wy1) {
+            x1 += scale(wy1-y1,dx,dy), y1 = wy1;
+        }
+        if (y2 > wy2) {
+            x2 += scale(wy2-y2,dx,dy), y2 = wy2;
+        }
+    } else {
+        if ((y2 >= wy2) || (y1 < wy1)) {
+            return;
+        }
+        if (y2 < wy1) {
+            x2 += scale(wy1-y2,dx,dy), y2 = wy1;
+        }
+        if (y1 > wy2) {
+            x1 += scale(wy2-y1,dx,dy), y1 = wy2;
+        }
     }
 
-    if (klabs(dx) >= klabs(dy))
-    {
-        if (dx == 0) return;
-        if (dx < 0)
-        {
+    if (klabs(dx) >= klabs(dy)) {
+        if (dx == 0) {
+            return;
+        }
+        if (dx < 0) {
             i = x1;
             x1 = x2;
             x2 = i;
@@ -4362,23 +4607,20 @@ void drawline256 (int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint8_t  col)
         plc = y1+mulscale12((2047-x1)&4095,inc);
         i = ((x1+2048)>>12);
         daend = ((x2+2048)>>12);
-        for(; i<daend; i++)
-        {
+        for (; i<daend; i++) {
             j = (plc>>12);
-            if ((j >= startumost[i]) && (j < startdmost[i]))
+            if ((j >= startumost[i]) && (j < startdmost[i])) {
                 drawpixel(ylookup[j]+i+frameplace,col);
+            }
             plc += inc;
         }
-    }
-    else
-    {
-        if (dy < 0)
-        {
+    } else {
+        if (dy < 0) {
             int32_t swap;
-            
+
             x1 = x2;
-            
-            swap = y1;            
+
+            swap = y1;
             y1 = y2;
             y2 = swap;
         }
@@ -4388,11 +4630,11 @@ void drawline256 (int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint8_t  col)
         i = ((y1+2048)>>12);
         daend = ((y2+2048)>>12);
         p = ylookup[i]+frameplace;
-        for(; i<daend; i++)
-        {
+        for (; i<daend; i++) {
             j = (plc>>12);
-            if ((i >= startumost[j]) && (i < startdmost[j]))
+            if ((i >= startumost[j]) && (i < startdmost[j])) {
                 drawpixel(j+p,col);
+            }
             plc += inc;
             p += ylookup[1];
         }
@@ -4418,33 +4660,30 @@ int inside(int32_t x, int32_t y, short sectnum)
     uint32_t  wallCrossed;
 
     //Quick check if the sector ID is valid.
-    if ((sectnum < 0) || (sectnum >= numsectors)) return(-1);
+    if ((sectnum < 0) || (sectnum >= numsectors)) {
+        return(-1);
+    }
 
     wallCrossed = 0;
     wal = &wall[sector[sectnum].wallptr];
     i = sector[sectnum].wallnum;
-    do
-    {
+    do {
         y1 = wal->y-y;
         y2 = wall[wal->point2].y-y;
 
         // Compare the sign of y1 and y2.
         // If (y1^y2) < 0 : y1 and y2 have different sign bit:  y is between wal->y and wall[wal->point2].y.
         // The goal is to not take into consideration any wall that is totally above or totally under the point [x,y].
-        if ((y1^y2) < 0)
-        {
+        if ((y1^y2) < 0) {
             x1 = wal->x-x;
             x2 = wall[wal->point2].x-x;
 
             //If (x1^x2) >= 0 x1 and x2 have identic sign bit: x is on the left or the right of both wal->x and wall[wal->point2].x.
-            if ((x1^x2) >= 0)
-            {
+            if ((x1^x2) >= 0) {
                 // If (x,y) is totally on the left or on the right, just count x1 (which indicate if we are on
                 // on the left or on the right.
                 wallCrossed ^= x1;
-            }
-            else
-            {
+            } else {
                 // This is the most complicated case: X is between x1 and x2, we need a fine grained test.
                 // We need to know exactly if it is on the left or on the right in order to know if the ray
                 // is crossing the wall or not,
@@ -4466,19 +4705,25 @@ int inside(int32_t x, int32_t y, short sectnum)
 
 int getangle(int32_t xvect, int32_t yvect)
 {
-    if ((xvect|yvect) == 0)
+    if ((xvect|yvect) == 0) {
         return(0);
-    if (xvect == 0)
+    }
+    if (xvect == 0) {
         return(512+((yvect<0)<<10));
-    if (yvect == 0)
+    }
+    if (yvect == 0) {
         return(((xvect<0)<<10));
-    if (xvect == yvect)
+    }
+    if (xvect == yvect) {
         return(256+((xvect<0)<<10));
-    if (xvect == -yvect)
+    }
+    if (xvect == -yvect) {
         return(768+((xvect>0)<<10));
-    if (klabs(xvect) > klabs(yvect))
+    }
+    if (klabs(xvect) > klabs(yvect)) {
         return(((radarang[640+scale(160,yvect,xvect)]>>6)+((xvect<0)<<10))&2047);
-    
+    }
+
     return(((radarang[640-scale(160,xvect,yvect)]>>6)+512+((yvect<0)<<10))&2047);
 }
 
@@ -4497,125 +4742,135 @@ static void drawmaskwall(EngineState *engine_state)
     int32_t i, j, k, x, z, sectnum, z1, z2, lx, rx;
     sectortype *sec, *nsec;
     walltype *wal;
-    
+
     engine_state->maskwallcnt--;
 
     //Retrive pvWall ID.
     z = engine_state->maskwall[engine_state->maskwallcnt];
-    
+
     //Retrive world wall ID.
     wal = &wall[pvWalls[z].worldWallId];
-    
+
     //Retrive sector ID
     sectnum = pvWalls[z].sectorId;
-    
+
     //Retrive sector.
     sec = &sector[sectnum];
-    
+
     //Retrive next sector.
     nsec = &sector[wal->nextsector];
-    
+
     z1 = max(nsec->ceilingz,sec->ceilingz);
     z2 = min(nsec->floorz,sec->floorz);
 
     wallmost(uwall,z,sectnum,(uint8_t )0, engine_state);
     wallmost(uplc,z,(int32_t)wal->nextsector,(uint8_t )0, engine_state);
-    for(x=pvWalls[z].screenSpaceCoo[0][VEC_COL]; x<=pvWalls[z].screenSpaceCoo[1][VEC_COL]; x++)
-        if (uplc[x] > uwall[x])
+    for (x=pvWalls[z].screenSpaceCoo[0][VEC_COL]; x<=pvWalls[z].screenSpaceCoo[1][VEC_COL]; x++)
+        if (uplc[x] > uwall[x]) {
             uwall[x] = uplc[x];
-    
+        }
+
     wallmost(dwall,z,sectnum,(uint8_t )1, engine_state);
     wallmost(dplc,z,(int32_t)wal->nextsector,(uint8_t )1, engine_state);
-    for(x=pvWalls[z].screenSpaceCoo[0][VEC_COL]; x<=pvWalls[z].screenSpaceCoo[1][VEC_COL]; x++)
-        if (dplc[x] < dwall[x])
+    for (x=pvWalls[z].screenSpaceCoo[0][VEC_COL]; x<=pvWalls[z].screenSpaceCoo[1][VEC_COL]; x++)
+        if (dplc[x] < dwall[x]) {
             dwall[x] = dplc[x];
-    
-    
+        }
+
+
     prepwall(z,wal);
 
     globalorientation = (int32_t)wal->cstat;
     globalpicnum = wal->overpicnum;
-    if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES)
+    if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
         globalpicnum = 0;
+    }
     globalxpanning = (int32_t)wal->xpanning;
     globalypanning = (int32_t)wal->ypanning;
-    
-    if (tiles[globalpicnum].animFlags&192)
+
+    if (tiles[globalpicnum].animFlags&192) {
         globalpicnum += animateoffs(globalpicnum);
-    
+    }
+
     globalshade = (int32_t)wal->shade;
     globvis = globalvisibility;
-    if (sec->visibility != 0)
+    if (sec->visibility != 0) {
         globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
+    }
     globalpal = (int32_t)wal->pal;
     globalshiftval = (picsiz[globalpicnum]>>4);
-    if (pow2long[globalshiftval] != tiles[globalpicnum].dim.height)
+    if (pow2long[globalshiftval] != tiles[globalpicnum].dim.height) {
         globalshiftval++;
-    
+    }
+
     globalshiftval = 32-globalshiftval;
     globalyscale = (wal->yrepeat<<(globalshiftval-19));
-    if ((globalorientation&4) == 0)
+    if ((globalorientation&4) == 0) {
         globalzd = (((engine_state->posz-z1)*globalyscale)<<8);
-    else
+    } else {
         globalzd = (((engine_state->posz-z2)*globalyscale)<<8);
+    }
     globalzd += (globalypanning<<24);
-    if (globalorientation&256) globalyscale = -globalyscale, globalzd = -globalzd;
+    if (globalorientation&256) {
+        globalyscale = -globalyscale, globalzd = -globalzd;
+    }
 
-    for(i=smostwallcnt-1; i>=0; i--)
-    {
+    for (i=smostwallcnt-1; i>=0; i--) {
         j = smostwall[i];
-        if ((pvWalls[j].screenSpaceCoo[0][VEC_COL] > pvWalls[z].screenSpaceCoo[1][VEC_COL]) || (pvWalls[j].screenSpaceCoo[1][VEC_COL] < pvWalls[z].screenSpaceCoo[0][VEC_COL])) continue;
-        if (wallfront(j,z,engine_state)) continue;
+        if ((pvWalls[j].screenSpaceCoo[0][VEC_COL] > pvWalls[z].screenSpaceCoo[1][VEC_COL]) || (pvWalls[j].screenSpaceCoo[1][VEC_COL] < pvWalls[z].screenSpaceCoo[0][VEC_COL])) {
+            continue;
+        }
+        if (wallfront(j,z,engine_state)) {
+            continue;
+        }
 
         lx = max(pvWalls[j].screenSpaceCoo[0][VEC_COL],pvWalls[z].screenSpaceCoo[0][VEC_COL]);
         rx = min(pvWalls[j].screenSpaceCoo[1][VEC_COL],pvWalls[z].screenSpaceCoo[1][VEC_COL]);
 
-        switch(smostwalltype[i])
-        {
-        case 0:
-            if (lx <= rx)
-            {
-                if ((lx == pvWalls[z].screenSpaceCoo[0][VEC_COL]) && (rx == pvWalls[z].screenSpaceCoo[1][VEC_COL])) return;
-                clearbufbyte(&dwall[lx],(rx-lx+1)*sizeof(dwall[0]),0L);
-            }
-            break;
-        case 1:
-            k = smoststart[i] - pvWalls[j].screenSpaceCoo[0][VEC_COL];
-            for(x=lx; x<=rx; x++)
-                if (engine_state->smost[k+x] > uwall[x]) {
-                    uwall[x] = engine_state->smost[k+x];
+        switch (smostwalltype[i]) {
+            case 0:
+                if (lx <= rx) {
+                    if ((lx == pvWalls[z].screenSpaceCoo[0][VEC_COL]) && (rx == pvWalls[z].screenSpaceCoo[1][VEC_COL])) {
+                        return;
+                    }
+                    clearbufbyte(&dwall[lx],(rx-lx+1)*sizeof(dwall[0]),0L);
                 }
-            break;
-        case 2:
-            k = smoststart[i] - pvWalls[j].screenSpaceCoo[0][VEC_COL];
-            for(x=lx; x<=rx; x++)
-                if (engine_state->smost[k+x] < dwall[x]) {
-                    dwall[x] = engine_state->smost[k+x];
-                }
-            break;
+                break;
+            case 1:
+                k = smoststart[i] - pvWalls[j].screenSpaceCoo[0][VEC_COL];
+                for (x=lx; x<=rx; x++)
+                    if (engine_state->smost[k+x] > uwall[x]) {
+                        uwall[x] = engine_state->smost[k+x];
+                    }
+                break;
+            case 2:
+                k = smoststart[i] - pvWalls[j].screenSpaceCoo[0][VEC_COL];
+                for (x=lx; x<=rx; x++)
+                    if (engine_state->smost[k+x] < dwall[x]) {
+                        dwall[x] = engine_state->smost[k+x];
+                    }
+                break;
         }
     }
 
     /* maskwall */
     if ((searchit >= 1) && (searchx >= pvWalls[z].screenSpaceCoo[0][VEC_COL]) && (searchx <= pvWalls[z].screenSpaceCoo[1][VEC_COL]))
-        if ((searchy >= uwall[searchx]) && (searchy <= dwall[searchx]))
-        {
+        if ((searchy >= uwall[searchx]) && (searchy <= dwall[searchx])) {
             searchsector = sectnum;
             searchwall = pvWalls[z].worldWallId;
             searchstat = 4;
             searchit = 1;
         }
 
-    if ((globalorientation&128) == 0)
+    if ((globalorientation&128) == 0) {
         maskwallscan(pvWalls[z].screenSpaceCoo[0][VEC_COL],pvWalls[z].screenSpaceCoo[1][VEC_COL],uwall,dwall,swall,lwall,engine_state);
-    else
-    {
-        if (globalorientation&128)
-        {
-            if (globalorientation&512) 
-				settrans(TRANS_REVERSE);
-            else 
-				settrans(TRANS_NORMAL);
+    } else {
+        if (globalorientation&128) {
+            if (globalorientation&512) {
+                settrans(TRANS_REVERSE);
+            } else {
+                settrans(TRANS_NORMAL);
+            }
         }
         transmaskwallscan(pvWalls[z].screenSpaceCoo[0][VEC_COL], pvWalls[z].screenSpaceCoo[1][VEC_COL], engine_state);
     }
@@ -4636,21 +4891,22 @@ static void ceilspritehline (int32_t x2, int32_t y, EngineState *engine_state)
      */
 
     x1 = lastx[y];
-    if (x2 < x1) return;
+    if (x2 < x1) {
+        return;
+    }
 
     v = mulscale20(globalzd,horizlookup[y-engine_state->horiz+horizycent]);
-    
+
     bx = mulscale14(globalx2*x1+globalx1,v) + globalxpanning;
     by = mulscale14(globaly2*x1+globaly1,v) + globalypanning;
-    
+
     a1 = mulscale14(globalx2,v);
     a2 = mulscale14(globaly2,v);
     a3 = (int32_t)FP_OFF(palookup[globalpal]) + (getpalookup((int32_t)mulscale28(klabs(v),globvis),globalshade)<<8);
 
-    if ((globalorientation&2) == 0)
+    if ((globalorientation&2) == 0) {
         mhline(globalbufplc,bx,(x2-x1)<<16,0L,by,ylookup[y]+x1+frameoffset,a1,a2,a3);
-    else
-    {
+    } else {
         thline(globalbufplc,bx,(x2-x1)<<16,0L,by,ylookup[y]+x1+frameoffset,a1,a2,a3);
         transarea += (x2-x1);
     }
@@ -4663,34 +4919,43 @@ static void ceilspritescan (int32_t x1, int32_t x2, EngineState *engine_state)
 
     y1 = uwall[x1];
     y2 = y1;
-    for(x=x1; x<=x2; x++)
-    {
+    for (x=x1; x<=x2; x++) {
         twall = uwall[x]-1;
         bwall = dwall[x];
-        if (twall < bwall-1)
-        {
-            if (twall >= y2)
-            {
-                while (y1 < y2-1) ceilspritehline(x-1, ++y1, engine_state);
+        if (twall < bwall-1) {
+            if (twall >= y2) {
+                while (y1 < y2-1) {
+                    ceilspritehline(x-1, ++y1, engine_state);
+                }
                 y1 = twall;
+            } else {
+                while (y1 < twall) {
+                    ceilspritehline(x-1, ++y1, engine_state);
+                }
+                while (y1 > twall) {
+                    lastx[y1--] = x;
+                }
             }
-            else
-            {
-                while (y1 < twall) ceilspritehline(x-1, ++y1, engine_state);
-                while (y1 > twall) lastx[y1--] = x;
+            while (y2 > bwall) {
+                ceilspritehline(x-1, --y2, engine_state);
             }
-            while (y2 > bwall) ceilspritehline(x-1, --y2, engine_state);
-            while (y2 < bwall) lastx[y2++] = x;
-        }
-        else
-        {
-            while (y1 < y2-1) ceilspritehline(x-1, ++y1, engine_state);
-            if (x == x2) break;
+            while (y2 < bwall) {
+                lastx[y2++] = x;
+            }
+        } else {
+            while (y1 < y2-1) {
+                ceilspritehline(x-1, ++y1, engine_state);
+            }
+            if (x == x2) {
+                break;
+            }
             y1 = uwall[x+1];
             y2 = y1;
         }
     }
-    while (y1 < y2-1) ceilspritehline(x2, ++y1, engine_state);
+    while (y1 < y2-1) {
+        ceilspritehline(x2, ++y1, engine_state);
+    }
     faketimerhandler();
 }
 
@@ -4708,7 +4973,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
     int32_t npoints, npoints2, zz, t, zsgn, zzsgn;
     short tilenum, spritenum;
     uint8_t  swapped, daclip;
-    
+
     engine_state->spritesortcnt--;
 
     tspr = tspriteptr[engine_state->spritesortcnt];
@@ -4719,39 +4984,43 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
     spritenum = tspr->owner;
     cstat = tspr->cstat;
 
-    if ((cstat&48) != 48)
-    {
-        if (tiles[tilenum].animFlags&192)
+    if ((cstat&48) != 48) {
+        if (tiles[tilenum].animFlags&192) {
             tilenum += animateoffs(tilenum);
-        
-        if ((tiles[tilenum].dim.width <= 0) || (tiles[tilenum].dim.height <= 0) || (spritenum < 0))
+        }
+
+        if ((tiles[tilenum].dim.width <= 0) || (tiles[tilenum].dim.height <= 0) || (spritenum < 0)) {
             return;
+        }
     }
-    if ((tspr->xrepeat <= 0) || (tspr->yrepeat <= 0)) return;
+    if ((tspr->xrepeat <= 0) || (tspr->yrepeat <= 0)) {
+        return;
+    }
 
     sectnum = tspr->sectnum;
     sec = &sector[sectnum];
     globalpal = tspr->pal;
     // FIX_00088: crash on maps using a bad palette index (like the end of roch3.map)
-    if (!palookup[globalpal])
-        globalpal = 0; // seem to crash when globalpal > 25
+    if (!palookup[globalpal]) {
+        globalpal = 0;    // seem to crash when globalpal > 25
+    }
     globalshade = tspr->shade;
-    if (cstat&2)
-    {
+    if (cstat&2) {
 
-        if (cstat&512) 
-			settrans(TRANS_REVERSE);
-        else 
-			settrans(TRANS_NORMAL);
+        if (cstat&512) {
+            settrans(TRANS_REVERSE);
+        } else {
+            settrans(TRANS_NORMAL);
+        }
     }
 
     xoff = (int32_t)((int8_t )((tiles[tilenum].animFlags>>8)&255))+((int32_t)tspr->xoffset);
     yoff = (int32_t)((int8_t )((tiles[tilenum].animFlags>>16)&255))+((int32_t)tspr->yoffset);
 
-    if ((cstat&48) == 0)
-    {
-        if (yp <= (4<<8))
+    if ((cstat&48) == 0) {
+        if (yp <= (4<<8)) {
             return;
+        }
 
         siz = divscale19(xdimenscale,yp);
 
@@ -4759,134 +5028,160 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
 
         spriteDim.width = tiles[tilenum].dim.width;
         spriteDim.height = tiles[tilenum].dim.height;
-        
+
         xsiz = mulscale30(siz,xv * spriteDim.width);
         ysiz = mulscale14(siz,tspr->yrepeat * spriteDim.height);
 
-        if (((tiles[tilenum].dim.width>>11) >= xsiz) || (spriteDim.height >= (ysiz>>1)))
-            return;  /* Watch out for divscale overflow */
+        if (((tiles[tilenum].dim.width>>11) >= xsiz) || (spriteDim.height >= (ysiz>>1))) {
+            return;    /* Watch out for divscale overflow */
+        }
 
         x1 = xb-(xsiz>>1);
-        if (spriteDim.width & 1)
-            x1 += mulscale31(siz,xv);  /* Odd xspans */
+        if (spriteDim.width & 1) {
+            x1 += mulscale31(siz,xv);    /* Odd xspans */
+        }
         i = mulscale30(siz,xv*xoff);
-        if ((cstat&4) == 0)
+        if ((cstat&4) == 0) {
             x1 -= i;
-        else
+        } else {
             x1 += i;
+        }
 
         y1 = mulscale16(tspr->z-engine_state->posz,siz);
         y1 -= mulscale14(siz,tspr->yrepeat*yoff);
         y1 += (engine_state->horiz<<8)-ysiz;
-        if (cstat&128)
-        {
+        if (cstat&128) {
             y1 += (ysiz>>1);
-            if (spriteDim.height&1) y1 += mulscale15(siz,tspr->yrepeat);  /* Odd yspans */
+            if (spriteDim.height&1) {
+                y1 += mulscale15(siz,tspr->yrepeat);    /* Odd yspans */
+            }
         }
 
         x2 = x1+xsiz-1;
         y2 = y1+ysiz-1;
-        if ((y1|255) >= (y2|255)) return;
+        if ((y1|255) >= (y2|255)) {
+            return;
+        }
 
         lx = (x1>>8)+1;
-        if (lx < 0) lx = 0;
+        if (lx < 0) {
+            lx = 0;
+        }
         rx = (x2>>8);
-        if (rx >= xdimen) rx = xdimen-1;
-        if (lx > rx) return;
+        if (rx >= xdimen) {
+            rx = xdimen-1;
+        }
+        if (lx > rx) {
+            return;
+        }
 
-        if ((sec->ceilingstat&3) == 0)
+        if ((sec->ceilingstat&3) == 0) {
             startum = engine_state->horiz+mulscale24(siz,sec->ceilingz-engine_state->posz)-1;
-        else
+        } else {
             startum = 0;
-        
-        if ((sec->floorstat&3) == 0)
+        }
+
+        if ((sec->floorstat&3) == 0) {
             startdm = engine_state->horiz+mulscale24(siz,sec->floorz-engine_state->posz)+1;
-        else
+        } else {
             startdm = 0x7fffffff;
-        
-        if ((y1>>8) > startum) startum = (y1>>8);
+        }
+
+        if ((y1>>8) > startum) {
+            startum = (y1>>8);
+        }
         if ((y2>>8) < startdm) startdm = (y2>>8);
 
-        if (startum < -32768) startum = -32768;
-        if (startdm > 32767) startdm = 32767;
-        if (startum >= startdm) return;
+        if (startum < -32768) {
+            startum = -32768;
+        }
+        if (startdm > 32767) {
+            startdm = 32767;
+        }
+        if (startum >= startdm) {
+            return;
+        }
 
-        if ((cstat&4) == 0)
-        {
+        if ((cstat&4) == 0) {
             linuminc = divscale24(spriteDim.width,xsiz);
             linum = mulscale8((lx<<8)-x1,linuminc);
-        }
-        else
-        {
+        } else {
             linuminc = -divscale24(spriteDim.width,xsiz);
             linum = mulscale8((lx<<8)-x2,linuminc);
         }
 
 
-        for(x=lx; x<=rx; x++)
-        {
+        for (x=lx; x<=rx; x++) {
             uwall[x] = max(startumost[x+windowx1]-windowy1,(short)startum);
             dwall[x] = min(startdmost[x+windowx1]-windowy1,(short)startdm);
         }
         daclip = 0;
-        for(i=smostwallcnt-1; i>=0; i--)
-        {
-            if (smostwalltype[i]&daclip)
+        for (i=smostwallcnt-1; i>=0; i--) {
+            if (smostwalltype[i]&daclip) {
                 continue;
-            
+            }
+
             j = smostwall[i];
-            if ((pvWalls[j].screenSpaceCoo[0][VEC_COL] > rx) || (pvWalls[j].screenSpaceCoo[1][VEC_COL] < lx))
+            if ((pvWalls[j].screenSpaceCoo[0][VEC_COL] > rx) || (pvWalls[j].screenSpaceCoo[1][VEC_COL] < lx)) {
                 continue;
-            
-            if ((yp <= pvWalls[j].screenSpaceCoo[0][VEC_DIST]) && (yp <= pvWalls[j].screenSpaceCoo[1][VEC_DIST]))
+            }
+
+            if ((yp <= pvWalls[j].screenSpaceCoo[0][VEC_DIST]) && (yp <= pvWalls[j].screenSpaceCoo[1][VEC_DIST])) {
                 continue;
-            
-            if (spritewallfront(tspr,pvWalls[j].worldWallId) && ((yp <= pvWalls[j].screenSpaceCoo[0][VEC_DIST]) || (yp <= pvWalls[j].screenSpaceCoo[1][VEC_DIST])))
+            }
+
+            if (spritewallfront(tspr,pvWalls[j].worldWallId) && ((yp <= pvWalls[j].screenSpaceCoo[0][VEC_DIST]) || (yp <= pvWalls[j].screenSpaceCoo[1][VEC_DIST]))) {
                 continue;
+            }
 
             dalx2 = max(pvWalls[j].screenSpaceCoo[0][VEC_COL],lx);
             darx2 = min(pvWalls[j].screenSpaceCoo[1][VEC_COL],rx);
 
-            switch(smostwalltype[i])
-            {
-            case 0:
-                if (dalx2 <= darx2)
-                {
-                    if ((dalx2 == lx) && (darx2 == rx))
-                        return;
-                    clearbufbyte(&dwall[dalx2],(darx2-dalx2+1)*sizeof(dwall[0]),0L);
-                }
-                break;
-            case 1:
-                k = smoststart[i] - pvWalls[j].screenSpaceCoo[0][VEC_COL];
-                for(x=dalx2; x<=darx2; x++)
-                    if (engine_state->smost[k+x] > uwall[x]) {
-                        uwall[x] = engine_state->smost[k+x];
+            switch (smostwalltype[i]) {
+                case 0:
+                    if (dalx2 <= darx2) {
+                        if ((dalx2 == lx) && (darx2 == rx)) {
+                            return;
+                        }
+                        clearbufbyte(&dwall[dalx2],(darx2-dalx2+1)*sizeof(dwall[0]),0L);
                     }
-                if ((dalx2 == lx) && (darx2 == rx)) daclip |= 1;
-                break;
-            case 2:
-                k = smoststart[i] - pvWalls[j].screenSpaceCoo[0][VEC_COL];
-                for(x=dalx2; x<=darx2; x++)
-                    if (engine_state->smost[k+x] < dwall[x]) {
-                        dwall[x] = engine_state->smost[k+x];
+                    break;
+                case 1:
+                    k = smoststart[i] - pvWalls[j].screenSpaceCoo[0][VEC_COL];
+                    for (x=dalx2; x<=darx2; x++)
+                        if (engine_state->smost[k+x] > uwall[x]) {
+                            uwall[x] = engine_state->smost[k+x];
+                        }
+                    if ((dalx2 == lx) && (darx2 == rx)) {
+                        daclip |= 1;
                     }
-                if ((dalx2 == lx) && (darx2 == rx)) daclip |= 2;
-                break;
+                    break;
+                case 2:
+                    k = smoststart[i] - pvWalls[j].screenSpaceCoo[0][VEC_COL];
+                    for (x=dalx2; x<=darx2; x++)
+                        if (engine_state->smost[k+x] < dwall[x]) {
+                            dwall[x] = engine_state->smost[k+x];
+                        }
+                    if ((dalx2 == lx) && (darx2 == rx)) {
+                        daclip |= 2;
+                    }
+                    break;
             }
         }
 
-        if (uwall[rx] >= dwall[rx])
-        {
-            for(x=lx; x<rx; x++)
-                if (uwall[x] < dwall[x]) break;
-            if (x == rx) return;
+        if (uwall[rx] >= dwall[rx]) {
+            for (x=lx; x<rx; x++)
+                if (uwall[x] < dwall[x]) {
+                    break;
+                }
+            if (x == rx) {
+                return;
+            }
         }
 
         /* sprite */
         if ((searchit >= 1) && (searchx >= lx) && (searchx <= rx))
-            if ((searchy >= uwall[searchx]) && (searchy < dwall[searchx]))
-            {
+            if ((searchy >= uwall[searchx]) && (searchy < dwall[searchx])) {
                 searchsector = sectnum;
                 searchwall = spritenum;
                 searchstat = 3;
@@ -4894,29 +5189,34 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
             }
 
         z2 = tspr->z - ((yoff*tspr->yrepeat)<<2);
-        if (cstat&128)
-        {
+        if (cstat&128) {
             z2 += ((spriteDim.height*tspr->yrepeat)<<1);
-            if (spriteDim.height&1) z2 += (tspr->yrepeat<<1);        /* Odd yspans */
+            if (spriteDim.height&1) {
+                z2 += (tspr->yrepeat<<1);    /* Odd yspans */
+            }
         }
         z1 = z2 - ((spriteDim.height*tspr->yrepeat)<<2);
 
         globalorientation = 0;
         globalpicnum = tilenum;
-        if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) globalpicnum = 0;
+        if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
+            globalpicnum = 0;
+        }
         globalxpanning = 0L;
         globalypanning = 0L;
         globvis = globalvisibility;
-        if (sec->visibility != 0) globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
+        if (sec->visibility != 0) {
+            globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
+        }
         globalshiftval = (picsiz[globalpicnum]>>4);
-        if (pow2long[globalshiftval] != tiles[globalpicnum].dim.height)
+        if (pow2long[globalshiftval] != tiles[globalpicnum].dim.height) {
             globalshiftval++;
-        
+        }
+
         globalshiftval = 32-globalshiftval;
         globalyscale = divscale(512,tspr->yrepeat,globalshiftval-19);
         globalzd = (((engine_state->posz-z1)*globalyscale)<<8);
-        if ((cstat&8) > 0)
-        {
+        if ((cstat&8) > 0) {
             globalyscale = -globalyscale;
             globalzd = (((engine_state->posz-z2)*globalyscale)<<8);
         }
@@ -4924,30 +5224,35 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         qinterpolatedown16((int32_t *)&lwall[lx],rx-lx+1,linum,linuminc);
         clearbuf(&swall[lx],rx-lx+1,mulscale19(yp,xdimscale));
 
-        if ((cstat&2) == 0)
+        if ((cstat&2) == 0) {
             maskwallscan(lx,rx,uwall,dwall,swall,lwall, engine_state);
-        else
+        } else {
             transmaskwallscan(lx, rx, engine_state);
-    }
-    else if ((cstat&48) == 16)
-    {
-        if ((cstat&4) > 0) xoff = -xoff;
-        if ((cstat&8) > 0) yoff = -yoff;
+        }
+    } else if ((cstat&48) == 16) {
+        if ((cstat&4) > 0) {
+            xoff = -xoff;
+        }
+        if ((cstat&8) > 0) {
+            yoff = -yoff;
+        }
 
-	spriteDim.width = tiles[tilenum].dim.width;
-	spriteDim.height = tiles[tilenum].dim.height;
+        spriteDim.width = tiles[tilenum].dim.width;
+        spriteDim.height = tiles[tilenum].dim.height;
 
-	xv = tspr->xrepeat*fixedPointSin((tspr->ang+2560+1536));
-	yv = tspr->xrepeat*fixedPointSin((tspr->ang+2048+1536));
-	i = (spriteDim.width >>1)+xoff;
-	x1 = tspr->x-engine_state->posx-mulscale16(xv,i);
-	x2 = x1+mulscale16(xv,spriteDim.width );
+        xv = tspr->xrepeat*fixedPointSin((tspr->ang+2560+1536));
+        yv = tspr->xrepeat*fixedPointSin((tspr->ang+2048+1536));
+        i = (spriteDim.width >>1)+xoff;
+        x1 = tspr->x-engine_state->posx-mulscale16(xv,i);
+        x2 = x1+mulscale16(xv,spriteDim.width );
         y1 = tspr->y-engine_state->posy-mulscale16(yv,i);
         y2 = y1+mulscale16(yv,spriteDim.width );
 
         yp1 = dmulscale6(x1,cosviewingrangeglobalang,y1,sinviewingrangeglobalang);
         yp2 = dmulscale6(x2,cosviewingrangeglobalang,y2,sinviewingrangeglobalang);
-        if ((yp1 <= 0) && (yp2 <= 0)) return;
+        if ((yp1 <= 0) && (yp2 <= 0)) {
+            return;
+        }
         xp1 = dmulscale6(y1,cosglobalang,-x1,singlobalang);
         xp2 = dmulscale6(y2,cosglobalang,-x2,singlobalang);
 
@@ -4957,9 +5262,10 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         y2 += engine_state->posy;
 
         swapped = 0;
-        if (dmulscale32(xp1,yp2,-xp2,yp1) >= 0)  /* If wall's NOT facing you */
-        {
-            if ((cstat&64) != 0) return;
+        if (dmulscale32(xp1,yp2,-xp2,yp1) >= 0) { /* If wall's NOT facing you */
+            if ((cstat&64) != 0) {
+                return;
+            }
             i = xp1, xp1 = xp2, xp2 = i;
             i = yp1, yp1 = yp2, yp2 = i;
             i = x1, x1 = x2, x2 = i;
@@ -4967,46 +5273,65 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
             swapped = 1;
         }
 
-        if (xp1 >= -yp1)
-        {
-            if (xp1 > yp1) return;
+        if (xp1 >= -yp1) {
+            if (xp1 > yp1) {
+                return;
+            }
 
-            if (yp1 == 0) return;
+            if (yp1 == 0) {
+                return;
+            }
             pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL] = halfxdimen + scale(xp1,halfxdimen,yp1);
-            if (xp1 >= 0) pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL]++;   /* Fix for SIGNED divide */
-            if (pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL] >= xdimen) pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL] = xdimen-1;
+            if (xp1 >= 0) {
+                pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL]++;    /* Fix for SIGNED divide */
+            }
+            if (pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL] >= xdimen) {
+                pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL] = xdimen-1;
+            }
             pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_DIST] = yp1;
-        }
-        else
-        {
-            if (xp2 < -yp2) return;
+        } else {
+            if (xp2 < -yp2) {
+                return;
+            }
             pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL] = 0;
             i = yp1-yp2+xp1-xp2;
-            if (i == 0) return;
+            if (i == 0) {
+                return;
+            }
             pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_DIST] = yp1 + scale(yp2-yp1,xp1+yp1,i);
         }
-        if (xp2 <= yp2)
-        {
-            if (xp2 < -yp2) return;
+        if (xp2 <= yp2) {
+            if (xp2 < -yp2) {
+                return;
+            }
 
-            if (yp2 == 0) return;
+            if (yp2 == 0) {
+                return;
+            }
             pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL] = halfxdimen + scale(xp2,halfxdimen,yp2) - 1;
-            if (xp2 >= 0) pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL]++;   /* Fix for SIGNED divide */
-            if (pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL] >= xdimen) pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL] = xdimen-1;
+            if (xp2 >= 0) {
+                pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL]++;    /* Fix for SIGNED divide */
+            }
+            if (pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL] >= xdimen) {
+                pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL] = xdimen-1;
+            }
             pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_DIST] = yp2;
-        }
-        else
-        {
-            if (xp1 > yp1) return;
+        } else {
+            if (xp1 > yp1) {
+                return;
+            }
 
             pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL] = xdimen-1;
             i = xp2-xp1+yp1-yp2;
-            if (i == 0) return;
+            if (i == 0) {
+                return;
+            }
             pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_DIST] = yp1 + scale(yp2-yp1,yp1-xp1,i);
         }
 
-        if ((pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_DIST] < 256) || (pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_DIST] < 256) || (pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL] > pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL]))
+        if ((pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_DIST] < 256) || (pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_DIST] < 256) || (pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL] > pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL])) {
             return;
+        }
 
         topinc = -mulscale10(yp1,spriteDim.width);
         top = (((mulscale10(xp1,xdimen) - mulscale9(pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL]-halfxdimen,yp1))*spriteDim.width)>>3);
@@ -5016,8 +5341,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         j = pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL]+3;
         z = mulscale20(top,krecip(bot));
         lwall[pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL]] = (z>>8);
-        for(x=pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL]+4; x<=j; x+=4)
-        {
+        for (x=pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL]+4; x<=j; x+=4) {
             top += topinc;
             bot += botinc;
             zz = z;
@@ -5029,14 +5353,18 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
             lwall[x-1] = ((i+z)>>9);
         }
 
-        if (lwall[pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL]] < 0) lwall[pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL]] = 0;
-        if (lwall[pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL]] >= spriteDim.width) lwall[pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL]] = spriteDim.width-1;
+        if (lwall[pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL]] < 0) {
+            lwall[pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL]] = 0;
+        }
+        if (lwall[pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL]] >= spriteDim.width) {
+            lwall[pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL]] = spriteDim.width-1;
+        }
 
-        if ((swapped^((cstat&4)>0)) > 0)
-        {
+        if ((swapped^((cstat&4)>0)) > 0) {
             j = spriteDim.width-1;
-            for(x=pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL]; x<=pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL]; x++)
+            for (x=pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL]; x<=pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL]; x++) {
                 lwall[x] = j-lwall[x];
+            }
         }
 
         pvWalls[MAXWALLSB-1].cameraSpaceCoo[0][VEC_X] = xp1 ;
@@ -5044,66 +5372,70 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         pvWalls[MAXWALLSB-1].cameraSpaceCoo[1][VEC_X] = xp2 ;
         pvWalls[MAXWALLSB-1].cameraSpaceCoo[1][VEC_Y] = yp2 ;
 
-        
+
         hplc = divscale19(xdimenscale,pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_DIST]);
         hinc = divscale19(xdimenscale,pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_DIST]);
         hinc = (hinc-hplc)/(pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL]-pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL]+1);
 
         z2 = tspr->z - ((yoff*tspr->yrepeat)<<2);
-        if (cstat&128)
-        {
+        if (cstat&128) {
             z2 += ((spriteDim.height*tspr->yrepeat)<<1);
-            if (spriteDim.height&1) z2 += (tspr->yrepeat<<1);        /* Odd yspans */
+            if (spriteDim.height&1) {
+                z2 += (tspr->yrepeat<<1);    /* Odd yspans */
+            }
         }
         z1 = z2 - ((spriteDim.height*tspr->yrepeat)<<2);
 
         globalorientation = 0;
         globalpicnum = tilenum;
-        if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) globalpicnum = 0;
+        if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
+            globalpicnum = 0;
+        }
         globalxpanning = 0L;
         globalypanning = 0L;
         globvis = globalvisibility;
-        if (sec->visibility != 0) globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
+        if (sec->visibility != 0) {
+            globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
+        }
         globalshiftval = (picsiz[globalpicnum]>>4);
-        if (pow2long[globalshiftval] != tiles[globalpicnum].dim.height) globalshiftval++;
+        if (pow2long[globalshiftval] != tiles[globalpicnum].dim.height) {
+            globalshiftval++;
+        }
         globalshiftval = 32-globalshiftval;
         globalyscale = divscale(512,tspr->yrepeat,globalshiftval-19);
         globalzd = (((engine_state->posz-z1)*globalyscale)<<8);
-        if ((cstat&8) > 0)
-        {
+        if ((cstat&8) > 0) {
             globalyscale = -globalyscale;
             globalzd = (((engine_state->posz-z2)*globalyscale)<<8);
         }
 
-        if (((sec->ceilingstat&1) == 0) && (z1 < sec->ceilingz))
+        if (((sec->ceilingstat&1) == 0) && (z1 < sec->ceilingz)) {
             z1 = sec->ceilingz;
-        if (((sec->floorstat&1) == 0) && (z2 > sec->floorz))
+        }
+        if (((sec->floorstat&1) == 0) && (z2 > sec->floorz)) {
             z2 = sec->floorz;
+        }
 
         owallmost(uwall, (int32_t)(MAXWALLSB-1), z1 - engine_state->posz, engine_state);
         owallmost(dwall, (int32_t)(MAXWALLSB-1), z2 - engine_state->posz, engine_state);
-        for(i=pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL]; i<=pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL]; i++)
-        {
+        for (i=pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL]; i<=pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL]; i++) {
             swall[i] = (krecip(hplc)<<2);
             hplc += hinc;
         }
 
-        for(i=smostwallcnt-1; i>=0; i--)
-        {
+        for (i=smostwallcnt-1; i>=0; i--) {
             j = smostwall[i];
 
-            if ((pvWalls[j].screenSpaceCoo[0][VEC_COL] > pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL]) || (pvWalls[j].screenSpaceCoo[1][VEC_COL] < pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL])) continue;
+            if ((pvWalls[j].screenSpaceCoo[0][VEC_COL] > pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL]) || (pvWalls[j].screenSpaceCoo[1][VEC_COL] < pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL])) {
+                continue;
+            }
 
             dalx2 = pvWalls[j].screenSpaceCoo[0][VEC_COL];
             darx2 = pvWalls[j].screenSpaceCoo[1][VEC_COL];
-            if (max(pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_DIST],pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_DIST]) > min(pvWalls[j].screenSpaceCoo[0][VEC_DIST],pvWalls[j].screenSpaceCoo[1][VEC_DIST]))
-            {
-                if (min(pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_DIST],pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_DIST]) > max(pvWalls[j].screenSpaceCoo[0][VEC_DIST],pvWalls[j].screenSpaceCoo[1][VEC_DIST]))
-                {
+            if (max(pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_DIST],pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_DIST]) > min(pvWalls[j].screenSpaceCoo[0][VEC_DIST],pvWalls[j].screenSpaceCoo[1][VEC_DIST])) {
+                if (min(pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_DIST],pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_DIST]) > max(pvWalls[j].screenSpaceCoo[0][VEC_DIST],pvWalls[j].screenSpaceCoo[1][VEC_DIST])) {
                     x = 0x80000000;
-                }
-                else
-                {
+                } else {
                     x = pvWalls[j].worldWallId;
                     xp1 = wall[x].x;
                     yp1 = wall[x].y;
@@ -5113,80 +5445,82 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
 
                     z1 = (xp2-xp1)*(y1-yp1) - (yp2-yp1)*(x1-xp1);
                     z2 = (xp2-xp1)*(y2-yp1) - (yp2-yp1)*(x2-xp1);
-                    if ((z1^z2) >= 0)
+                    if ((z1^z2) >= 0) {
                         x = (z1+z2);
-                    else
-                    {
+                    } else {
                         z1 = (x2-x1)*(yp1-y1) - (y2-y1)*(xp1-x1);
                         z2 = (x2-x1)*(yp2-y1) - (y2-y1)*(xp2-x1);
 
-                        if ((z1^z2) >= 0)
+                        if ((z1^z2) >= 0) {
                             x = -(z1+z2);
-                        else
-                        {
-                            if ((xp2-xp1)*(tspr->y-yp1) == (tspr->x-xp1)*(yp2-yp1))
-                            {
-                                if (wall[pvWalls[j].worldWallId].nextsector == tspr->sectnum)
+                        } else {
+                            if ((xp2-xp1)*(tspr->y-yp1) == (tspr->x-xp1)*(yp2-yp1)) {
+                                if (wall[pvWalls[j].worldWallId].nextsector == tspr->sectnum) {
                                     x = 0x80000000;
-                                else
+                                } else {
                                     x = 0x7fffffff;
-                            }
-                            else
-                            {   /* INTERSECTION! */
+                                }
+                            } else {
+                                /* INTERSECTION! */
                                 x = (xp1-engine_state->posx) + scale(xp2-xp1,z1,z1-z2);
                                 y = (yp1-engine_state->posy) + scale(yp2-yp1,z1,z1-z2);
 
                                 yp1 = dmulscale14(x,cosglobalang,y,singlobalang);
-                                if (yp1 > 0)
-                                {
+                                if (yp1 > 0) {
                                     xp1 = dmulscale14(y,cosglobalang,-x,singlobalang);
 
                                     x = halfxdimen + scale(xp1,halfxdimen,yp1);
-                                    if (xp1 >= 0) x++;   /* Fix for SIGNED divide */
-
-                                    if (z1 < 0)
-                                    {
-                                        if (dalx2 < x) dalx2 = x;
+                                    if (xp1 >= 0) {
+                                        x++;    /* Fix for SIGNED divide */
                                     }
-                                    else
-                                    {
-                                        if (darx2 > x) darx2 = x;
+
+                                    if (z1 < 0) {
+                                        if (dalx2 < x) {
+                                            dalx2 = x;
+                                        }
+                                    } else {
+                                        if (darx2 > x) {
+                                            darx2 = x;
+                                        }
                                     }
                                     x = 0x80000001;
-                                }
-                                else
+                                } else {
                                     x = 0x7fffffff;
+                                }
                             }
                         }
                     }
                 }
-                if (x < 0)
-                {
-                    if (dalx2 < pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL]) dalx2 = pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL];
-                    if (darx2 > pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL]) darx2 = pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL];
-                    switch(smostwalltype[i])
-                    {
-                    case 0:
-                        if (dalx2 <= darx2)
-                        {
-                            if ((dalx2 == pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL]) && (darx2 == pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL])) return;
-                            clearbufbyte(&dwall[dalx2],(darx2-dalx2+1)*sizeof(dwall[0]),0L);
-                        }
-                        break;
-                    case 1:
-                        k = smoststart[i] - pvWalls[j].screenSpaceCoo[0][VEC_COL];
-                        for(x=dalx2; x<=darx2; x++)
-                            if (engine_state->smost[k+x] > uwall[x]) {
-                                uwall[x] = engine_state->smost[k+x];
+                if (x < 0) {
+                    if (dalx2 < pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL]) {
+                        dalx2 = pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL];
+                    }
+                    if (darx2 > pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL]) {
+                        darx2 = pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL];
+                    }
+                    switch (smostwalltype[i]) {
+                        case 0:
+                            if (dalx2 <= darx2) {
+                                if ((dalx2 == pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL]) && (darx2 == pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL])) {
+                                    return;
+                                }
+                                clearbufbyte(&dwall[dalx2],(darx2-dalx2+1)*sizeof(dwall[0]),0L);
                             }
-                        break;
-                    case 2:
-                        k = smoststart[i] - pvWalls[j].screenSpaceCoo[0][VEC_COL];
-                        for(x=dalx2; x<=darx2; x++)
-                            if (engine_state->smost[k+x] < dwall[x]) {
-                                dwall[x] = engine_state->smost[k+x];
-                            }
-                        break;
+                            break;
+                        case 1:
+                            k = smoststart[i] - pvWalls[j].screenSpaceCoo[0][VEC_COL];
+                            for (x=dalx2; x<=darx2; x++)
+                                if (engine_state->smost[k+x] > uwall[x]) {
+                                    uwall[x] = engine_state->smost[k+x];
+                                }
+                            break;
+                        case 2:
+                            k = smoststart[i] - pvWalls[j].screenSpaceCoo[0][VEC_COL];
+                            for (x=dalx2; x<=darx2; x++)
+                                if (engine_state->smost[k+x] < dwall[x]) {
+                                    dwall[x] = engine_state->smost[k+x];
+                                }
+                            break;
                     }
                 }
             }
@@ -5194,27 +5528,30 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
 
         /* sprite */
         if ((searchit >= 1) && (searchx >= pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL]) && (searchx <= pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL]))
-            if ((searchy >= uwall[searchx]) && (searchy <= dwall[searchx]))
-            {
+            if ((searchy >= uwall[searchx]) && (searchy <= dwall[searchx])) {
                 searchsector = sectnum;
                 searchwall = spritenum;
                 searchstat = 3;
                 searchit = 1;
             }
 
-        if ((cstat&2) == 0)
+        if ((cstat&2) == 0) {
             maskwallscan(pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL],pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL],uwall,dwall,swall,lwall, engine_state);
-        else
+        } else {
             transmaskwallscan(pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL],pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL], engine_state);
-    }
-    else if ((cstat&48) == 32)
-    {
+        }
+    } else if ((cstat&48) == 32) {
         if ((cstat&64) != 0)
-            if ((engine_state->posz > tspr->z) == ((cstat&8)==0))
+            if ((engine_state->posz > tspr->z) == ((cstat&8)==0)) {
                 return;
+            }
 
-        if ((cstat&4) > 0) xoff = -xoff;
-        if ((cstat&8) > 0) yoff = -yoff;
+        if ((cstat&4) > 0) {
+            xoff = -xoff;
+        }
+        if ((cstat&8) > 0) {
+            yoff = -yoff;
+        }
         spriteDim.width = tiles[tilenum].dim.width;
         spriteDim.height = tiles[tilenum].dim.height;
 
@@ -5226,8 +5563,8 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
 
         /* Get top-left corner */
         i = ((tspr->ang+2048-globalang)&2047);
-	cosang = fixedPointSin((i+512));
-	sinang = fixedPointSin(i);
+        cosang = fixedPointSin((i+512));
+        sinang = fixedPointSin(i);
         dax = ((spriteDim.width>>1)+xoff)*tspr->xrepeat;
         day = ((spriteDim.height>>1)+yoff)*tspr->yrepeat;
         rzi[0] += dmulscale12(sinang,dax,cosang,day);
@@ -5247,17 +5584,16 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
 
         /* Put all points on same z */
         ryi[0] = scale((tspr->z - engine_state->posz),yxaspect,320<<8);
-        if (ryi[0] == 0) return;
+        if (ryi[0] == 0) {
+            return;
+        }
         ryi[1] = ryi[2] = ryi[3] = ryi[0];
 
-        if ((cstat&4) == 0)
-        {
+        if ((cstat&4) == 0) {
             z = 0;
             z1 = 1;
             z2 = 3;
-        }
-        else
-        {
+        } else {
             z = 1;
             z1 = 0;
             z2 = 2;
@@ -5266,14 +5602,18 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         dax = rzi[z1]-rzi[z];
         day = rxi[z1]-rxi[z];
         bot = dmulscale8(dax,dax,day,day);
-        if (((klabs(dax)>>13) >= bot) || ((klabs(day)>>13) >= bot)) return;
+        if (((klabs(dax)>>13) >= bot) || ((klabs(day)>>13) >= bot)) {
+            return;
+        }
         globalx1 = divscale18(dax,bot);
         globalx2 = divscale18(day,bot);
 
         dax = rzi[z2]-rzi[z];
         day = rxi[z2]-rxi[z];
         bot = dmulscale8(dax,dax,day,day);
-        if (((klabs(dax)>>13) >= bot) || ((klabs(day)>>13) >= bot)) return;
+        if (((klabs(dax)>>13) >= bot) || ((klabs(day)>>13) >= bot)) {
+            return;
+        }
         globaly1 = divscale18(dax,bot);
         globaly2 = divscale18(day,bot);
 
@@ -5287,8 +5627,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         rzi[2] = mulscale16(rzi[2],viewingrange);
         rzi[3] = mulscale16(rzi[3],viewingrange);
 
-        if (ryi[0] < 0)   /* If ceilsprite is above you, reverse order of points */
-        {
+        if (ryi[0] < 0) { /* If ceilsprite is above you, reverse order of points */
             i = rxi[1];
             rxi[1] = rxi[3];
             rxi[3] = i;
@@ -5304,21 +5643,20 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         /* Clip edge 1 */
         npoints2 = 0;
         zzsgn = rxi[0]+rzi[0];
-        for(z=0; z<npoints; z++)
-        {
+        for (z=0; z<npoints; z++) {
             zz = z+1;
-            if (zz == npoints) zz = 0;
+            if (zz == npoints) {
+                zz = 0;
+            }
             zsgn = zzsgn;
             zzsgn = rxi[zz]+rzi[zz];
-            if (zsgn >= 0)
-            {
+            if (zsgn >= 0) {
                 rxi2[npoints2] = rxi[z];
                 ryi2[npoints2] = ryi[z];
                 rzi2[npoints2] = rzi[z];
                 npoints2++;
             }
-            if ((zsgn^zzsgn) < 0)
-            {
+            if ((zsgn^zzsgn) < 0) {
                 t = divscale30(zsgn,zsgn-zzsgn);
                 rxi2[npoints2] = rxi[z] + mulscale30(t,rxi[zz]-rxi[z]);
                 ryi2[npoints2] = ryi[z] + mulscale30(t,ryi[zz]-ryi[z]);
@@ -5326,26 +5664,27 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
                 npoints2++;
             }
         }
-        if (npoints2 <= 2) return;
+        if (npoints2 <= 2) {
+            return;
+        }
 
         /* Clip edge 2 */
         npoints = 0;
         zzsgn = rxi2[0]-rzi2[0];
-        for(z=0; z<npoints2; z++)
-        {
+        for (z=0; z<npoints2; z++) {
             zz = z+1;
-            if (zz == npoints2) zz = 0;
+            if (zz == npoints2) {
+                zz = 0;
+            }
             zsgn = zzsgn;
             zzsgn = rxi2[zz]-rzi2[zz];
-            if (zsgn <= 0)
-            {
+            if (zsgn <= 0) {
                 rxi[npoints] = rxi2[z];
                 ryi[npoints] = ryi2[z];
                 rzi[npoints] = rzi2[z];
                 npoints++;
             }
-            if ((zsgn^zzsgn) < 0)
-            {
+            if ((zsgn^zzsgn) < 0) {
                 t = divscale30(zsgn,zsgn-zzsgn);
                 rxi[npoints] = rxi2[z] + mulscale30(t,rxi2[zz]-rxi2[z]);
                 ryi[npoints] = ryi2[z] + mulscale30(t,ryi2[zz]-ryi2[z]);
@@ -5353,26 +5692,27 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
                 npoints++;
             }
         }
-        if (npoints <= 2) return;
+        if (npoints <= 2) {
+            return;
+        }
 
         /* Clip edge 3 */
         npoints2 = 0;
         zzsgn = ryi[0]*halfxdimen + (rzi[0]*(engine_state->horiz-0));
-        for(z=0; z<npoints; z++)
-        {
+        for (z=0; z<npoints; z++) {
             zz = z+1;
-            if (zz == npoints) zz = 0;
+            if (zz == npoints) {
+                zz = 0;
+            }
             zsgn = zzsgn;
             zzsgn = ryi[zz]*halfxdimen + (rzi[zz]*(engine_state->horiz-0));
-            if (zsgn >= 0)
-            {
+            if (zsgn >= 0) {
                 rxi2[npoints2] = rxi[z];
                 ryi2[npoints2] = ryi[z];
                 rzi2[npoints2] = rzi[z];
                 npoints2++;
             }
-            if ((zsgn^zzsgn) < 0)
-            {
+            if ((zsgn^zzsgn) < 0) {
                 t = divscale30(zsgn,zsgn-zzsgn);
                 rxi2[npoints2] = rxi[z] + mulscale30(t,rxi[zz]-rxi[z]);
                 ryi2[npoints2] = ryi[z] + mulscale30(t,ryi[zz]-ryi[z]);
@@ -5380,26 +5720,27 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
                 npoints2++;
             }
         }
-        if (npoints2 <= 2) return;
+        if (npoints2 <= 2) {
+            return;
+        }
 
         /* Clip edge 4 */
         npoints = 0;
         zzsgn = ryi2[0]*halfxdimen + (rzi2[0]*(engine_state->horiz-ydimen));
-        for(z=0; z<npoints2; z++)
-        {
+        for (z=0; z<npoints2; z++) {
             zz = z+1;
-            if (zz == npoints2) zz = 0;
+            if (zz == npoints2) {
+                zz = 0;
+            }
             zsgn = zzsgn;
             zzsgn = ryi2[zz]*halfxdimen + (rzi2[zz]*(engine_state->horiz-ydimen));
-            if (zsgn <= 0)
-            {
+            if (zsgn <= 0) {
                 rxi[npoints] = rxi2[z];
                 ryi[npoints] = ryi2[z];
                 rzi[npoints] = rzi2[z];
                 npoints++;
             }
-            if ((zsgn^zzsgn) < 0)
-            {
+            if ((zsgn^zzsgn) < 0) {
                 t = divscale30(zsgn,zsgn-zzsgn);
                 rxi[npoints] = rxi2[z] + mulscale30(t,rxi2[zz]-rxi2[z]);
                 ryi[npoints] = ryi2[z] + mulscale30(t,ryi2[zz]-ryi2[z]);
@@ -5407,35 +5748,48 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
                 npoints++;
             }
         }
-        if (npoints <= 2) return;
+        if (npoints <= 2) {
+            return;
+        }
 
         /* Project onto screen */
         lpoint = -1;
         lmax = 0x7fffffff;
         rpoint = -1;
         rmax = 0x80000000;
-        for(z=0; z<npoints; z++)
-        {
+        for (z=0; z<npoints; z++) {
             xsi[z] = scale(rxi[z],xdimen<<15,rzi[z]) + (xdimen<<15);
             ysi[z] = scale(ryi[z],xdimen<<15,rzi[z]) + (engine_state->horiz<<16);
-            if (xsi[z] < 0) xsi[z] = 0;
-            if (xsi[z] > (xdimen<<16)) xsi[z] = (xdimen<<16);
-            if (ysi[z] < ((int32_t)0<<16)) ysi[z] = ((int32_t)0<<16);
-            if (ysi[z] > ((int32_t)ydimen<<16)) ysi[z] = ((int32_t)ydimen<<16);
-            if (xsi[z] < lmax) lmax = xsi[z], lpoint = z;
-            if (xsi[z] > rmax) rmax = xsi[z], rpoint = z;
+            if (xsi[z] < 0) {
+                xsi[z] = 0;
+            }
+            if (xsi[z] > (xdimen<<16)) {
+                xsi[z] = (xdimen<<16);
+            }
+            if (ysi[z] < ((int32_t)0<<16)) {
+                ysi[z] = ((int32_t)0<<16);
+            }
+            if (ysi[z] > ((int32_t)ydimen<<16)) {
+                ysi[z] = ((int32_t)ydimen<<16);
+            }
+            if (xsi[z] < lmax) {
+                lmax = xsi[z], lpoint = z;
+            }
+            if (xsi[z] > rmax) {
+                rmax = xsi[z], rpoint = z;
+            }
         }
 
         /* Get uwall arrays */
-        for(z=lpoint; z!=rpoint; z=zz)
-        {
+        for (z=lpoint; z!=rpoint; z=zz) {
             zz = z+1;
-            if (zz == npoints) zz = 0;
+            if (zz == npoints) {
+                zz = 0;
+            }
 
             dax1 = ((xsi[z]+65535)>>16);
             dax2 = ((xsi[zz]+65535)>>16);
-            if (dax2 > dax1)
-            {
+            if (dax2 > dax1) {
                 yinc = divscale16(ysi[zz]-ysi[z],xsi[zz]-xsi[z]);
                 y = ysi[z] + mulscale16((dax1<<16)-xsi[z],yinc);
                 qinterpolatedown16short((int32_t *)(&uwall[dax1]),dax2-dax1,y,yinc);
@@ -5443,15 +5797,15 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         }
 
         /* Get dwall arrays */
-        for(; z!=lpoint; z=zz)
-        {
+        for (; z!=lpoint; z=zz) {
             zz = z+1;
-            if (zz == npoints) zz = 0;
+            if (zz == npoints) {
+                zz = 0;
+            }
 
             dax1 = ((xsi[zz]+65535)>>16);
             dax2 = ((xsi[z]+65535)>>16);
-            if (dax2 > dax1)
-            {
+            if (dax2 > dax1) {
                 yinc = divscale16(ysi[zz]-ysi[z],xsi[zz]-xsi[z]);
                 y = ysi[zz] + mulscale16((dax1<<16)-xsi[zz],yinc);
                 qinterpolatedown16short((int32_t *)(&dwall[dax1]),dax2-dax1,y,yinc);
@@ -5461,18 +5815,20 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
 
         lx = ((lmax+65535)>>16);
         rx = ((rmax+65535)>>16);
-        for(x=lx; x<=rx; x++)
-        {
+        for (x=lx; x<=rx; x++) {
             uwall[x] = max(uwall[x],startumost[x+windowx1]-windowy1);
             dwall[x] = min(dwall[x],startdmost[x+windowx1]-windowy1);
         }
 
         /* Additional uwall/dwall clipping goes here */
-        for(i=smostwallcnt-1; i>=0; i--)
-        {
+        for (i=smostwallcnt-1; i>=0; i--) {
             j = smostwall[i];
-            if ((pvWalls[j].screenSpaceCoo[0][VEC_COL] > rx) || (pvWalls[j].screenSpaceCoo[1][VEC_COL] < lx)) continue;
-            if ((yp <= pvWalls[j].screenSpaceCoo[0][VEC_DIST]) && (yp <= pvWalls[j].screenSpaceCoo[1][VEC_DIST])) continue;
+            if ((pvWalls[j].screenSpaceCoo[0][VEC_COL] > rx) || (pvWalls[j].screenSpaceCoo[1][VEC_COL] < lx)) {
+                continue;
+            }
+            if ((yp <= pvWalls[j].screenSpaceCoo[0][VEC_DIST]) && (yp <= pvWalls[j].screenSpaceCoo[1][VEC_DIST])) {
+                continue;
+            }
 
             /* if (spritewallfront(tspr,thewall[j]) == 0) */
             x = pvWalls[j].worldWallId;
@@ -5482,42 +5838,45 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
             xp2 = wall[x].x;
             yp2 = wall[x].y;
             x = (xp2-xp1)*(tspr->y-yp1)-(tspr->x-xp1)*(yp2-yp1);
-            if ((yp > pvWalls[j].screenSpaceCoo[0][VEC_DIST]) && (yp > pvWalls[j].screenSpaceCoo[1][VEC_DIST])) x = -1;
-            if ((x >= 0) && ((x != 0) || (wall[pvWalls[j].worldWallId].nextsector != tspr->sectnum))) continue;
+            if ((yp > pvWalls[j].screenSpaceCoo[0][VEC_DIST]) && (yp > pvWalls[j].screenSpaceCoo[1][VEC_DIST])) {
+                x = -1;
+            }
+            if ((x >= 0) && ((x != 0) || (wall[pvWalls[j].worldWallId].nextsector != tspr->sectnum))) {
+                continue;
+            }
 
             dalx2 = max(pvWalls[j].screenSpaceCoo[0][VEC_COL],lx);
             darx2 = min(pvWalls[j].screenSpaceCoo[1][VEC_COL],rx);
 
-            switch(smostwalltype[i])
-            {
-            case 0:
-                if (dalx2 <= darx2)
-                {
-                    if ((dalx2 == lx) && (darx2 == rx)) return;
-                    clearbufbyte(&dwall[dalx2],(darx2-dalx2+1)*sizeof(dwall[0]),0L);
-                }
-                break;
-            case 1:
-                k = smoststart[i] - pvWalls[j].screenSpaceCoo[0][VEC_COL];
-                for(x=dalx2; x<=darx2; x++)
-                    if (engine_state->smost[k+x] > uwall[x]) {
-                        uwall[x] = engine_state->smost[k+x];
+            switch (smostwalltype[i]) {
+                case 0:
+                    if (dalx2 <= darx2) {
+                        if ((dalx2 == lx) && (darx2 == rx)) {
+                            return;
+                        }
+                        clearbufbyte(&dwall[dalx2],(darx2-dalx2+1)*sizeof(dwall[0]),0L);
                     }
-                break;
-            case 2:
-                k = smoststart[i] - pvWalls[j].screenSpaceCoo[0][VEC_COL];
-                for(x=dalx2; x<=darx2; x++)
-                    if (engine_state->smost[k+x] < dwall[x]) {
-                        dwall[x] = engine_state->smost[k+x];
-                    }
-                break;
+                    break;
+                case 1:
+                    k = smoststart[i] - pvWalls[j].screenSpaceCoo[0][VEC_COL];
+                    for (x=dalx2; x<=darx2; x++)
+                        if (engine_state->smost[k+x] > uwall[x]) {
+                            uwall[x] = engine_state->smost[k+x];
+                        }
+                    break;
+                case 2:
+                    k = smoststart[i] - pvWalls[j].screenSpaceCoo[0][VEC_COL];
+                    for (x=dalx2; x<=darx2; x++)
+                        if (engine_state->smost[k+x] < dwall[x]) {
+                            dwall[x] = engine_state->smost[k+x];
+                        }
+                    break;
             }
         }
 
         /* sprite */
         if ((searchit >= 1) && (searchx >= lx) && (searchx <= rx))
-            if ((searchy >= uwall[searchx]) && (searchy <= dwall[searchx]))
-            {
+            if ((searchy >= uwall[searchx]) && (searchy <= dwall[searchx])) {
                 searchsector = sectnum;
                 searchwall = spritenum;
                 searchstat = 3;
@@ -5526,22 +5885,24 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
 
         globalorientation = cstat;
         globalpicnum = tilenum;
-        if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES)
+        if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
             globalpicnum = 0;
+        }
 
         TILE_MakeAvailable(globalpicnum);
-        
+
         setgotpic(globalpicnum);
         globalbufplc = tiles[globalpicnum].data;
 
         globvis = mulscale16(globalhisibility,viewingrange);
-        if (sec->visibility != 0) globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
+        if (sec->visibility != 0) {
+            globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
+        }
 
         x = picsiz[globalpicnum];
         y = ((x>>4)&15);
         x &= 15;
-        if (pow2long[x] != spriteDim.width)
-        {
+        if (pow2long[x] != spriteDim.width) {
             x++;
             globalx1 = mulscale(globalx1,spriteDim.width,x);
             globalx2 = mulscale(globalx2,spriteDim.width,x);
@@ -5559,10 +5920,11 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         globalx1 = (globalx1-globalx2)*halfxdimen;
         globaly1 = (globaly1-globaly2)*halfxdimen;
 
-        if ((cstat&2) == 0)
+        if ((cstat&2) == 0) {
             msethlineshift(x,y);
-        else
+        } else {
             tsethlineshift(x,y);
+        }
 
         /* Draw it! */
         ceilspritescan(lx, rx-1, engine_state);
@@ -5576,35 +5938,31 @@ void drawmasks(EngineState *engine_state)
 {
     int32_t i, j, k, l, gap, xs, ys, xp, yp, yoff, yspan;
     /* int32_t zs, zp; */
-    
+
     static int32_t spritesx[MAXSPRITESONSCREEN];
     static int32_t spritesy[MAXSPRITESONSCREEN+1];
     static int32_t spritesz[MAXSPRITESONSCREEN];
-    
+
     //Copy sprite address in a sprite proxy structure (pointers are easier to re-arrange than structs).
-    for(i=(engine_state->spritesortcnt)-1; i>=0; i--)
+    for (i=(engine_state->spritesortcnt)-1; i>=0; i--) {
         tspriteptr[i] = &tsprite[i];
-    
-    
+    }
+
+
     //Generate screenspace coordinate (X column and Y distance).
-    for(i=(engine_state->spritesortcnt)-1; i>=0; i--)
-    {
+    for (i=(engine_state->spritesortcnt)-1; i>=0; i--) {
         //Translate and rotate the sprite in Camera space coordinate.
         xs = tspriteptr[i]->x - engine_state->posx;
         ys = tspriteptr[i]->y - engine_state->posy;
         yp = dmulscale6(xs,cosviewingrangeglobalang,ys,sinviewingrangeglobalang);
-        
-        if (yp > (4<<8))
-        {
+
+        if (yp > (4<<8)) {
             xp = dmulscale6(ys,cosglobalang,-xs,singlobalang);
             spritesx[i] = scale(xp+yp,xdimen<<7,yp);
-        }
-        else if ((tspriteptr[i]->cstat&48) == 0)
-        {
+        } else if ((tspriteptr[i]->cstat&48) == 0) {
             engine_state->spritesortcnt--;  /* Delete face sprite if on wrong side! */
             //Move the sprite at the end of the array and decrease array length.
-            if (i != engine_state->spritesortcnt)
-            {
+            if (i != engine_state->spritesortcnt) {
                 tspriteptr[i] = tspriteptr[engine_state->spritesortcnt];
                 spritesx[i] = spritesx[engine_state->spritesortcnt];
                 spritesy[i] = spritesy[engine_state->spritesortcnt];
@@ -5616,59 +5974,59 @@ void drawmasks(EngineState *engine_state)
 
     //FCS: Bubble sort ?! REally ?!?!?
     gap = 1;
-    while (gap < engine_state->spritesortcnt) gap = (gap<<1)+1;
-    for(gap>>=1; gap>0; gap>>=1)    /* Sort sprite list */
-        for(i=0; i<engine_state->spritesortcnt-gap; i++)
-            for(l=i; l>=0; l-=gap)
-            {
-                if (spritesy[l] <= spritesy[l+gap])
+    while (gap < engine_state->spritesortcnt) {
+        gap = (gap<<1)+1;
+    }
+    for (gap>>=1; gap>0; gap>>=1)   /* Sort sprite list */
+        for (i=0; i<engine_state->spritesortcnt-gap; i++)
+            for (l=i; l>=0; l-=gap) {
+                if (spritesy[l] <= spritesy[l+gap]) {
                     break;
-                
+                }
+
                 swaplong((int32_t *)&tspriteptr[l],(int32_t *)&tspriteptr[l+gap]);
                 swaplong(&spritesx[l],&spritesx[l+gap]);
                 swaplong(&spritesy[l],&spritesy[l+gap]);
             }
 
-    if (engine_state->spritesortcnt > 0)
+    if (engine_state->spritesortcnt > 0) {
         spritesy[engine_state->spritesortcnt] = (spritesy[engine_state->spritesortcnt-1]^1);
+    }
 
     ys = spritesy[0];
     i = 0;
-    for(j=1; j<=engine_state->spritesortcnt; j++)
-    {
-        if (spritesy[j] == ys)
+    for (j=1; j<=engine_state->spritesortcnt; j++) {
+        if (spritesy[j] == ys) {
             continue;
-        
+        }
+
         ys = spritesy[j];
-        if (j > i+1)
-        {
-            for(k=i; k<j; k++)
-            {
+        if (j > i+1) {
+            for (k=i; k<j; k++) {
                 spritesz[k] = tspriteptr[k]->z;
-                if ((tspriteptr[k]->cstat&48) != 32)
-                {
+                if ((tspriteptr[k]->cstat&48) != 32) {
                     yoff = (int32_t)((int8_t )((tiles[tspriteptr[k]->picnum].animFlags>>16)&255))+((int32_t)tspriteptr[k]->yoffset);
                     spritesz[k] -= ((yoff*tspriteptr[k]->yrepeat)<<2);
                     yspan = (tiles[tspriteptr[k]->picnum].dim.height*tspriteptr[k]->yrepeat<<2);
-                    if (!(tspriteptr[k]->cstat&128))
+                    if (!(tspriteptr[k]->cstat&128)) {
                         spritesz[k] -= (yspan>>1);
-                    if (klabs(spritesz[k] - engine_state->posz) < (yspan>>1))
+                    }
+                    if (klabs(spritesz[k] - engine_state->posz) < (yspan>>1)) {
                         spritesz[k] = engine_state->posz;
+                    }
                 }
             }
-            for(k=i+1; k<j; k++)
-                for(l=i; l<k; l++)
-                    if (klabs(spritesz[k]-engine_state->posz) < klabs(spritesz[l]-engine_state->posz))
-                    {
+            for (k=i+1; k<j; k++)
+                for (l=i; l<k; l++)
+                    if (klabs(spritesz[k]-engine_state->posz) < klabs(spritesz[l]-engine_state->posz)) {
                         swaplong((int32_t *)&tspriteptr[k],(int32_t *)&tspriteptr[l]);
                         swaplong(&spritesx[k],&spritesx[l]);
                         swaplong(&spritesy[k],&spritesy[l]);
                         swaplong(&spritesz[k],&spritesz[l]);
                     }
-            for(k=i+1; k<j; k++)
-                for(l=i; l<k; l++)
-                    if (tspriteptr[k]->statnum < tspriteptr[l]->statnum)
-                    {
+            for (k=i+1; k<j; k++)
+                for (l=i; l<k; l++)
+                    if (tspriteptr[k]->statnum < tspriteptr[l]->statnum) {
                         swaplong((int32_t *)&tspriteptr[k],(int32_t *)&tspriteptr[l]);
                         swaplong(&spritesx[k],&spritesx[l]);
                         swaplong(&spritesy[k],&spritesy[l]);
@@ -5677,15 +6035,13 @@ void drawmasks(EngineState *engine_state)
         i = j;
     }
 
-    while ((engine_state->spritesortcnt > 0) && (engine_state->maskwallcnt > 0))  /* While BOTH > 0 */
-    {
+    while ((engine_state->spritesortcnt > 0) && (engine_state->maskwallcnt > 0)) { /* While BOTH > 0 */
         j = engine_state->maskwall[engine_state->maskwallcnt-1];
-        if (spritewallfront(tspriteptr[engine_state->spritesortcnt-1],pvWalls[j].worldWallId) == 0)
+        if (spritewallfront(tspriteptr[engine_state->spritesortcnt-1],pvWalls[j].worldWallId) == 0) {
             drawsprite(engine_state, spritesx, spritesy);
-        else
-        {
+        } else {
             /*
-            // Check to see if any sprites behind the masked wall... 
+            // Check to see if any sprites behind the masked wall...
             k = -1;
             gap = 0;
             for(i=engine_state->spritesortcnt-2; i>=0; i--) {
@@ -5698,7 +6054,7 @@ void drawmasks(EngineState *engine_state)
                     }
                 }
             }
-            
+
             if (k >= 0)  // remove holes in sprite list
             {
                 for(i=k; i<engine_state->spritesortcnt; i++)
@@ -5720,8 +6076,12 @@ void drawmasks(EngineState *engine_state)
             drawmaskwall(engine_state);
         }
     }
-    while (engine_state->spritesortcnt > 0) drawsprite(engine_state, spritesx, spritesy);
-    while (engine_state->maskwallcnt > 0) drawmaskwall(engine_state);
+    while (engine_state->spritesortcnt > 0) {
+        drawsprite(engine_state, spritesx, spritesy);
+    }
+    while (engine_state->maskwallcnt > 0) {
+        drawmaskwall(engine_state);
+    }
 }
 
 
@@ -5735,10 +6095,12 @@ int setsprite(short spritenum, int32_t newx, int32_t newy, int32_t newz)
 
     tempsectnum = sprite[spritenum].sectnum;
     updatesector(newx,newy,&tempsectnum);
-    if (tempsectnum < 0)
+    if (tempsectnum < 0) {
         return(-1);
-    if (tempsectnum != sprite[spritenum].sectnum)
+    }
+    if (tempsectnum != sprite[spritenum].sectnum) {
         changespritesect(spritenum,tempsectnum);
+    }
 
     return(0);
 }
@@ -5748,12 +6110,13 @@ void initspritelists(void)
 {
     int32_t i;
 
-    for (i=0; i<MAXSECTORS; i++)   /* Init doubly-linked sprite sector lists */
+    for (i=0; i<MAXSECTORS; i++) { /* Init doubly-linked sprite sector lists */
         headspritesect[i] = -1;
-    
+    }
+
     headspritesect[MAXSECTORS] = 0;
-    
-    for(i=0; i<MAXSPRITES; i++){
+
+    for (i=0; i<MAXSPRITES; i++) {
         prevspritesect[i] = i-1;
         nextspritesect[i] = i+1;
         sprite[i].sectnum = MAXSECTORS;
@@ -5762,11 +6125,11 @@ void initspritelists(void)
     nextspritesect[MAXSPRITES-1] = -1;
 
 
-    for(i=0; i<MAXSTATUS; i++)    /* Init doubly-linked sprite status lists */
+    for (i=0; i<MAXSTATUS; i++) { /* Init doubly-linked sprite status lists */
         headspritestat[i] = -1;
+    }
     headspritestat[MAXSTATUS] = 0;
-    for(i=0; i<MAXSPRITES; i++)
-    {
+    for (i=0; i<MAXSPRITES; i++) {
         prevspritestat[i] = i-1;
         nextspritestat[i] = i+1;
         sprite[i].statnum = MAXSTATUS;
@@ -5787,19 +6150,22 @@ int insertspritesect(short sectnum)
 {
     short blanktouse;
 
-    if ((sectnum >= MAXSECTORS) || (headspritesect[MAXSECTORS] == -1))
-        return(-1);  /* list full */
+    if ((sectnum >= MAXSECTORS) || (headspritesect[MAXSECTORS] == -1)) {
+        return(-1);    /* list full */
+    }
 
     blanktouse = headspritesect[MAXSECTORS];
 
     headspritesect[MAXSECTORS] = nextspritesect[blanktouse];
-    if (headspritesect[MAXSECTORS] >= 0)
+    if (headspritesect[MAXSECTORS] >= 0) {
         prevspritesect[headspritesect[MAXSECTORS]] = -1;
+    }
 
     prevspritesect[blanktouse] = -1;
     nextspritesect[blanktouse] = headspritesect[sectnum];
-    if (headspritesect[sectnum] >= 0)
+    if (headspritesect[sectnum] >= 0) {
         prevspritesect[headspritesect[sectnum]] = blanktouse;
+    }
     headspritesect[sectnum] = blanktouse;
 
     sprite[blanktouse].sectnum = sectnum;
@@ -5812,19 +6178,22 @@ int insertspritestat(short statnum)
 {
     short blanktouse;
 
-    if ((statnum >= MAXSTATUS) || (headspritestat[MAXSTATUS] == -1))
-        return(-1);  /* list full */
+    if ((statnum >= MAXSTATUS) || (headspritestat[MAXSTATUS] == -1)) {
+        return(-1);    /* list full */
+    }
 
     blanktouse = headspritestat[MAXSTATUS];
 
     headspritestat[MAXSTATUS] = nextspritestat[blanktouse];
-    if (headspritestat[MAXSTATUS] >= 0)
+    if (headspritestat[MAXSTATUS] >= 0) {
         prevspritestat[headspritestat[MAXSTATUS]] = -1;
+    }
 
     prevspritestat[blanktouse] = -1;
     nextspritestat[blanktouse] = headspritestat[statnum];
-    if (headspritestat[statnum] >= 0)
+    if (headspritestat[statnum] >= 0) {
         prevspritestat[headspritestat[statnum]] = blanktouse;
+    }
     headspritestat[statnum] = blanktouse;
 
     sprite[blanktouse].statnum = statnum;
@@ -5842,16 +6211,24 @@ int deletesprite(short spritenum)
 
 int deletespritesect(short deleteme)
 {
-    if (sprite[deleteme].sectnum == MAXSECTORS)
+    if (sprite[deleteme].sectnum == MAXSECTORS) {
         return(-1);
+    }
 
-    if (headspritesect[sprite[deleteme].sectnum] == deleteme)
+    if (headspritesect[sprite[deleteme].sectnum] == deleteme) {
         headspritesect[sprite[deleteme].sectnum] = nextspritesect[deleteme];
+    }
 
-    if (prevspritesect[deleteme] >= 0) nextspritesect[prevspritesect[deleteme]] = nextspritesect[deleteme];
-    if (nextspritesect[deleteme] >= 0) prevspritesect[nextspritesect[deleteme]] = prevspritesect[deleteme];
+    if (prevspritesect[deleteme] >= 0) {
+        nextspritesect[prevspritesect[deleteme]] = nextspritesect[deleteme];
+    }
+    if (nextspritesect[deleteme] >= 0) {
+        prevspritesect[nextspritesect[deleteme]] = prevspritesect[deleteme];
+    }
 
-    if (headspritesect[MAXSECTORS] >= 0) prevspritesect[headspritesect[MAXSECTORS]] = deleteme;
+    if (headspritesect[MAXSECTORS] >= 0) {
+        prevspritesect[headspritesect[MAXSECTORS]] = deleteme;
+    }
     prevspritesect[deleteme] = -1;
     nextspritesect[deleteme] = headspritesect[MAXSECTORS];
     headspritesect[MAXSECTORS] = deleteme;
@@ -5863,16 +6240,24 @@ int deletespritesect(short deleteme)
 
 int deletespritestat(short deleteme)
 {
-    if (sprite[deleteme].statnum == MAXSTATUS)
+    if (sprite[deleteme].statnum == MAXSTATUS) {
         return(-1);
+    }
 
-    if (headspritestat[sprite[deleteme].statnum] == deleteme)
+    if (headspritestat[sprite[deleteme].statnum] == deleteme) {
         headspritestat[sprite[deleteme].statnum] = nextspritestat[deleteme];
+    }
 
-    if (prevspritestat[deleteme] >= 0) nextspritestat[prevspritestat[deleteme]] = nextspritestat[deleteme];
-    if (nextspritestat[deleteme] >= 0) prevspritestat[nextspritestat[deleteme]] = prevspritestat[deleteme];
+    if (prevspritestat[deleteme] >= 0) {
+        nextspritestat[prevspritestat[deleteme]] = nextspritestat[deleteme];
+    }
+    if (nextspritestat[deleteme] >= 0) {
+        prevspritestat[nextspritestat[deleteme]] = prevspritestat[deleteme];
+    }
 
-    if (headspritestat[MAXSTATUS] >= 0) prevspritestat[headspritestat[MAXSTATUS]] = deleteme;
+    if (headspritestat[MAXSTATUS] >= 0) {
+        prevspritestat[headspritestat[MAXSTATUS]] = deleteme;
+    }
     prevspritestat[deleteme] = -1;
     nextspritestat[deleteme] = headspritestat[MAXSTATUS];
     headspritestat[MAXSTATUS] = deleteme;
@@ -5884,10 +6269,18 @@ int deletespritestat(short deleteme)
 
 int changespritesect(short spritenum, short newsectnum)
 {
-    if ((newsectnum < 0) || (newsectnum > MAXSECTORS)) return(-1);
-    if (sprite[spritenum].sectnum == newsectnum) return(0);
-    if (sprite[spritenum].sectnum == MAXSECTORS) return(-1);
-    if (deletespritesect(spritenum) < 0) return(-1);
+    if ((newsectnum < 0) || (newsectnum > MAXSECTORS)) {
+        return(-1);
+    }
+    if (sprite[spritenum].sectnum == newsectnum) {
+        return(0);
+    }
+    if (sprite[spritenum].sectnum == MAXSECTORS) {
+        return(-1);
+    }
+    if (deletespritesect(spritenum) < 0) {
+        return(-1);
+    }
     insertspritesect(newsectnum);
     return(0);
 }
@@ -5895,10 +6288,18 @@ int changespritesect(short spritenum, short newsectnum)
 
 int changespritestat(short spritenum, short newstatnum)
 {
-    if ((newstatnum < 0) || (newstatnum > MAXSTATUS)) return(-1);
-    if (sprite[spritenum].statnum == newstatnum) return(0);
-    if (sprite[spritenum].statnum == MAXSTATUS) return(-1);
-    if (deletespritestat(spritenum) < 0) return(-1);
+    if ((newstatnum < 0) || (newstatnum > MAXSTATUS)) {
+        return(-1);
+    }
+    if (sprite[spritenum].statnum == newstatnum) {
+        return(0);
+    }
+    if (sprite[spritenum].statnum == MAXSTATUS) {
+        return(-1);
+    }
+    if (deletespritestat(spritenum) < 0) {
+        return(-1);
+    }
     insertspritestat(newstatnum);
     return(0);
 }
@@ -5911,52 +6312,40 @@ int nextsectorneighborz(short sectnum, int32_t thez,
     int32_t i, testz, nextz;
     short sectortouse;
 
-    if (direction == 1) nextz = 0x7fffffff;
-    else nextz = 0x80000000;
+    if (direction == 1) {
+        nextz = 0x7fffffff;
+    } else {
+        nextz = 0x80000000;
+    }
 
     sectortouse = -1;
 
     wal = &wall[sector[sectnum].wallptr];
     i = sector[sectnum].wallnum;
-    do
-    {
-        if (wal->nextsector >= 0)
-        {
-            if (topbottom == 1)
-            {
+    do {
+        if (wal->nextsector >= 0) {
+            if (topbottom == 1) {
                 testz = sector[wal->nextsector].floorz;
-                if (direction == 1)
-                {
-                    if ((testz > thez) && (testz < nextz))
-                    {
+                if (direction == 1) {
+                    if ((testz > thez) && (testz < nextz)) {
+                        nextz = testz;
+                        sectortouse = wal->nextsector;
+                    }
+                } else {
+                    if ((testz < thez) && (testz > nextz)) {
                         nextz = testz;
                         sectortouse = wal->nextsector;
                     }
                 }
-                else
-                {
-                    if ((testz < thez) && (testz > nextz))
-                    {
-                        nextz = testz;
-                        sectortouse = wal->nextsector;
-                    }
-                }
-            }
-            else
-            {
+            } else {
                 testz = sector[wal->nextsector].ceilingz;
-                if (direction == 1)
-                {
-                    if ((testz > thez) && (testz < nextz))
-                    {
+                if (direction == 1) {
+                    if ((testz > thez) && (testz < nextz)) {
                         nextz = testz;
                         sectortouse = wal->nextsector;
                     }
-                }
-                else
-                {
-                    if ((testz < thez) && (testz > nextz))
-                    {
+                } else {
+                    if ((testz < thez) && (testz > nextz)) {
                         nextz = testz;
                         sectortouse = wal->nextsector;
                     }
@@ -5979,8 +6368,9 @@ int cansee(int32_t x1, int32_t y1, int32_t z1, short sect1,
     int32_t i, cnt, nexts, x, y, z, cz, fz, dasectnum, dacnt, danum;
     int32_t x21, y21, z21, x31, y31, x34, y34, bot, t;
 
-    if ((x1 == x2) && (y1 == y2))
+    if ((x1 == x2) && (y1 == y2)) {
         return(sect1 == sect2);
+    }
 
     x21 = x2-x1;
     y21 = y2-y1;
@@ -5988,12 +6378,10 @@ int cansee(int32_t x1, int32_t y1, int32_t z1, short sect1,
 
     clipsectorlist[0] = sect1;
     danum = 1;
-    for(dacnt=0; dacnt<danum; dacnt++)
-    {
+    for (dacnt=0; dacnt<danum; dacnt++) {
         dasectnum = clipsectorlist[dacnt];
         sec = &sector[dasectnum];
-        for(cnt=sec->wallnum,wal=&wall[sec->wallptr]; cnt>0; cnt--,wal++)
-        {
+        for (cnt=sec->wallnum,wal=&wall[sec->wallptr]; cnt>0; cnt--,wal++) {
             wal2 = &wall[wal->point2];
             x31 = wal->x-x1;
             x34 = wal->x-wal2->x;
@@ -6001,18 +6389,23 @@ int cansee(int32_t x1, int32_t y1, int32_t z1, short sect1,
             y34 = wal->y-wal2->y;
 
             bot = y21*x34-x21*y34;
-            if (bot <= 0)
+            if (bot <= 0) {
                 continue;
-            
+            }
+
             t = y21*x31-x21*y31;
-            if ((uint32_t)t >= (uint32_t)bot)
+            if ((uint32_t)t >= (uint32_t)bot) {
                 continue;
+            }
             t = y31*x34-x31*y34;
-            if ((uint32_t)t >= (uint32_t)bot)
+            if ((uint32_t)t >= (uint32_t)bot) {
                 continue;
+            }
 
             nexts = wal->nextsector;
-            if ((nexts < 0) || (wal->cstat&32)) return(0);
+            if ((nexts < 0) || (wal->cstat&32)) {
+                return(0);
+            }
 
             t = divscale24(t,bot);
             x = x1 + mulscale24(x21,t);
@@ -6020,22 +6413,27 @@ int cansee(int32_t x1, int32_t y1, int32_t z1, short sect1,
             z = z1 + mulscale24(z21,t);
 
             getzsofslope((short)dasectnum,x,y,&cz,&fz);
-            if ((z <= cz) || (z >= fz))
+            if ((z <= cz) || (z >= fz)) {
                 return(0);
+            }
             getzsofslope((short)nexts,x,y,&cz,&fz);
-            if ((z <= cz) || (z >= fz))
+            if ((z <= cz) || (z >= fz)) {
                 return(0);
+            }
 
-            for(i=danum-1; i>=0; i--)
-                if (clipsectorlist[i] == nexts)
+            for (i=danum-1; i>=0; i--)
+                if (clipsectorlist[i] == nexts) {
                     break;
-            if (i < 0)
+                }
+            if (i < 0) {
                 clipsectorlist[danum++] = nexts;
+            }
         }
     }
-    for(i=danum-1; i>=0;i--)
-        if (clipsectorlist[i] == sect2)
+    for (i=danum-1; i>=0; i--)
+        if (clipsectorlist[i] == sect2) {
             return(1);
+        }
     return(0);
 }
 
@@ -6043,7 +6441,8 @@ int cansee(int32_t x1, int32_t y1, int32_t z1, short sect1,
 int lintersect(int32_t x1, int32_t y1, int32_t z1, int32_t x2, int32_t y2, int32_t z2,
                int32_t x3, int32_t y3, int32_t x4, int32_t y4, int32_t *intx,
                int32_t *inty, int32_t *intz)
-{   /* p1 to p2 is a line segment */
+{
+    /* p1 to p2 is a line segment */
     int32_t x21, y21, x34, y34, x31, y31, bot, topt, topu, t;
 
     x21 = x2-x1;
@@ -6051,24 +6450,31 @@ int lintersect(int32_t x1, int32_t y1, int32_t z1, int32_t x2, int32_t y2, int32
     y21 = y2-y1;
     y34 = y3-y4;
     bot = x21*y34 - y21*x34;
-    if (bot >= 0)
-    {
-        if (bot == 0) return(0);
+    if (bot >= 0) {
+        if (bot == 0) {
+            return(0);
+        }
         x31 = x3-x1;
         y31 = y3-y1;
         topt = x31*y34 - y31*x34;
-        if ((topt < 0) || (topt >= bot)) return(0);
+        if ((topt < 0) || (topt >= bot)) {
+            return(0);
+        }
         topu = x21*y31 - y21*x31;
-        if ((topu < 0) || (topu >= bot)) return(0);
-    }
-    else
-    {
+        if ((topu < 0) || (topu >= bot)) {
+            return(0);
+        }
+    } else {
         x31 = x3-x1;
         y31 = y3-y1;
         topt = x31*y34 - y31*x34;
-        if ((topt > 0) || (topt <= bot)) return(0);
+        if ((topt > 0) || (topt <= bot)) {
+            return(0);
+        }
         topu = x21*y31 - y21*x31;
-        if ((topu > 0) || (topu <= bot)) return(0);
+        if ((topu > 0) || (topu <= bot)) {
+            return(0);
+        }
     }
     t = divscale24(topt,bot);
     *intx = x1 + mulscale24(x21,t);
@@ -6081,30 +6487,38 @@ int lintersect(int32_t x1, int32_t y1, int32_t z1, int32_t x2, int32_t y2, int32
 int rintersect(int32_t x1, int32_t y1, int32_t z1, int32_t vx, int32_t vy, int32_t vz,
                int32_t x3, int32_t y3, int32_t x4, int32_t y4, int32_t *intx,
                int32_t *inty, int32_t *intz)
-{   /* p1 towards p2 is a ray */
+{
+    /* p1 towards p2 is a ray */
     int32_t x34, y34, x31, y31, bot, topt, topu, t;
 
     x34 = x3-x4;
     y34 = y3-y4;
     bot = vx*y34 - vy*x34;
-    if (bot >= 0)
-    {
-        if (bot == 0) return(0);
+    if (bot >= 0) {
+        if (bot == 0) {
+            return(0);
+        }
         x31 = x3-x1;
         y31 = y3-y1;
         topt = x31*y34 - y31*x34;
-        if (topt < 0) return(0);
+        if (topt < 0) {
+            return(0);
+        }
         topu = vx*y31 - vy*x31;
-        if ((topu < 0) || (topu >= bot)) return(0);
-    }
-    else
-    {
+        if ((topu < 0) || (topu >= bot)) {
+            return(0);
+        }
+    } else {
         x31 = x3-x1;
         y31 = y3-y1;
         topt = x31*y34 - y31*x34;
-        if (topt > 0) return(0);
+        if (topt > 0) {
+            return(0);
+        }
         topu = vx*y31 - vy*x31;
-        if ((topu > 0) || (topu <= bot)) return(0);
+        if ((topu > 0) || (topu <= bot)) {
+            return(0);
+        }
     }
     t = divscale16(topt,bot);
     *intx = x1 + mulscale16(vx,t);
@@ -6134,7 +6548,9 @@ int hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum,
     *hitsect = -1;
     *hitwall = -1;
     *hitsprite = -1;
-    if (sectnum < 0) return(-1);
+    if (sectnum < 0) {
+        return(-1);
+    }
 
     *hitx = hitscangoalx;
     *hity = hitscangoaly;
@@ -6145,51 +6561,45 @@ int hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum,
     clipsectorlist[0] = sectnum;
     tempshortcnt = 0;
     tempshortnum = 1;
-    do
-    {
+    do {
         dasector = clipsectorlist[tempshortcnt];
         sec = &sector[dasector];
 
         x1 = 0x7fffffff;
-        if (sec->ceilingstat&2)
-        {
+        if (sec->ceilingstat&2) {
             wal = &wall[sec->wallptr];
             wal2 = &wall[wal->point2];
             dax = wal2->x-wal->x;
             day = wal2->y-wal->y;
             i = fixedPointSqrt(dax*dax+day*day);
-            if (i == 0) continue;
+            if (i == 0) {
+                continue;
+            }
             i = divscale15(sec->ceilingheinum,i);
             dax *= i;
             day *= i;
 
             j = (vz<<8)-dmulscale15(dax,vy,-day,vx);
-            if (j != 0)
-            {
+            if (j != 0) {
                 i = ((sec->ceilingz-zs)<<8)+dmulscale15(dax,ys-wal->y,-day,xs-wal->x);
-                if (((i^j) >= 0) && ((klabs(i)>>1) < klabs(j)))
-                {
+                if (((i^j) >= 0) && ((klabs(i)>>1) < klabs(j))) {
                     i = divscale30(i,j);
                     x1 = xs + mulscale30(vx,i);
                     y1 = ys + mulscale30(vy,i);
                     z1 = zs + mulscale30(vz,i);
                 }
             }
-        }
-        else if ((vz < 0) && (zs >= sec->ceilingz))
-        {
+        } else if ((vz < 0) && (zs >= sec->ceilingz)) {
             z1 = sec->ceilingz;
             i = z1-zs;
-            if ((klabs(i)>>1) < -vz)
-            {
+            if ((klabs(i)>>1) < -vz) {
                 i = divscale30(i,vz);
                 x1 = xs + mulscale30(vx,i);
                 y1 = ys + mulscale30(vy,i);
             }
         }
         if ((x1 != 0x7fffffff) && (klabs(x1-xs)+klabs(y1-ys) < klabs((*hitx)-xs)+klabs((*hity)-ys)))
-            if (inside(x1,y1,dasector) != 0)
-            {
+            if (inside(x1,y1,dasector) != 0) {
                 *hitsect = dasector;
                 *hitwall = -1;
                 *hitsprite = -1;
@@ -6199,45 +6609,40 @@ int hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum,
             }
 
         x1 = 0x7fffffff;
-        if (sec->floorstat&2)
-        {
+        if (sec->floorstat&2) {
             wal = &wall[sec->wallptr];
             wal2 = &wall[wal->point2];
             dax = wal2->x-wal->x;
             day = wal2->y-wal->y;
             i = fixedPointSqrt(dax*dax+day*day);
-            if (i == 0) continue;
+            if (i == 0) {
+                continue;
+            }
             i = divscale15(sec->floorheinum,i);
             dax *= i;
             day *= i;
 
             j = (vz<<8)-dmulscale15(dax,vy,-day,vx);
-            if (j != 0)
-            {
+            if (j != 0) {
                 i = ((sec->floorz-zs)<<8)+dmulscale15(dax,ys-wal->y,-day,xs-wal->x);
-                if (((i^j) >= 0) && ((klabs(i)>>1) < klabs(j)))
-                {
+                if (((i^j) >= 0) && ((klabs(i)>>1) < klabs(j))) {
                     i = divscale30(i,j);
                     x1 = xs + mulscale30(vx,i);
                     y1 = ys + mulscale30(vy,i);
                     z1 = zs + mulscale30(vz,i);
                 }
             }
-        }
-        else if ((vz > 0) && (zs <= sec->floorz))
-        {
+        } else if ((vz > 0) && (zs <= sec->floorz)) {
             z1 = sec->floorz;
             i = z1-zs;
-            if ((klabs(i)>>1) < vz)
-            {
+            if ((klabs(i)>>1) < vz) {
                 i = divscale30(i,vz);
                 x1 = xs + mulscale30(vx,i);
                 y1 = ys + mulscale30(vy,i);
             }
         }
         if ((x1 != 0x7fffffff) && (klabs(x1-xs)+klabs(y1-ys) < klabs((*hitx)-xs)+klabs((*hity)-ys)))
-            if (inside(x1,y1,dasector) != 0)
-            {
+            if (inside(x1,y1,dasector) != 0) {
                 *hitsect = dasector;
                 *hitwall = -1;
                 *hitsprite = -1;
@@ -6248,22 +6653,26 @@ int hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum,
 
         startwall = sec->wallptr;
         endwall = startwall + sec->wallnum;
-        for(z=startwall,wal=&wall[startwall]; z<endwall; z++,wal++)
-        {
+        for (z=startwall,wal=&wall[startwall]; z<endwall; z++,wal++) {
             wal2 = &wall[wal->point2];
             x1 = wal->x;
             y1 = wal->y;
             x2 = wal2->x;
             y2 = wal2->y;
 
-            if ((x1-xs)*(y2-ys) < (x2-xs)*(y1-ys)) continue;
-            if (rintersect(xs,ys,zs,vx,vy,vz,x1,y1,x2,y2,&intx,&inty,&intz) == 0) continue;
+            if ((x1-xs)*(y2-ys) < (x2-xs)*(y1-ys)) {
+                continue;
+            }
+            if (rintersect(xs,ys,zs,vx,vy,vz,x1,y1,x2,y2,&intx,&inty,&intz) == 0) {
+                continue;
+            }
 
-            if (klabs(intx-xs)+klabs(inty-ys) >= klabs((*hitx)-xs)+klabs((*hity)-ys)) continue;
+            if (klabs(intx-xs)+klabs(inty-ys) >= klabs((*hitx)-xs)+klabs((*hity)-ys)) {
+                continue;
+            }
 
             nextsector = wal->nextsector;
-            if ((nextsector < 0) || (wal->cstat&dawalclipmask))
-            {
+            if ((nextsector < 0) || (wal->cstat&dawalclipmask)) {
                 *hitsect = dasector;
                 *hitwall = z;
                 *hitsprite = -1;
@@ -6273,8 +6682,7 @@ int hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum,
                 continue;
             }
             getzsofslope(nextsector,intx,inty,&daz,&daz2);
-            if ((intz <= daz) || (intz >= daz2))
-            {
+            if ((intz <= daz) || (intz >= daz2)) {
                 *hitsect = dasector;
                 *hitwall = z;
                 *hitsprite = -1;
@@ -6284,177 +6692,221 @@ int hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum,
                 continue;
             }
 
-            for(zz=tempshortnum-1; zz>=0; zz--)
-                if (clipsectorlist[zz] == nextsector) break;
-            if (zz < 0) clipsectorlist[tempshortnum++] = nextsector;
+            for (zz=tempshortnum-1; zz>=0; zz--)
+                if (clipsectorlist[zz] == nextsector) {
+                    break;
+                }
+            if (zz < 0) {
+                clipsectorlist[tempshortnum++] = nextsector;
+            }
         }
 
-        for(z=headspritesect[dasector]; z>=0; z=nextspritesect[z])
-        {
+        for (z=headspritesect[dasector]; z>=0; z=nextspritesect[z]) {
             spr = &sprite[z];
             cstat = spr->cstat;
-            if ((cstat&dasprclipmask) == 0) continue;
+            if ((cstat&dasprclipmask) == 0) {
+                continue;
+            }
 
             x1 = spr->x;
             y1 = spr->y;
             z1 = spr->z;
-            switch(cstat&48)
-            {
-            case 0:
-                topt = vx*(x1-xs) + vy*(y1-ys);
-                if (topt <= 0) continue;
-                bot = vx*vx + vy*vy;
-                if (bot == 0) continue;
+            switch (cstat&48) {
+                case 0:
+                    topt = vx*(x1-xs) + vy*(y1-ys);
+                    if (topt <= 0) {
+                        continue;
+                    }
+                    bot = vx*vx + vy*vy;
+                    if (bot == 0) {
+                        continue;
+                    }
 
-                intz = zs+scale(vz,topt,bot);
+                    intz = zs+scale(vz,topt,bot);
 
-                i = (tiles[spr->picnum].dim.height*spr->yrepeat<<2);
-                    
-                if (cstat&128) 
-                    z1 += (i>>1);
-                    
-                if (tiles[spr->picnum].animFlags&0x00ff0000) 
-                    z1 -= ((int32_t)((int8_t )((tiles[spr->picnum].animFlags>>16)&255))*spr->yrepeat<<2);
-                    
-                if ((intz > z1) || (intz < z1-i)) continue;
-                topu = vx*(y1-ys) - vy*(x1-xs);
+                    i = (tiles[spr->picnum].dim.height*spr->yrepeat<<2);
 
-                offx = scale(vx,topu,bot);
-                offy = scale(vy,topu,bot);
-                dist = offx*offx + offy*offy;
-                i = tiles[spr->picnum].dim.width*spr->xrepeat;
-                i *= i;
-                if (dist > (i>>7)) continue;
-                intx = xs + scale(vx,topt,bot);
-                inty = ys + scale(vy,topt,bot);
+                    if (cstat&128) {
+                        z1 += (i>>1);
+                    }
 
-                if (klabs(intx-xs)+klabs(inty-ys) > klabs((*hitx)-xs)+klabs((*hity)-ys)) continue;
+                    if (tiles[spr->picnum].animFlags&0x00ff0000) {
+                        z1 -= ((int32_t)((int8_t )((tiles[spr->picnum].animFlags>>16)&255))*spr->yrepeat<<2);
+                    }
 
-                *hitsect = dasector;
-                *hitwall = -1;
-                *hitsprite = z;
-                *hitx = intx;
-                *hity = inty;
-                *hitz = intz;
-                break;
-            case 16:
-                /*
-                 * These lines get the 2 points of the rotated sprite
-                 * Given: (x1, y1) starts out as the center point
-                 */
-                tilenum = spr->picnum;
-                xoff = (int32_t)((int8_t )((tiles[tilenum].animFlags>>8)&255))+((int32_t)spr->xoffset);
-                if ((cstat&4) > 0) xoff = -xoff;
-                k = spr->ang;
-                l = spr->xrepeat;
-		dax = fixedPointSin(k)*l;
-		sinang = fixedPointSin((k+1536))*l;
-                l = tiles[tilenum].dim.width;
-                k = (l>>1)+xoff;
-                x1 -= mulscale16(dax,k);
-                x2 = x1+mulscale16(dax,l);
-                y1 -= mulscale16(day,k);
-                y2 = y1+mulscale16(day,l);
+                    if ((intz > z1) || (intz < z1-i)) {
+                        continue;
+                    }
+                    topu = vx*(y1-ys) - vy*(x1-xs);
 
-                if ((cstat&64) != 0)   /* back side of 1-way sprite */
-                    if ((x1-xs)*(y2-ys) < (x2-xs)*(y1-ys)) continue;
+                    offx = scale(vx,topu,bot);
+                    offy = scale(vy,topu,bot);
+                    dist = offx*offx + offy*offy;
+                    i = tiles[spr->picnum].dim.width*spr->xrepeat;
+                    i *= i;
+                    if (dist > (i>>7)) {
+                        continue;
+                    }
+                    intx = xs + scale(vx,topt,bot);
+                    inty = ys + scale(vy,topt,bot);
 
-                if (rintersect(xs,ys,zs,vx,vy,vz,x1,y1,x2,y2,&intx,&inty,&intz) == 0) continue;
+                    if (klabs(intx-xs)+klabs(inty-ys) > klabs((*hitx)-xs)+klabs((*hity)-ys)) {
+                        continue;
+                    }
 
-                if (klabs(intx-xs)+klabs(inty-ys) > klabs((*hitx)-xs)+klabs((*hity)-ys)) continue;
-
-                k = ((tiles[spr->picnum].dim.height*spr->yrepeat)<<2);
-                if (cstat&128)
-                    daz = spr->z+(k>>1);
-                else
-                    daz = spr->z;
-                    
-                if (tiles[spr->picnum].animFlags&0x00ff0000)
-                    daz -= ((int32_t)((int8_t  )((tiles[spr->picnum].animFlags>>16)&255))*spr->yrepeat<<2);
-                    
-                if ((intz < daz) && (intz > daz-k))
-                {
                     *hitsect = dasector;
                     *hitwall = -1;
                     *hitsprite = z;
                     *hitx = intx;
                     *hity = inty;
                     *hitz = intz;
-                }
-                break;
-            case 32:
-                if (vz == 0) continue;
-                intz = z1;
-                if (((intz-zs)^vz) < 0) continue;
-                if ((cstat&64) != 0)
-                    if ((zs > intz) == ((cstat&8)==0)) continue;
+                    break;
+                case 16:
+                    /*
+                     * These lines get the 2 points of the rotated sprite
+                     * Given: (x1, y1) starts out as the center point
+                     */
+                    tilenum = spr->picnum;
+                    xoff = (int32_t)((int8_t )((tiles[tilenum].animFlags>>8)&255))+((int32_t)spr->xoffset);
+                    if ((cstat&4) > 0) {
+                        xoff = -xoff;
+                    }
+                    k = spr->ang;
+                    l = spr->xrepeat;
+                    dax = fixedPointSin(k)*l;
+                    sinang = fixedPointSin((k+1536))*l;
+                    l = tiles[tilenum].dim.width;
+                    k = (l>>1)+xoff;
+                    x1 -= mulscale16(dax,k);
+                    x2 = x1+mulscale16(dax,l);
+                    y1 -= mulscale16(day,k);
+                    y2 = y1+mulscale16(day,l);
 
-                intx = xs+scale(intz-zs,vx,vz);
-                inty = ys+scale(intz-zs,vy,vz);
+                    if ((cstat&64) != 0)   /* back side of 1-way sprite */
+                        if ((x1-xs)*(y2-ys) < (x2-xs)*(y1-ys)) {
+                            continue;
+                        }
 
-                if (klabs(intx-xs)+klabs(inty-ys) > klabs((*hitx)-xs)+klabs((*hity)-ys)) continue;
+                    if (rintersect(xs,ys,zs,vx,vy,vz,x1,y1,x2,y2,&intx,&inty,&intz) == 0) {
+                        continue;
+                    }
 
-                tilenum = spr->picnum;
-                xoff = (int32_t)((int8_t )((tiles[tilenum].animFlags>>8)&255))+((int32_t)spr->xoffset);
-                yoff = (int32_t)((int8_t )((tiles[tilenum].animFlags>>16)&255))+((int32_t)spr->yoffset);
-                if ((cstat&4) > 0) xoff = -xoff;
-                if ((cstat&8) > 0) yoff = -yoff;
+                    if (klabs(intx-xs)+klabs(inty-ys) > klabs((*hitx)-xs)+klabs((*hity)-ys)) {
+                        continue;
+                    }
 
-                ang = spr->ang;
-		cosang = fixedPointSin((ang+512));
-		sinang = fixedPointSin(ang);
-                xspan = tiles[tilenum].dim.width;
-                xrepeat = spr->xrepeat;
-                yspan = tiles[tilenum].dim.height;
-                yrepeat = spr->yrepeat;
+                    k = ((tiles[spr->picnum].dim.height*spr->yrepeat)<<2);
+                    if (cstat&128) {
+                        daz = spr->z+(k>>1);
+                    } else {
+                        daz = spr->z;
+                    }
 
-                dax = ((xspan>>1)+xoff)*xrepeat;
-                day = ((yspan>>1)+yoff)*yrepeat;
-                x1 += dmulscale16(sinang,dax,cosang,day)-intx;
-                y1 += dmulscale16(sinang,day,-cosang,dax)-inty;
-                l = xspan*xrepeat;
-                x2 = x1 - mulscale16(sinang,l);
-                y2 = y1 + mulscale16(cosang,l);
-                l = yspan*yrepeat;
-                k = -mulscale16(cosang,l);
-                x3 = x2+k;
-                x4 = x1+k;
-                k = -mulscale16(sinang,l);
-                y3 = y2+k;
-                y4 = y1+k;
+                    if (tiles[spr->picnum].animFlags&0x00ff0000) {
+                        daz -= ((int32_t)((int8_t  )((tiles[spr->picnum].animFlags>>16)&255))*spr->yrepeat<<2);
+                    }
 
-                clipyou = 0;
-                if ((y1^y2) < 0)
-                {
-                    if ((x1^x2) < 0) clipyou ^= (x1*y2<x2*y1)^(y1<y2);
-                    else if (x1 >= 0) clipyou ^= 1;
-                }
-                if ((y2^y3) < 0)
-                {
-                    if ((x2^x3) < 0) clipyou ^= (x2*y3<x3*y2)^(y2<y3);
-                    else if (x2 >= 0) clipyou ^= 1;
-                }
-                if ((y3^y4) < 0)
-                {
-                    if ((x3^x4) < 0) clipyou ^= (x3*y4<x4*y3)^(y3<y4);
-                    else if (x3 >= 0) clipyou ^= 1;
-                }
-                if ((y4^y1) < 0)
-                {
-                    if ((x4^x1) < 0) clipyou ^= (x4*y1<x1*y4)^(y4<y1);
-                    else if (x4 >= 0) clipyou ^= 1;
-                }
+                    if ((intz < daz) && (intz > daz-k)) {
+                        *hitsect = dasector;
+                        *hitwall = -1;
+                        *hitsprite = z;
+                        *hitx = intx;
+                        *hity = inty;
+                        *hitz = intz;
+                    }
+                    break;
+                case 32:
+                    if (vz == 0) {
+                        continue;
+                    }
+                    intz = z1;
+                    if (((intz-zs)^vz) < 0) {
+                        continue;
+                    }
+                    if ((cstat&64) != 0)
+                        if ((zs > intz) == ((cstat&8)==0)) {
+                            continue;
+                        }
 
-                if (clipyou != 0)
-                {
-                    *hitsect = dasector;
-                    *hitwall = -1;
-                    *hitsprite = z;
-                    *hitx = intx;
-                    *hity = inty;
-                    *hitz = intz;
-                }
-                break;
+                    intx = xs+scale(intz-zs,vx,vz);
+                    inty = ys+scale(intz-zs,vy,vz);
+
+                    if (klabs(intx-xs)+klabs(inty-ys) > klabs((*hitx)-xs)+klabs((*hity)-ys)) {
+                        continue;
+                    }
+
+                    tilenum = spr->picnum;
+                    xoff = (int32_t)((int8_t )((tiles[tilenum].animFlags>>8)&255))+((int32_t)spr->xoffset);
+                    yoff = (int32_t)((int8_t )((tiles[tilenum].animFlags>>16)&255))+((int32_t)spr->yoffset);
+                    if ((cstat&4) > 0) {
+                        xoff = -xoff;
+                    }
+                    if ((cstat&8) > 0) {
+                        yoff = -yoff;
+                    }
+
+                    ang = spr->ang;
+                    cosang = fixedPointSin((ang+512));
+                    sinang = fixedPointSin(ang);
+                    xspan = tiles[tilenum].dim.width;
+                    xrepeat = spr->xrepeat;
+                    yspan = tiles[tilenum].dim.height;
+                    yrepeat = spr->yrepeat;
+
+                    dax = ((xspan>>1)+xoff)*xrepeat;
+                    day = ((yspan>>1)+yoff)*yrepeat;
+                    x1 += dmulscale16(sinang,dax,cosang,day)-intx;
+                    y1 += dmulscale16(sinang,day,-cosang,dax)-inty;
+                    l = xspan*xrepeat;
+                    x2 = x1 - mulscale16(sinang,l);
+                    y2 = y1 + mulscale16(cosang,l);
+                    l = yspan*yrepeat;
+                    k = -mulscale16(cosang,l);
+                    x3 = x2+k;
+                    x4 = x1+k;
+                    k = -mulscale16(sinang,l);
+                    y3 = y2+k;
+                    y4 = y1+k;
+
+                    clipyou = 0;
+                    if ((y1^y2) < 0) {
+                        if ((x1^x2) < 0) {
+                            clipyou ^= (x1*y2<x2*y1)^(y1<y2);
+                        } else if (x1 >= 0) {
+                            clipyou ^= 1;
+                        }
+                    }
+                    if ((y2^y3) < 0) {
+                        if ((x2^x3) < 0) {
+                            clipyou ^= (x2*y3<x3*y2)^(y2<y3);
+                        } else if (x2 >= 0) {
+                            clipyou ^= 1;
+                        }
+                    }
+                    if ((y3^y4) < 0) {
+                        if ((x3^x4) < 0) {
+                            clipyou ^= (x3*y4<x4*y3)^(y3<y4);
+                        } else if (x3 >= 0) {
+                            clipyou ^= 1;
+                        }
+                    }
+                    if ((y4^y1) < 0) {
+                        if ((x4^x1) < 0) {
+                            clipyou ^= (x4*y1<x1*y4)^(y4<y1);
+                        } else if (x4 >= 0) {
+                            clipyou ^= 1;
+                        }
+                    }
+
+                    if (clipyou != 0) {
+                        *hitsect = dasector;
+                        *hitwall = -1;
+                        *hitsprite = z;
+                        *hitx = intx;
+                        *hity = inty;
+                        *hitz = intz;
+                    }
+                    break;
             }
         }
         tempshortcnt++;
@@ -6479,8 +6931,12 @@ int neartag(int32_t xs, int32_t ys, int32_t zs, short sectnum, short ange,
     *neartagsprite = -1;
     *neartaghitdist = 0;
 
-    if (sectnum < 0) return(0);
-    if ((tagsearch < 1) || (tagsearch > 3)) return(0);
+    if (sectnum < 0) {
+        return(0);
+    }
+    if ((tagsearch < 1) || (tagsearch > 3)) {
+        return(0);
+    }
 
     vx = mulscale14(fixedPointSin((ange+2560)),neartagrange);
     xe = xs+vx;
@@ -6493,14 +6949,12 @@ int neartag(int32_t xs, int32_t ys, int32_t zs, short sectnum, short ange,
     tempshortcnt = 0;
     tempshortnum = 1;
 
-    do
-    {
+    do {
         dasector = clipsectorlist[tempshortcnt];
 
         startwall = sector[dasector].wallptr;
         endwall = startwall + sector[dasector].wallnum - 1;
-        for(z=startwall,wal=&wall[startwall]; z<=endwall; z++,wal++)
-        {
+        for (z=startwall,wal=&wall[startwall]; z<=endwall; z++,wal++) {
             wal2 = &wall[wal->point2];
             x1 = wal->x;
             y1 = wal->y;
@@ -6510,64 +6964,81 @@ int neartag(int32_t xs, int32_t ys, int32_t zs, short sectnum, short ange,
             nextsector = wal->nextsector;
 
             good = 0;
-            if (nextsector >= 0)
-            {
-                if ((tagsearch&1) && sector[nextsector].lotag) good |= 1;
-                if ((tagsearch&2) && sector[nextsector].hitag) good |= 1;
+            if (nextsector >= 0) {
+                if ((tagsearch&1) && sector[nextsector].lotag) {
+                    good |= 1;
+                }
+                if ((tagsearch&2) && sector[nextsector].hitag) {
+                    good |= 1;
+                }
             }
-            if ((tagsearch&1) && wal->lotag) good |= 2;
-            if ((tagsearch&2) && wal->hitag) good |= 2;
+            if ((tagsearch&1) && wal->lotag) {
+                good |= 2;
+            }
+            if ((tagsearch&2) && wal->hitag) {
+                good |= 2;
+            }
 
-            if ((good == 0) && (nextsector < 0)) continue;
-            if ((x1-xs)*(y2-ys) < (x2-xs)*(y1-ys)) continue;
+            if ((good == 0) && (nextsector < 0)) {
+                continue;
+            }
+            if ((x1-xs)*(y2-ys) < (x2-xs)*(y1-ys)) {
+                continue;
+            }
 
-            if (lintersect(xs,ys,zs,xe,ye,ze,x1,y1,x2,y2,&intx,&inty,&intz) == 1)
-            {
-                if (good != 0)
-                {
-                    if (good&1) *neartagsector = nextsector;
-                    if (good&2) *neartagwall = z;
-		    *neartaghitdist = dmulscale14(intx-xs,fixedPointSin((ange+2560)),inty-ys,fixedPointSin((ange+2048)));
+            if (lintersect(xs,ys,zs,xe,ye,ze,x1,y1,x2,y2,&intx,&inty,&intz) == 1) {
+                if (good != 0) {
+                    if (good&1) {
+                        *neartagsector = nextsector;
+                    }
+                    if (good&2) {
+                        *neartagwall = z;
+                    }
+                    *neartaghitdist = dmulscale14(intx-xs,fixedPointSin((ange+2560)),inty-ys,fixedPointSin((ange+2048)));
                     xe = intx;
                     ye = inty;
                     ze = intz;
                 }
-                if (nextsector >= 0)
-                {
-                    for(zz=tempshortnum-1; zz>=0; zz--)
-                        if (clipsectorlist[zz] == nextsector) break;
-                    if (zz < 0) clipsectorlist[tempshortnum++] = nextsector;
+                if (nextsector >= 0) {
+                    for (zz=tempshortnum-1; zz>=0; zz--)
+                        if (clipsectorlist[zz] == nextsector) {
+                            break;
+                        }
+                    if (zz < 0) {
+                        clipsectorlist[tempshortnum++] = nextsector;
+                    }
                 }
             }
         }
 
-        for(z=headspritesect[dasector]; z>=0; z=nextspritesect[z])
-        {
+        for (z=headspritesect[dasector]; z>=0; z=nextspritesect[z]) {
             spr = &sprite[z];
 
             good = 0;
-            if ((tagsearch&1) && spr->lotag) good |= 1;
-            if ((tagsearch&2) && spr->hitag) good |= 1;
-            if (good != 0)
-            {
+            if ((tagsearch&1) && spr->lotag) {
+                good |= 1;
+            }
+            if ((tagsearch&2) && spr->hitag) {
+                good |= 1;
+            }
+            if (good != 0) {
                 x1 = spr->x;
                 y1 = spr->y;
                 z1 = spr->z;
 
                 topt = vx*(x1-xs) + vy*(y1-ys);
-                if (topt > 0)
-                {
+                if (topt > 0) {
                     bot = vx*vx + vy*vy;
-                    if (bot != 0)
-                    {
+                    if (bot != 0) {
                         intz = zs+scale(vz,topt,bot);
                         i = tiles[spr->picnum].dim.height*spr->yrepeat;
-                        if (spr->cstat&128) 
+                        if (spr->cstat&128) {
                             z1 += (i<<1);
-                        if (tiles[spr->picnum].animFlags&0x00ff0000) 
+                        }
+                        if (tiles[spr->picnum].animFlags&0x00ff0000) {
                             z1 -= ((int32_t)((int8_t  )((tiles[spr->picnum].animFlags>>16)&255))*spr->yrepeat<<2);
-                        if ((intz <= z1) && (intz >= z1-(i<<2)))
-                        {
+                        }
+                        if ((intz <= z1) && (intz >= z1-(i<<2))) {
                             topu = vx*(y1-ys) - vy*(x1-xs);
 
                             offx = scale(vx,topu,bot);
@@ -6575,14 +7046,12 @@ int neartag(int32_t xs, int32_t ys, int32_t zs, short sectnum, short ange,
                             dist = offx*offx + offy*offy;
                             i = (tiles[spr->picnum].dim.width*spr->xrepeat);
                             i *= i;
-                            if (dist <= (i>>7))
-                            {
+                            if (dist <= (i>>7)) {
                                 intx = xs + scale(vx,topt,bot);
                                 inty = ys + scale(vy,topt,bot);
-                                if (klabs(intx-xs)+klabs(inty-ys) < klabs(xe-xs)+klabs(ye-ys))
-                                {
+                                if (klabs(intx-xs)+klabs(inty-ys) < klabs(xe-xs)+klabs(ye-ys)) {
                                     *neartagsprite = z;
-				    *neartaghitdist = dmulscale14(intx-xs,fixedPointSin((ange+2560)),inty-ys,fixedPointSin((ange+2048)));
+                                    *neartaghitdist = dmulscale14(intx-xs,fixedPointSin((ange+2560)),inty-ys,fixedPointSin((ange+2048)));
                                     xe = intx;
                                     ye = inty;
                                     ze = intz;
@@ -6609,37 +7078,27 @@ void dragpoint(short pointhighlight, int32_t dax, int32_t day)
 
     cnt = MAXWALLS;
     tempshort = pointhighlight;    /* search points CCW */
-    do
-    {
-        if (wall[tempshort].nextwall >= 0)
-        {
+    do {
+        if (wall[tempshort].nextwall >= 0) {
             tempshort = wall[wall[tempshort].nextwall].point2;
             wall[tempshort].x = dax;
             wall[tempshort].y = day;
-        }
-        else
-        {
+        } else {
             tempshort = pointhighlight;    /* search points CW if not searched all the way around */
-            do
-            {
-                if (wall[lastwall(tempshort)].nextwall >= 0)
-                {
+            do {
+                if (wall[lastwall(tempshort)].nextwall >= 0) {
                     tempshort = wall[lastwall(tempshort)].nextwall;
                     wall[tempshort].x = dax;
                     wall[tempshort].y = day;
-                }
-                else
-                {
+                } else {
                     break;
                 }
                 cnt--;
-            }
-            while ((tempshort != pointhighlight) && (cnt > 0));
+            } while ((tempshort != pointhighlight) && (cnt > 0));
             break;
         }
         cnt--;
-    }
-    while ((tempshort != pointhighlight) && (cnt > 0));
+    } while ((tempshort != pointhighlight) && (cnt > 0));
 }
 
 
@@ -6647,13 +7106,16 @@ int lastwall(short point)
 {
     int32_t i, j, cnt;
 
-    if ((point > 0) && (wall[point-1].point2 == point)) return(point-1);
+    if ((point > 0) && (wall[point-1].point2 == point)) {
+        return(point-1);
+    }
     i = point;
     cnt = MAXWALLS;
-    do
-    {
+    do {
         j = wall[i].point2;
-        if (j == point) return(i);
+        if (j == point) {
+            return(i);
+        }
         i = j;
         cnt--;
     } while (cnt > 0);
@@ -6681,11 +7143,15 @@ static void keepaway (int32_t *x, int32_t *y, int32_t w)
     ox = ksgn(-dy);
     oy = ksgn(dx);
     first = (klabs(dx) <= klabs(dy));
-    while (1)
-    {
-        if (dx*(*y-y1) > (*x-x1)*dy) return;
-        if (first == 0) *x += ox;
-        else *y += oy;
+    while (1) {
+        if (dx*(*y-y1) > (*x-x1)*dy) {
+            return;
+        }
+        if (first == 0) {
+            *x += ox;
+        } else {
+            *y += oy;
+        }
         first ^= 1;
     }
 }
@@ -6697,8 +7163,7 @@ static int raytrace(int32_t x3, int32_t y3, int32_t *x4, int32_t *y4)
     int32_t x21, y21, x43, y43;
 
     hitwall = -1;
-    for(z=clipnum-1; z>=0; z--)
-    {
+    for (z=clipnum-1; z>=0; z--) {
         x1 = clipit[z].x1;
         x2 = clipit[z].x2;
         x21 = x2-x1;
@@ -6707,18 +7172,27 @@ static int raytrace(int32_t x3, int32_t y3, int32_t *x4, int32_t *y4)
         y21 = y2-y1;
 
         topu = x21*(y3-y1) - (x3-x1)*y21;
-        if (topu <= 0) continue;
-        if (x21*(*y4-y1) > (*x4-x1)*y21) continue;
+        if (topu <= 0) {
+            continue;
+        }
+        if (x21*(*y4-y1) > (*x4-x1)*y21) {
+            continue;
+        }
         x43 = *x4-x3;
         y43 = *y4-y3;
-        if (x43*(y1-y3) > (x1-x3)*y43) continue;
-        if (x43*(y2-y3) <= (x2-x3)*y43) continue;
+        if (x43*(y1-y3) > (x1-x3)*y43) {
+            continue;
+        }
+        if (x43*(y2-y3) <= (x2-x3)*y43) {
+            continue;
+        }
         bot = x43*y21 - x21*y43;
-        if (bot == 0) continue;
+        if (bot == 0) {
+            continue;
+        }
 
         cnt = 256;
-        do
-        {
+        do {
             cnt--;
             if (cnt < 0) {
                 *x4 = x3;
@@ -6730,8 +7204,7 @@ static int raytrace(int32_t x3, int32_t y3, int32_t *x4, int32_t *y4)
             topu--;
         } while (x21*(ninty-y1) <= (nintx-x1)*y21);
 
-        if (klabs(x3-nintx)+klabs(y3-ninty) < klabs(x3-*x4)+klabs(y3-*y4))
-        {
+        if (klabs(x3-nintx)+klabs(y3-ninty) < klabs(x3-*x4)+klabs(y3-*y4)) {
             *x4 = nintx;
             *y4 = ninty;
             hitwall = z;
@@ -6758,7 +7231,9 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
     int32_t xrepeat, yrepeat, gx, gy, dx, dy, dasprclipmask, dawalclipmask;
     int32_t hitwall, cnt, clipyou;
 
-    if (((xvect|yvect) == 0) || (*sectnum < 0)) return(0);
+    if (((xvect|yvect) == 0) || (*sectnum < 0)) {
+        return(0);
+    }
     retval = 0;
 
     oxvect = xvect;
@@ -6787,19 +7262,25 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
     clipsectorlist[0] = (*sectnum);
     clipsectcnt = 0;
     clipsectnum = 1;
-    do
-    {
+    do {
         dasect = clipsectorlist[clipsectcnt++];
         sec = &sector[dasect];
         startwall = sec->wallptr;
         endwall = startwall + sec->wallnum;
-        for(j=startwall,wal=&wall[startwall]; j<endwall; j++,wal++)
-        {
+        for (j=startwall,wal=&wall[startwall]; j<endwall; j++,wal++) {
             wal2 = &wall[wal->point2];
-            if ((wal->x < xmin) && (wal2->x < xmin)) continue;
-            if ((wal->x > xmax) && (wal2->x > xmax)) continue;
-            if ((wal->y < ymin) && (wal2->y < ymin)) continue;
-            if ((wal->y > ymax) && (wal2->y > ymax)) continue;
+            if ((wal->x < xmin) && (wal2->x < xmin)) {
+                continue;
+            }
+            if ((wal->x > xmax) && (wal2->x > xmax)) {
+                continue;
+            }
+            if ((wal->y < ymin) && (wal2->y < ymin)) {
+                continue;
+            }
+            if ((wal->y > ymax) && (wal2->y > ymax)) {
+                continue;
+            }
 
             x1 = wal->x;
             y1 = wal->y;
@@ -6808,249 +7289,275 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
 
             dx = x2-x1;
             dy = y2-y1;
-            if (dx*((*y)-y1) < ((*x)-x1)*dy) continue;  /* If wall's not facing you */
+            if (dx*((*y)-y1) < ((*x)-x1)*dy) {
+                continue;    /* If wall's not facing you */
+            }
 
-            if (dx > 0) dax = dx*(ymin-y1);
-            else dax = dx*(ymax-y1);
-            if (dy > 0) day = dy*(xmax-x1);
-            else day = dy*(xmin-x1);
-            if (dax >= day) continue;
+            if (dx > 0) {
+                dax = dx*(ymin-y1);
+            } else {
+                dax = dx*(ymax-y1);
+            }
+            if (dy > 0) {
+                day = dy*(xmax-x1);
+            } else {
+                day = dy*(xmin-x1);
+            }
+            if (dax >= day) {
+                continue;
+            }
 
             clipyou = 0;
             if ((wal->nextsector < 0) || (wal->cstat&dawalclipmask)) {
                 clipyou = 1;
-            }
-            else {
-                if (rintersect(*x,*y,0,gx,gy,0,x1,y1,x2,y2,&dax,&day,&daz) == 0)
+            } else {
+                if (rintersect(*x,*y,0,gx,gy,0,x1,y1,x2,y2,&dax,&day,&daz) == 0) {
                     dax = *x, day = *y;
+                }
                 daz = getflorzofslope((short)dasect,dax,day);
                 daz2 = getflorzofslope(wal->nextsector,dax,day);
 
                 sec2 = &sector[wal->nextsector];
                 if (daz2 < daz-(1<<8))
                     if ((sec2->floorstat&1) == 0)
-                        if ((*z) >= daz2-(flordist-1)) clipyou = 1;
-                if (clipyou == 0)
-                {
+                        if ((*z) >= daz2-(flordist-1)) {
+                            clipyou = 1;
+                        }
+                if (clipyou == 0) {
                     daz = getceilzofslope((short)dasect,dax,day);
                     daz2 = getceilzofslope(wal->nextsector,dax,day);
                     if (daz2 > daz+(1<<8))
                         if ((sec2->ceilingstat&1) == 0)
-                            if ((*z) <= daz2+(ceildist-1)) clipyou = 1;
+                            if ((*z) <= daz2+(ceildist-1)) {
+                                clipyou = 1;
+                            }
                 }
             }
 
-            if (clipyou)
-            {
+            if (clipyou) {
                 /* Add 2 boxes at endpoints */
                 bsz = walldist;
-                if (gx < 0) bsz = -bsz;
+                if (gx < 0) {
+                    bsz = -bsz;
+                }
                 addclipline(x1-bsz,y1-bsz,x1-bsz,y1+bsz,(short)j+32768);
                 addclipline(x2-bsz,y2-bsz,x2-bsz,y2+bsz,(short)j+32768);
                 bsz = walldist;
-                if (gy < 0) bsz = -bsz;
+                if (gy < 0) {
+                    bsz = -bsz;
+                }
                 addclipline(x1+bsz,y1-bsz,x1-bsz,y1-bsz,(short)j+32768);
                 addclipline(x2+bsz,y2-bsz,x2-bsz,y2-bsz,(short)j+32768);
 
                 dax = walldist;
-                if (dy > 0) dax = -dax;
+                if (dy > 0) {
+                    dax = -dax;
+                }
                 day = walldist;
-                if (dx < 0) day = -day;
+                if (dx < 0) {
+                    day = -day;
+                }
                 addclipline(x1+dax,y1+day,x2+dax,y2+day,(short)j+32768);
-            }
-            else
-            {
-                for(i=clipsectnum-1; i>=0; i--)
-                    if (wal->nextsector == clipsectorlist[i]) break;
-                if (i < 0) clipsectorlist[clipsectnum++] = wal->nextsector;
+            } else {
+                for (i=clipsectnum-1; i>=0; i--)
+                    if (wal->nextsector == clipsectorlist[i]) {
+                        break;
+                    }
+                if (i < 0) {
+                    clipsectorlist[clipsectnum++] = wal->nextsector;
+                }
             }
         }
 
-        for(j=headspritesect[dasect]; j>=0; j=nextspritesect[j])
-        {
+        for (j=headspritesect[dasect]; j>=0; j=nextspritesect[j]) {
             spr = &sprite[j];
             cstat = spr->cstat;
-            if ((cstat&dasprclipmask) == 0) continue;
+            if ((cstat&dasprclipmask) == 0) {
+                continue;
+            }
             x1 = spr->x;
             y1 = spr->y;
-            switch(cstat&48)
-            {
-            case 0:
-                if ((x1 >= xmin) && (x1 <= xmax) && (y1 >= ymin) && (y1 <= ymax))
-                {
+            switch (cstat&48) {
+                case 0:
+                    if ((x1 >= xmin) && (x1 <= xmax) && (y1 >= ymin) && (y1 <= ymax)) {
+                        k = ((tiles[spr->picnum].dim.height*spr->yrepeat)<<2);
+                        if (cstat&128) {
+                            daz = spr->z+(k>>1);
+                        } else {
+                            daz = spr->z;
+                        }
+
+                        if (tiles[spr->picnum].animFlags&0x00ff0000) {
+                            daz -= ((int32_t)((int8_t )((tiles[spr->picnum].animFlags>>16)&255))*spr->yrepeat<<2);
+                        }
+
+                        if (((*z) < daz+ceildist) && ((*z) > daz-k-flordist)) {
+                            bsz = (spr->clipdist<<2)+walldist;
+                            if (gx < 0) {
+                                bsz = -bsz;
+                            }
+                            addclipline(x1-bsz,y1-bsz,x1-bsz,y1+bsz,(short)j+49152);
+                            bsz = (spr->clipdist<<2)+walldist;
+                            if (gy < 0) {
+                                bsz = -bsz;
+                            }
+                            addclipline(x1+bsz,y1-bsz,x1-bsz,y1-bsz,(short)j+49152);
+                        }
+                    }
+                    break;
+                case 16:
                     k = ((tiles[spr->picnum].dim.height*spr->yrepeat)<<2);
-                    if (cstat&128) daz = spr->z+(k>>1);
-                    else daz = spr->z;
-                    
-                    if (tiles[spr->picnum].animFlags&0x00ff0000) 
-                        daz -= ((int32_t)((int8_t )((tiles[spr->picnum].animFlags>>16)&255))*spr->yrepeat<<2);
-                    
-                    if (((*z) < daz+ceildist) && ((*z) > daz-k-flordist)){
-                        bsz = (spr->clipdist<<2)+walldist;
-                        if (gx < 0) bsz = -bsz;
-                        addclipline(x1-bsz,y1-bsz,x1-bsz,y1+bsz,(short)j+49152);
-                        bsz = (spr->clipdist<<2)+walldist;
-                        if (gy < 0) bsz = -bsz;
-                        addclipline(x1+bsz,y1-bsz,x1-bsz,y1-bsz,(short)j+49152);
+
+                    if (cstat&128) {
+                        daz = spr->z+(k>>1);
+                    } else {
+                        daz = spr->z;
                     }
-                }
-                break;
-            case 16:
-                k = ((tiles[spr->picnum].dim.height*spr->yrepeat)<<2);
-                    
-                if (cstat&128) 
-                    daz = spr->z+(k>>1);
-                else 
-                    daz = spr->z;
-                    
-                if (tiles[spr->picnum].animFlags&0x00ff0000) 
-                    daz -= ((int32_t)((int8_t  )((tiles[spr->picnum].animFlags>>16)&255))*spr->yrepeat<<2);
-                daz2 = daz-k;
-                daz += ceildist;
-                daz2 -= flordist;
-                if (((*z) < daz) && ((*z) > daz2))
-                {
-                    /*
-                     * These lines get the 2 points of the rotated sprite
-                     * Given: (x1, y1) starts out as the center point
-                     */
-                    tilenum = spr->picnum;
-                    xoff = (int32_t)((int8_t  )((tiles[tilenum].animFlags>>8)&255))+((int32_t)spr->xoffset);
-                    if ((cstat&4) > 0) xoff = -xoff;
-                    k = spr->ang;
-                    l = spr->xrepeat;
-		    dax = fixedPointSin(k)*l;
-		    day = fixedPointSin((k+1536))*l;
-                    l = tiles[tilenum].dim.width;
-                    k = (l>>1)+xoff;
-                    x1 -= mulscale16(dax,k);
-                    x2 = x1+mulscale16(dax,l);
-                    y1 -= mulscale16(day,k);
-                    y2 = y1+mulscale16(day,l);
-                    if (clipinsideboxline(cx,cy,x1,y1,x2,y2,rad) != 0)
-                    {
-			dax = mulscale14(fixedPointSin((spr->ang+256+512)),walldist);
-			day = mulscale14(fixedPointSin((spr->ang+256)),walldist);
 
-                        if ((x1-(*x))*(y2-(*y)) >= (x2-(*x))*(y1-(*y)))   /* Front */
-                        {
-                            addclipline(x1+dax,y1+day,x2+day,y2-dax,(short)j+49152);
+                    if (tiles[spr->picnum].animFlags&0x00ff0000) {
+                        daz -= ((int32_t)((int8_t  )((tiles[spr->picnum].animFlags>>16)&255))*spr->yrepeat<<2);
+                    }
+                    daz2 = daz-k;
+                    daz += ceildist;
+                    daz2 -= flordist;
+                    if (((*z) < daz) && ((*z) > daz2)) {
+                        /*
+                         * These lines get the 2 points of the rotated sprite
+                         * Given: (x1, y1) starts out as the center point
+                         */
+                        tilenum = spr->picnum;
+                        xoff = (int32_t)((int8_t  )((tiles[tilenum].animFlags>>8)&255))+((int32_t)spr->xoffset);
+                        if ((cstat&4) > 0) {
+                            xoff = -xoff;
                         }
-                        else
-                        {
-                            if ((cstat&64) != 0) continue;
-                            addclipline(x2-dax,y2-day,x1-day,y1+dax,(short)j+49152);
-                        }
+                        k = spr->ang;
+                        l = spr->xrepeat;
+                        dax = fixedPointSin(k)*l;
+                        day = fixedPointSin((k+1536))*l;
+                        l = tiles[tilenum].dim.width;
+                        k = (l>>1)+xoff;
+                        x1 -= mulscale16(dax,k);
+                        x2 = x1+mulscale16(dax,l);
+                        y1 -= mulscale16(day,k);
+                        y2 = y1+mulscale16(day,l);
+                        if (clipinsideboxline(cx,cy,x1,y1,x2,y2,rad) != 0) {
+                            dax = mulscale14(fixedPointSin((spr->ang+256+512)),walldist);
+                            day = mulscale14(fixedPointSin((spr->ang+256)),walldist);
 
-                        /* Side blocker */
-                        if ((x2-x1)*((*x)-x1) + (y2-y1)*((*y)-y1) < 0)
-                        {
-                            addclipline(x1-day,y1+dax,x1+dax,y1+day,(short)j+49152);
-                        }
-                        else if ((x1-x2)*((*x)-x2) + (y1-y2)*((*y)-y2) < 0)
-                        {
-                            addclipline(x2+day,y2-dax,x2-dax,y2-day,(short)j+49152);
+                            if ((x1-(*x))*(y2-(*y)) >= (x2-(*x))*(y1-(*y))) { /* Front */
+                                addclipline(x1+dax,y1+day,x2+day,y2-dax,(short)j+49152);
+                            } else {
+                                if ((cstat&64) != 0) {
+                                    continue;
+                                }
+                                addclipline(x2-dax,y2-day,x1-day,y1+dax,(short)j+49152);
+                            }
+
+                            /* Side blocker */
+                            if ((x2-x1)*((*x)-x1) + (y2-y1)*((*y)-y1) < 0) {
+                                addclipline(x1-day,y1+dax,x1+dax,y1+day,(short)j+49152);
+                            } else if ((x1-x2)*((*x)-x2) + (y1-y2)*((*y)-y2) < 0) {
+                                addclipline(x2+day,y2-dax,x2-dax,y2-day,(short)j+49152);
+                            }
                         }
                     }
-                }
-                break;
-            case 32:
-                daz = spr->z+ceildist;
-                daz2 = spr->z-flordist;
-                if (((*z) < daz) && ((*z) > daz2))
-                {
-                    if ((cstat&64) != 0)
-                        if (((*z) > spr->z) == ((cstat&8)==0)) continue;
+                    break;
+                case 32:
+                    daz = spr->z+ceildist;
+                    daz2 = spr->z-flordist;
+                    if (((*z) < daz) && ((*z) > daz2)) {
+                        if ((cstat&64) != 0)
+                            if (((*z) > spr->z) == ((cstat&8)==0)) {
+                                continue;
+                            }
 
-                    tilenum = spr->picnum;
-                    xoff = (int32_t)((int8_t  )((tiles[tilenum].animFlags>>8)&255))+((int32_t)spr->xoffset);
-                    yoff = (int32_t)((int8_t  )((tiles[tilenum].animFlags>>16)&255))+((int32_t)spr->yoffset);
-                    if ((cstat&4) > 0) xoff = -xoff;
-                    if ((cstat&8) > 0) yoff = -yoff;
+                        tilenum = spr->picnum;
+                        xoff = (int32_t)((int8_t  )((tiles[tilenum].animFlags>>8)&255))+((int32_t)spr->xoffset);
+                        yoff = (int32_t)((int8_t  )((tiles[tilenum].animFlags>>16)&255))+((int32_t)spr->yoffset);
+                        if ((cstat&4) > 0) {
+                            xoff = -xoff;
+                        }
+                        if ((cstat&8) > 0) {
+                            yoff = -yoff;
+                        }
 
-                    k = spr->ang;
-		    cosang = fixedPointSin((k+512));
-		    sinang = fixedPointSin(k);
-                    xspan = tiles[tilenum].dim.width;
-                    xrepeat = spr->xrepeat;
-                    yspan = tiles[tilenum].dim.height;
-                    yrepeat = spr->yrepeat;
+                        k = spr->ang;
+                        cosang = fixedPointSin((k+512));
+                        sinang = fixedPointSin(k);
+                        xspan = tiles[tilenum].dim.width;
+                        xrepeat = spr->xrepeat;
+                        yspan = tiles[tilenum].dim.height;
+                        yrepeat = spr->yrepeat;
 
-                    dax = ((xspan>>1)+xoff)*xrepeat;
-                    day = ((yspan>>1)+yoff)*yrepeat;
-                    rxi[0] = x1 + dmulscale16(sinang,dax,cosang,day);
-                    ryi[0] = y1 + dmulscale16(sinang,day,-cosang,dax);
-                    l = xspan*xrepeat;
-                    rxi[1] = rxi[0] - mulscale16(sinang,l);
-                    ryi[1] = ryi[0] + mulscale16(cosang,l);
-                    l = yspan*yrepeat;
-                    k = -mulscale16(cosang,l);
-                    rxi[2] = rxi[1]+k;
-                    rxi[3] = rxi[0]+k;
-                    k = -mulscale16(sinang,l);
-                    ryi[2] = ryi[1]+k;
-                    ryi[3] = ryi[0]+k;
+                        dax = ((xspan>>1)+xoff)*xrepeat;
+                        day = ((yspan>>1)+yoff)*yrepeat;
+                        rxi[0] = x1 + dmulscale16(sinang,dax,cosang,day);
+                        ryi[0] = y1 + dmulscale16(sinang,day,-cosang,dax);
+                        l = xspan*xrepeat;
+                        rxi[1] = rxi[0] - mulscale16(sinang,l);
+                        ryi[1] = ryi[0] + mulscale16(cosang,l);
+                        l = yspan*yrepeat;
+                        k = -mulscale16(cosang,l);
+                        rxi[2] = rxi[1]+k;
+                        rxi[3] = rxi[0]+k;
+                        k = -mulscale16(sinang,l);
+                        ryi[2] = ryi[1]+k;
+                        ryi[3] = ryi[0]+k;
 
-		    dax = mulscale14(fixedPointSin((spr->ang-256+512)),walldist);
-		    day = mulscale14(fixedPointSin((spr->ang-256)),walldist);
+                        dax = mulscale14(fixedPointSin((spr->ang-256+512)),walldist);
+                        day = mulscale14(fixedPointSin((spr->ang-256)),walldist);
 
-                    if ((rxi[0]-(*x))*(ryi[1]-(*y)) < (rxi[1]-(*x))*(ryi[0]-(*y)))
-                    {
-                        if (clipinsideboxline(cx,cy,rxi[1],ryi[1],rxi[0],ryi[0],rad) != 0)
-                            addclipline(rxi[1]-day,ryi[1]+dax,rxi[0]+dax,ryi[0]+day,(short)j+49152);
+                        if ((rxi[0]-(*x))*(ryi[1]-(*y)) < (rxi[1]-(*x))*(ryi[0]-(*y))) {
+                            if (clipinsideboxline(cx,cy,rxi[1],ryi[1],rxi[0],ryi[0],rad) != 0) {
+                                addclipline(rxi[1]-day,ryi[1]+dax,rxi[0]+dax,ryi[0]+day,(short)j+49152);
+                            }
+                        } else if ((rxi[2]-(*x))*(ryi[3]-(*y)) < (rxi[3]-(*x))*(ryi[2]-(*y))) {
+                            if (clipinsideboxline(cx,cy,rxi[3],ryi[3],rxi[2],ryi[2],rad) != 0) {
+                                addclipline(rxi[3]+day,ryi[3]-dax,rxi[2]-dax,ryi[2]-day,(short)j+49152);
+                            }
+                        }
+
+                        if ((rxi[1]-(*x))*(ryi[2]-(*y)) < (rxi[2]-(*x))*(ryi[1]-(*y))) {
+                            if (clipinsideboxline(cx,cy,rxi[2],ryi[2],rxi[1],ryi[1],rad) != 0) {
+                                addclipline(rxi[2]-dax,ryi[2]-day,rxi[1]-day,ryi[1]+dax,(short)j+49152);
+                            }
+                        } else if ((rxi[3]-(*x))*(ryi[0]-(*y)) < (rxi[0]-(*x))*(ryi[3]-(*y))) {
+                            if (clipinsideboxline(cx,cy,rxi[0],ryi[0],rxi[3],ryi[3],rad) != 0) {
+                                addclipline(rxi[0]+dax,ryi[0]+day,rxi[3]+day,ryi[3]-dax,(short)j+49152);
+                            }
+                        }
                     }
-                    else if ((rxi[2]-(*x))*(ryi[3]-(*y)) < (rxi[3]-(*x))*(ryi[2]-(*y)))
-                    {
-                        if (clipinsideboxline(cx,cy,rxi[3],ryi[3],rxi[2],ryi[2],rad) != 0)
-                            addclipline(rxi[3]+day,ryi[3]-dax,rxi[2]-dax,ryi[2]-day,(short)j+49152);
-                    }
-
-                    if ((rxi[1]-(*x))*(ryi[2]-(*y)) < (rxi[2]-(*x))*(ryi[1]-(*y)))
-                    {
-                        if (clipinsideboxline(cx,cy,rxi[2],ryi[2],rxi[1],ryi[1],rad) != 0)
-                            addclipline(rxi[2]-dax,ryi[2]-day,rxi[1]-day,ryi[1]+dax,(short)j+49152);
-                    }
-                    else if ((rxi[3]-(*x))*(ryi[0]-(*y)) < (rxi[0]-(*x))*(ryi[3]-(*y)))
-                    {
-                        if (clipinsideboxline(cx,cy,rxi[0],ryi[0],rxi[3],ryi[3],rad) != 0)
-                            addclipline(rxi[0]+dax,ryi[0]+day,rxi[3]+day,ryi[3]-dax,(short)j+49152);
-                    }
-                }
-                break;
+                    break;
             }
         }
     } while (clipsectcnt < clipsectnum);
 
 
     cnt = clipmoveboxtracenum;
-    do
-    {
+    do {
         intx = goalx;
         inty = goaly;
-        if ((hitwall = raytrace(*x, *y, &intx, &inty)) >= 0)
-        {
+        if ((hitwall = raytrace(*x, *y, &intx, &inty)) >= 0) {
             lx = clipit[hitwall].x2-clipit[hitwall].x1;
             ly = clipit[hitwall].y2-clipit[hitwall].y1;
             templong2 = lx*lx + ly*ly;
-            if (templong2 > 0)
-            {
+            if (templong2 > 0) {
                 templong1 = (goalx-intx)*lx + (goaly-inty)*ly;
 
-                if ((klabs(templong1)>>11) < templong2)
+                if ((klabs(templong1)>>11) < templong2) {
                     i = divscale20(templong1,templong2);
-                else
+                } else {
                     i = 0;
+                }
                 goalx = mulscale20(lx,i)+intx;
                 goaly = mulscale20(ly,i)+inty;
             }
 
             templong1 = dmulscale6(lx,oxvect,ly,oyvect);
-            for(i=cnt+1; i<=clipmoveboxtracenum; i++)
-            {
+            for (i=cnt+1; i<=clipmoveboxtracenum; i++) {
                 j = hitwalls[i];
                 templong2 = dmulscale6(clipit[j].x2-clipit[j].x1,oxvect,clipit[j].y2-clipit[j].y1,oyvect);
-                if ((templong1^templong2) < 0)
-                {
+                if ((templong1^templong2) < 0) {
                     updatesector(*x,*y,sectnum);
                     return(retval);
                 }
@@ -7060,7 +7567,9 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
             xvect = ((goalx-intx)<<14);
             yvect = ((goaly-inty)<<14);
 
-            if (cnt == clipmoveboxtracenum) retval = clipobjectval[hitwall];
+            if (cnt == clipmoveboxtracenum) {
+                retval = clipobjectval[hitwall];
+            }
             hitwalls[cnt] = hitwall;
         }
         cnt--;
@@ -7069,45 +7578,39 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
         *y = inty;
     } while (((xvect|yvect) != 0) && (hitwall >= 0) && (cnt > 0));
 
-    for(j=0; j<clipsectnum; j++)
-        if (inside(*x,*y,clipsectorlist[j]) == 1)
-        {
+    for (j=0; j<clipsectnum; j++)
+        if (inside(*x,*y,clipsectorlist[j]) == 1) {
             *sectnum = clipsectorlist[j];
             return(retval);
         }
 
     *sectnum = -1;
     templong1 = 0x7fffffff;
-    for(j=numsectors-1; j>=0; j--)
-        if (inside(*x,*y,j) == 1)
-        {
-            if (sector[j].ceilingstat&2)
+    for (j=numsectors-1; j>=0; j--)
+        if (inside(*x,*y,j) == 1) {
+            if (sector[j].ceilingstat&2) {
                 templong2 = (getceilzofslope((short)j,*x,*y)-(*z));
-            else
+            } else {
                 templong2 = (sector[j].ceilingz-(*z));
+            }
 
-            if (templong2 > 0)
-            {
-                if (templong2 < templong1)
-                {
+            if (templong2 > 0) {
+                if (templong2 < templong1) {
                     *sectnum = j;
                     templong1 = templong2;
                 }
-            }
-            else
-            {
-                if (sector[j].floorstat&2)
+            } else {
+                if (sector[j].floorstat&2) {
                     templong2 = ((*z)-getflorzofslope((short)j,*x,*y));
-                else
+                } else {
                     templong2 = ((*z)-sector[j].floorz);
+                }
 
-                if (templong2 <= 0)
-                {
+                if (templong2 <= 0) {
                     *sectnum = j;
                     return(retval);
                 }
-                if (templong2 < templong1)
-                {
+                if (templong2 < templong1) {
                     *sectnum = j;
                     templong1 = templong2;
                 }
@@ -7129,35 +7632,38 @@ int pushmove(int32_t *x, int32_t *y, int32_t *z, short *sectnum,
     short startwall, endwall, clipsectcnt;
     uint8_t  bad2;
 
-    if ((*sectnum) < 0) return(-1);
+    if ((*sectnum) < 0) {
+        return(-1);
+    }
 
     dawalclipmask = (cliptype&65535);
 
     k = 32;
     dir = 1;
-    do
-    {
+    do {
         bad = 0;
 
         clipsectorlist[0] = *sectnum;
         clipsectcnt = 0;
         clipsectnum = 1;
-        do
-        {
+        do {
             sec = &sector[clipsectorlist[clipsectcnt]];
-            if (dir > 0)
+            if (dir > 0) {
                 startwall = sec->wallptr, endwall = startwall + sec->wallnum;
-            else
+            } else {
                 endwall = sec->wallptr, startwall = endwall + sec->wallnum;
+            }
 
-            for(i=startwall,wal=&wall[startwall]; i!=endwall; i+=dir,wal+=dir)
-                if (clipinsidebox(*x,*y,i,walldist-4) == 1)
-                {
+            for (i=startwall,wal=&wall[startwall]; i!=endwall; i+=dir,wal+=dir)
+                if (clipinsidebox(*x,*y,i,walldist-4) == 1) {
                     j = 0;
-                    if (wal->nextsector < 0) j = 1;
-                    if (wal->cstat&dawalclipmask) j = 1;
-                    if (j == 0)
-                    {
+                    if (wal->nextsector < 0) {
+                        j = 1;
+                    }
+                    if (wal->cstat&dawalclipmask) {
+                        j = 1;
+                    }
+                    if (j == 0) {
                         sec2 = &sector[wal->nextsector];
 
 
@@ -7165,13 +7671,15 @@ int pushmove(int32_t *x, int32_t *y, int32_t *z, short *sectnum,
                         dax = wall[wal->point2].x-wal->x;
                         day = wall[wal->point2].y-wal->y;
                         daz = dax*((*x)-wal->x) + day*((*y)-wal->y);
-                        if (daz <= 0)
+                        if (daz <= 0) {
                             t = 0;
-                        else
-                        {
+                        } else {
                             daz2 = dax*dax+day*day;
-                            if (daz >= daz2) t = (1<<30);
-                            else t = divscale30(daz,daz2);
+                            if (daz >= daz2) {
+                                t = (1<<30);
+                            } else {
+                                t = divscale30(daz,daz2);
+                            }
                         }
                         dax = wal->x + mulscale30(dax,t);
                         day = wal->y + mulscale30(day,t);
@@ -7180,36 +7688,44 @@ int pushmove(int32_t *x, int32_t *y, int32_t *z, short *sectnum,
                         daz = getflorzofslope(clipsectorlist[clipsectcnt],dax,day);
                         daz2 = getflorzofslope(wal->nextsector,dax,day);
                         if ((daz2 < daz-(1<<8)) && ((sec2->floorstat&1) == 0))
-                            if (*z >= daz2-(flordist-1)) j = 1;
+                            if (*z >= daz2-(flordist-1)) {
+                                j = 1;
+                            }
 
                         daz = getceilzofslope(clipsectorlist[clipsectcnt],dax,day);
                         daz2 = getceilzofslope(wal->nextsector,dax,day);
                         if ((daz2 > daz+(1<<8)) && ((sec2->ceilingstat&1) == 0))
-                            if (*z <= daz2+(ceildist-1)) j = 1;
+                            if (*z <= daz2+(ceildist-1)) {
+                                j = 1;
+                            }
                     }
-                    if (j != 0)
-                    {
+                    if (j != 0) {
                         j = getangle(wall[wal->point2].x-wal->x,wall[wal->point2].y-wal->y);
-			dx = (fixedPointSin((j+1024))>>11);
-			dy = (fixedPointSin((j+512))>>11);
+                        dx = (fixedPointSin((j+1024))>>11);
+                        dy = (fixedPointSin((j+512))>>11);
                         bad2 = 16;
-                        do
-                        {
+                        do {
                             *x = (*x) + dx;
                             *y = (*y) + dy;
                             bad2--;
-                            if (bad2 == 0) break;
+                            if (bad2 == 0) {
+                                break;
+                            }
                         } while (clipinsidebox(*x,*y,i,walldist-4) != 0);
                         bad = -1;
                         k--;
-                        if (k <= 0) return(bad);
+                        if (k <= 0) {
+                            return(bad);
+                        }
                         updatesector(*x,*y,sectnum);
-                    }
-                    else
-                    {
-                        for(j=clipsectnum-1; j>=0; j--)
-                            if (wal->nextsector == clipsectorlist[j]) break;
-                        if (j < 0) clipsectorlist[clipsectnum++] = wal->nextsector;
+                    } else {
+                        for (j=clipsectnum-1; j>=0; j--)
+                            if (wal->nextsector == clipsectorlist[j]) {
+                                break;
+                            }
+                        if (j < 0) {
+                            clipsectorlist[clipsectnum++] = wal->nextsector;
+                        }
                     }
                 }
 
@@ -7239,23 +7755,19 @@ void updatesector(int32_t x, int32_t y, short *lastKnownSector)
     int32_t i, j;
 
     //First check the last sector where (old_x,old_y) was before being updated to (x,y)
-    if (inside(x,y,*lastKnownSector) == 1)
-    {
+    if (inside(x,y,*lastKnownSector) == 1) {
         //We found it and (x,y) is still in the same sector: nothing to update !
         return;
     }
 
     // Seems (x,y) moved into an other sector....hopefully one connected via a portal. Let's flood in each portal.
-    if ((*lastKnownSector >= 0) && (*lastKnownSector < numsectors))
-    {
+    if ((*lastKnownSector >= 0) && (*lastKnownSector < numsectors)) {
         wal = &wall[sector[*lastKnownSector].wallptr];
         j = sector[*lastKnownSector].wallnum;
-        do
-        {
+        do {
             i = wal->nextsector;
             if (i >= 0)
-                if (inside(x,y,(short)i) == 1)
-                {
+                if (inside(x,y,(short)i) == 1) {
                     *lastKnownSector = i;
                     return;
                 }
@@ -7265,10 +7777,8 @@ void updatesector(int32_t x, int32_t y, short *lastKnownSector)
     }
 
     //Damn that is a BIG move, still cannot find which sector (x,y) belongs to. Let's search via linear search.
-    for(i=numsectors-1; i>=0; i--)
-    {
-        if (inside(x,y,(short)i) == 1)
-        {
+    for (i=numsectors-1; i>=0; i--) {
+        if (inside(x,y,(short)i) == 1) {
             *lastKnownSector = i;
             return;
         }
@@ -7320,43 +7830,40 @@ void getmousevalues(short *mousx, short *mousy, short *bstatus)
  *  other cause flicker, so I have this function here so the shadow can
  *  be drawn with _noupdate, and the actual string is draw with an update.
  */
-void printext256(int32_t xpos, int32_t ypos, short col, short backcol, char*  name, uint8_t  fontsize)
+void printext256(int32_t xpos, int32_t ypos, short col, short backcol, char  *name, uint8_t  fontsize)
 {
     int32_t stx, i, x, y, charxsiz;
     uint8_t  *fontptr, *letptr, *ptr;
 
-	
+
 
     stx = xpos;
 
     if (fontsize) {
         fontptr = smalltextfont;
         charxsiz = 4;
-    }
-    else {
+    } else {
         fontptr = textfont;
         charxsiz = 8;
     }
 
     //For each character in the string.
-    for(i=0; name[i]; i++)
-    {
+    for (i=0; name[i]; i++) {
         letptr = &fontptr[name[i]<<3];
         ptr = ylookup[ypos+7]+(stx-fontsize)+frameplace;
-        for(y=7; y>=0; y--)
-        {
-            for(x=charxsiz-1; x>=0; x--)
-            {
-                if (letptr[y]&pow2char[7-fontsize-x])
+        for (y=7; y>=0; y--) {
+            for (x=charxsiz-1; x>=0; x--) {
+                if (letptr[y]&pow2char[7-fontsize-x]) {
                     ptr[x] = (uint8_t )col;
-                else if (backcol >= 0)
+                } else if (backcol >= 0) {
                     ptr[x] = (uint8_t )backcol;
+                }
             }
             ptr -= ylookup[1];
         }
         stx += charxsiz;
     }
-   
+
     _updateScreenRect(xpos, ypos, charxsiz * i, 8);
 }
 
@@ -7381,8 +7888,7 @@ void getzrange(int32_t x, int32_t y, int32_t z, short sectnum,
     short cstat;
     uint8_t  clipyou;
 
-    if (sectnum < 0)
-    {
+    if (sectnum < 0) {
         *ceilz = 0x80000000;
         *ceilhit = -1;
         *florz = 0x7fffffff;
@@ -7408,53 +7914,94 @@ void getzrange(int32_t x, int32_t y, int32_t z, short sectnum,
     clipsectcnt = 0;
     clipsectnum = 1;
 
-    do  /* Collect sectors inside your square first */
-    {
+    do { /* Collect sectors inside your square first */
         sec = &sector[clipsectorlist[clipsectcnt]];
         startwall = sec->wallptr;
         endwall = startwall + sec->wallnum;
-        for(j=startwall,wal=&wall[startwall]; j<endwall; j++,wal++)
-        {
+        for (j=startwall,wal=&wall[startwall]; j<endwall; j++,wal++) {
             k = wal->nextsector;
-            if (k >= 0)
-            {
+            if (k >= 0) {
                 wal2 = &wall[wal->point2];
                 x1 = wal->x;
                 x2 = wal2->x;
-                if ((x1 < xmin) && (x2 < xmin)) continue;
-                if ((x1 > xmax) && (x2 > xmax)) continue;
+                if ((x1 < xmin) && (x2 < xmin)) {
+                    continue;
+                }
+                if ((x1 > xmax) && (x2 > xmax)) {
+                    continue;
+                }
                 y1 = wal->y;
                 y2 = wal2->y;
-                if ((y1 < ymin) && (y2 < ymin)) continue;
-                if ((y1 > ymax) && (y2 > ymax)) continue;
+                if ((y1 < ymin) && (y2 < ymin)) {
+                    continue;
+                }
+                if ((y1 > ymax) && (y2 > ymax)) {
+                    continue;
+                }
 
                 dx = x2-x1;
                 dy = y2-y1;
-                if (dx*(y-y1) < (x-x1)*dy) continue; /* back */
-                if (dx > 0) dax = dx*(ymin-y1);
-                else dax = dx*(ymax-y1);
-                if (dy > 0) day = dy*(xmax-x1);
-                else day = dy*(xmin-x1);
-                if (dax >= day) continue;
+                if (dx*(y-y1) < (x-x1)*dy) {
+                    continue;    /* back */
+                }
+                if (dx > 0) {
+                    dax = dx*(ymin-y1);
+                } else {
+                    dax = dx*(ymax-y1);
+                }
+                if (dy > 0) {
+                    day = dy*(xmax-x1);
+                } else {
+                    day = dy*(xmin-x1);
+                }
+                if (dax >= day) {
+                    continue;
+                }
 
-                if (wal->cstat&dawalclipmask) continue;
+                if (wal->cstat&dawalclipmask) {
+                    continue;
+                }
                 sec = &sector[k];
 
-                if (((sec->ceilingstat&1) == 0) && (z <= sec->ceilingz+(3<<8))) continue;
-                if (((sec->floorstat&1) == 0) && (z >= sec->floorz-(3<<8))) continue;
+                if (((sec->ceilingstat&1) == 0) && (z <= sec->ceilingz+(3<<8))) {
+                    continue;
+                }
+                if (((sec->floorstat&1) == 0) && (z >= sec->floorz-(3<<8))) {
+                    continue;
+                }
 
-                for(i=clipsectnum-1; i>=0; i--) if (clipsectorlist[i] == k) break;
-                if (i < 0) clipsectorlist[clipsectnum++] = k;
+                for (i=clipsectnum-1; i>=0; i--) if (clipsectorlist[i] == k) {
+                        break;
+                    }
+                if (i < 0) {
+                    clipsectorlist[clipsectnum++] = k;
+                }
 
-                if ((x1 < xmin+MAXCLIPDIST) && (x2 < xmin+MAXCLIPDIST)) continue;
-                if ((x1 > xmax-MAXCLIPDIST) && (x2 > xmax-MAXCLIPDIST)) continue;
-                if ((y1 < ymin+MAXCLIPDIST) && (y2 < ymin+MAXCLIPDIST)) continue;
-                if ((y1 > ymax-MAXCLIPDIST) && (y2 > ymax-MAXCLIPDIST)) continue;
-                if (dx > 0) dax += dx*MAXCLIPDIST;
-                else dax -= dx*MAXCLIPDIST;
-                if (dy > 0) day -= dy*MAXCLIPDIST;
-                else day += dy*MAXCLIPDIST;
-                if (dax >= day) continue;
+                if ((x1 < xmin+MAXCLIPDIST) && (x2 < xmin+MAXCLIPDIST)) {
+                    continue;
+                }
+                if ((x1 > xmax-MAXCLIPDIST) && (x2 > xmax-MAXCLIPDIST)) {
+                    continue;
+                }
+                if ((y1 < ymin+MAXCLIPDIST) && (y2 < ymin+MAXCLIPDIST)) {
+                    continue;
+                }
+                if ((y1 > ymax-MAXCLIPDIST) && (y2 > ymax-MAXCLIPDIST)) {
+                    continue;
+                }
+                if (dx > 0) {
+                    dax += dx*MAXCLIPDIST;
+                } else {
+                    dax -= dx*MAXCLIPDIST;
+                }
+                if (dy > 0) {
+                    day -= dy*MAXCLIPDIST;
+                } else {
+                    day += dy*MAXCLIPDIST;
+                }
+                if (dax >= day) {
+                    continue;
+                }
 
                 /* It actually got here, through all the continue's! */
                 getzsofslope((short)k,x,y,&daz,&daz2);
@@ -7471,133 +8018,147 @@ void getzrange(int32_t x, int32_t y, int32_t z, short sectnum,
         clipsectcnt++;
     } while (clipsectcnt < clipsectnum);
 
-    for(i=0; i<clipsectnum; i++)
-    {
-        for(j=headspritesect[clipsectorlist[i]]; j>=0; j=nextspritesect[j])
-        {
+    for (i=0; i<clipsectnum; i++) {
+        for (j=headspritesect[clipsectorlist[i]]; j>=0; j=nextspritesect[j]) {
             spr = &sprite[j];
             cstat = spr->cstat;
-            if (cstat&dasprclipmask)
-            {
+            if (cstat&dasprclipmask) {
                 x1 = spr->x;
                 y1 = spr->y;
 
                 clipyou = 0;
-                switch(cstat&48)
-                {
-                case 0:
-                    k = walldist+(spr->clipdist<<2)+1;
-                    if ((klabs(x1-x) <= k) && (klabs(y1-y) <= k))
-                    {
+                switch (cstat&48) {
+                    case 0:
+                        k = walldist+(spr->clipdist<<2)+1;
+                        if ((klabs(x1-x) <= k) && (klabs(y1-y) <= k)) {
+                            daz = spr->z;
+                            k = ((tiles[spr->picnum].dim.height*spr->yrepeat)<<1);
+                            if (cstat&128) {
+                                daz += k;
+                            }
+                            if (tiles[spr->picnum].animFlags&0x00ff0000) {
+                                daz -= ((int32_t)((int8_t  )((tiles[spr->picnum].animFlags>>16)&255))*spr->yrepeat<<2);
+                            }
+                            daz2 = daz - (k<<1);
+                            clipyou = 1;
+                        }
+                        break;
+                    case 16:
+                        tilenum = spr->picnum;
+                        xoff = (int32_t)((int8_t  )((tiles[tilenum].animFlags>>8)&255))+((int32_t)spr->xoffset);
+                        if ((cstat&4) > 0) {
+                            xoff = -xoff;
+                        }
+                        k = spr->ang;
+                        l = spr->xrepeat;
+                        dax = fixedPointSin(k)*l;
+                        day = fixedPointSin((k+1536))*l;
+                        l = tiles[tilenum].dim.width;
+                        k = (l>>1)+xoff;
+                        x1 -= mulscale16(dax,k);
+                        x2 = x1+mulscale16(dax,l);
+                        y1 -= mulscale16(day,k);
+                        y2 = y1+mulscale16(day,l);
+                        if (clipinsideboxline(x,y,x1,y1,x2,y2,walldist+1) != 0) {
+                            daz = spr->z;
+                            k = ((tiles[spr->picnum].dim.height*spr->yrepeat)<<1);
+                            if (cstat&128) {
+                                daz += k;
+                            }
+
+                            if (tiles[spr->picnum].animFlags&0x00ff0000) {
+                                daz -= ((int32_t)((int8_t  )((tiles[spr->picnum].animFlags>>16)&255))*spr->yrepeat<<2);
+                            }
+
+                            daz2 = daz-(k<<1);
+                            clipyou = 1;
+                        }
+                        break;
+                    case 32:
                         daz = spr->z;
-                        k = ((tiles[spr->picnum].dim.height*spr->yrepeat)<<1);
-                        if (cstat&128)
-                            daz += k;
-                        if (tiles[spr->picnum].animFlags&0x00ff0000) daz -= ((int32_t)((int8_t  )((tiles[spr->picnum].animFlags>>16)&255))*spr->yrepeat<<2);
-                        daz2 = daz - (k<<1);
-                        clipyou = 1;
-                    }
-                    break;
-                case 16:
-                    tilenum = spr->picnum;
-                    xoff = (int32_t)((int8_t  )((tiles[tilenum].animFlags>>8)&255))+((int32_t)spr->xoffset);
-                    if ((cstat&4) > 0) xoff = -xoff;
-                    k = spr->ang;
-                    l = spr->xrepeat;
-		    dax = fixedPointSin(k)*l;
-		    day = fixedPointSin((k+1536))*l;
-                    l = tiles[tilenum].dim.width;
-                    k = (l>>1)+xoff;
-                    x1 -= mulscale16(dax,k);
-                    x2 = x1+mulscale16(dax,l);
-                    y1 -= mulscale16(day,k);
-                    y2 = y1+mulscale16(day,l);
-                    if (clipinsideboxline(x,y,x1,y1,x2,y2,walldist+1) != 0)
-                    {
-                        daz = spr->z;
-                        k = ((tiles[spr->picnum].dim.height*spr->yrepeat)<<1);
-                        if (cstat&128)
-                            daz += k;
-                        
-                        if (tiles[spr->picnum].animFlags&0x00ff0000) 
-                            daz -= ((int32_t)((int8_t  )((tiles[spr->picnum].animFlags>>16)&255))*spr->yrepeat<<2);
-                        
-                        daz2 = daz-(k<<1);
-                        clipyou = 1;
-                    }
-                    break;
-                case 32:
-                    daz = spr->z;
-                    daz2 = daz;
+                        daz2 = daz;
 
-                    if ((cstat&64) != 0)
-                        if ((z > daz) == ((cstat&8)==0)) continue;
+                        if ((cstat&64) != 0)
+                            if ((z > daz) == ((cstat&8)==0)) {
+                                continue;
+                            }
 
-                    tilenum = spr->picnum;
-                    xoff = (int32_t)((int8_t  )((tiles[tilenum].animFlags>>8)&255))+((int32_t)spr->xoffset);
-                    yoff = (int32_t)((int8_t  )((tiles[tilenum].animFlags>>16)&255))+((int32_t)spr->yoffset);
-                    if ((cstat&4) > 0) xoff = -xoff;
-                    if ((cstat&8) > 0) yoff = -yoff;
+                        tilenum = spr->picnum;
+                        xoff = (int32_t)((int8_t  )((tiles[tilenum].animFlags>>8)&255))+((int32_t)spr->xoffset);
+                        yoff = (int32_t)((int8_t  )((tiles[tilenum].animFlags>>16)&255))+((int32_t)spr->yoffset);
+                        if ((cstat&4) > 0) {
+                            xoff = -xoff;
+                        }
+                        if ((cstat&8) > 0) {
+                            yoff = -yoff;
+                        }
 
-                    ang = spr->ang;
-		    cosang = fixedPointSin((ang+512));
-		    sinang = fixedPointSin(ang);
-                    xspan = tiles[tilenum].dim.width;
-                    xrepeat = spr->xrepeat;
-                    yspan = tiles[tilenum].dim.height;
-                    yrepeat = spr->yrepeat;
+                        ang = spr->ang;
+                        cosang = fixedPointSin((ang+512));
+                        sinang = fixedPointSin(ang);
+                        xspan = tiles[tilenum].dim.width;
+                        xrepeat = spr->xrepeat;
+                        yspan = tiles[tilenum].dim.height;
+                        yrepeat = spr->yrepeat;
 
-                    dax = ((xspan>>1)+xoff)*xrepeat;
-                    day = ((yspan>>1)+yoff)*yrepeat;
-                    x1 += dmulscale16(sinang,dax,cosang,day)-x;
-                    y1 += dmulscale16(sinang,day,-cosang,dax)-y;
-                    l = xspan*xrepeat;
-                    x2 = x1 - mulscale16(sinang,l);
-                    y2 = y1 + mulscale16(cosang,l);
-                    l = yspan*yrepeat;
-                    k = -mulscale16(cosang,l);
-                    x3 = x2+k;
-                    x4 = x1+k;
-                    k = -mulscale16(sinang,l);
-                    y3 = y2+k;
-                    y4 = y1+k;
+                        dax = ((xspan>>1)+xoff)*xrepeat;
+                        day = ((yspan>>1)+yoff)*yrepeat;
+                        x1 += dmulscale16(sinang,dax,cosang,day)-x;
+                        y1 += dmulscale16(sinang,day,-cosang,dax)-y;
+                        l = xspan*xrepeat;
+                        x2 = x1 - mulscale16(sinang,l);
+                        y2 = y1 + mulscale16(cosang,l);
+                        l = yspan*yrepeat;
+                        k = -mulscale16(cosang,l);
+                        x3 = x2+k;
+                        x4 = x1+k;
+                        k = -mulscale16(sinang,l);
+                        y3 = y2+k;
+                        y4 = y1+k;
 
-		    dax = mulscale14(fixedPointSin((spr->ang-256+512)),walldist+4);
-		    day = mulscale14(fixedPointSin((spr->ang-256)),walldist+4);
-                    x1 += dax;
-                    x2 -= day;
-                    x3 -= dax;
-                    x4 += day;
-                    y1 += day;
-                    y2 += dax;
-                    y3 -= day;
-                    y4 -= dax;
+                        dax = mulscale14(fixedPointSin((spr->ang-256+512)),walldist+4);
+                        day = mulscale14(fixedPointSin((spr->ang-256)),walldist+4);
+                        x1 += dax;
+                        x2 -= day;
+                        x3 -= dax;
+                        x4 += day;
+                        y1 += day;
+                        y2 += dax;
+                        y3 -= day;
+                        y4 -= dax;
 
-                    if ((y1^y2) < 0)
-                    {
-                        if ((x1^x2) < 0) clipyou ^= (x1*y2<x2*y1)^(y1<y2);
-                        else if (x1 >= 0) clipyou ^= 1;
-                    }
-                    if ((y2^y3) < 0)
-                    {
-                        if ((x2^x3) < 0) clipyou ^= (x2*y3<x3*y2)^(y2<y3);
-                        else if (x2 >= 0) clipyou ^= 1;
-                    }
-                    if ((y3^y4) < 0)
-                    {
-                        if ((x3^x4) < 0) clipyou ^= (x3*y4<x4*y3)^(y3<y4);
-                        else if (x3 >= 0) clipyou ^= 1;
-                    }
-                    if ((y4^y1) < 0)
-                    {
-                        if ((x4^x1) < 0) clipyou ^= (x4*y1<x1*y4)^(y4<y1);
-                        else if (x4 >= 0) clipyou ^= 1;
-                    }
-                    break;
+                        if ((y1^y2) < 0) {
+                            if ((x1^x2) < 0) {
+                                clipyou ^= (x1*y2<x2*y1)^(y1<y2);
+                            } else if (x1 >= 0) {
+                                clipyou ^= 1;
+                            }
+                        }
+                        if ((y2^y3) < 0) {
+                            if ((x2^x3) < 0) {
+                                clipyou ^= (x2*y3<x3*y2)^(y2<y3);
+                            } else if (x2 >= 0) {
+                                clipyou ^= 1;
+                            }
+                        }
+                        if ((y3^y4) < 0) {
+                            if ((x3^x4) < 0) {
+                                clipyou ^= (x3*y4<x4*y3)^(y3<y4);
+                            } else if (x3 >= 0) {
+                                clipyou ^= 1;
+                            }
+                        }
+                        if ((y4^y1) < 0) {
+                            if ((x4^x1) < 0) {
+                                clipyou ^= (x4*y1<x1*y4)^(y4<y1);
+                            } else if (x4 >= 0) {
+                                clipyou ^= 1;
+                            }
+                        }
+                        break;
                 }
 
-                if (clipyou != 0)
-                {
+                if (clipyou != 0) {
                     if ((z > daz) && (daz > *ceilz)) {
                         *ceilz = daz;
                         *ceilhit = j+49152;
@@ -7636,14 +8197,13 @@ void setview(int32_t x1, int32_t y1, int32_t x2, int32_t y2)
 
     setaspect(65536L,(int32_t)divscale16(ydim*320L,xdim*200L));
 
-    for(i=0; i<windowx1; i++) {
+    for (i=0; i<windowx1; i++) {
         startumost[i] = 1, startdmost[i] = 0;
     }
-    for(i=windowx1; i<=windowx2; i++)
-    {
+    for (i=windowx1; i<=windowx2; i++) {
         startumost[i] = windowy1, startdmost[i] = windowy2+1;
     }
-    for(i=windowx2+1; i<xdim; i++) {
+    for (i=windowx2+1; i<xdim; i++) {
         startumost[i] = 1, startdmost[i] = 0;
     }
 
@@ -7678,29 +8238,36 @@ void rotatesprite(int32_t sx, int32_t sy, int32_t z, short a, short picnum,
     permfifotype *per, *per2;
 
     //If 2D target coordinate do not make sense (left > right)..
-    if ((cx1 > cx2) || (cy1 > cy2))
+    if ((cx1 > cx2) || (cy1 > cy2)) {
         return;
-    
-    if (z <= 16)
-        return;
-    
-    if (tiles[picnum].animFlags&192)
-        picnum += animateoffs(picnum);
-    
-    //Does the tile has negative dimensions ?
-    if ((tiles[picnum].dim.width <= 0) || (tiles[picnum].dim.height <= 0))
-        return;
+    }
 
-    if (((dastat&128) == 0) || (numpages < 2) || (beforedrawrooms != 0))
+    if (z <= 16) {
+        return;
+    }
+
+    if (tiles[picnum].animFlags&192) {
+        picnum += animateoffs(picnum);
+    }
+
+    //Does the tile has negative dimensions ?
+    if ((tiles[picnum].dim.width <= 0) || (tiles[picnum].dim.height <= 0)) {
+        return;
+    }
+
+    if (((dastat&128) == 0) || (numpages < 2) || (beforedrawrooms != 0)) {
         dorotatesprite(sx,sy,z,a,picnum,dashade,dapalnum,dastat,cx1,cy1,cx2,cy2);
+    }
 
     if ((dastat&64) && (cx1 <= 0) && (cy1 <= 0) && (cx2 >= xdim-1) && (cy2 >= ydim-1) &&
-            (sx == (160<<16)) && (sy == (100<<16)) && (z == 65536L) && (a == 0) && ((dastat&1) == 0))
+        (sx == (160<<16)) && (sy == (100<<16)) && (z == 65536L) && (a == 0) && ((dastat&1) == 0)) {
         permhead = permtail = 0;
+    }
 
-    if ((dastat&128) == 0) return;
-    if (numpages >= 2)
-    {
+    if ((dastat&128) == 0) {
+        return;
+    }
+    if (numpages >= 2) {
         per = &permfifo[permhead];
         per->sx = sx;
         per->sy = sy;
@@ -7717,44 +8284,81 @@ void rotatesprite(int32_t sx, int32_t sy, int32_t z, short a, short picnum,
         per->cy2 = cy2;
 
         /* Would be better to optimize out true bounding boxes */
-        if (dastat&64)  /* If non-masking write, checking for overlapping cases */
-        {
-            for(i=permtail; i!=permhead; i=((i+1)&(MAXPERMS-1)))
-            {
+        if (dastat&64) { /* If non-masking write, checking for overlapping cases */
+            for (i=permtail; i!=permhead; i=((i+1)&(MAXPERMS-1))) {
                 per2 = &permfifo[i];
-                if ((per2->pagesleft&127) == 0) continue;
-                if (per2->sx != per->sx) continue;
-                if (per2->sy != per->sy) continue;
-                if (per2->z != per->z) continue;
-                if (per2->a != per->a) continue;
-                if (tiles[per2->picnum].dim.width > tiles[per->picnum].dim.width)
+                if ((per2->pagesleft&127) == 0) {
                     continue;
-                
-                if (tiles[per2->picnum].dim.height > tiles[per->picnum].dim.height)
+                }
+                if (per2->sx != per->sx) {
                     continue;
-                if (per2->cx1 < per->cx1) continue;
-                if (per2->cy1 < per->cy1) continue;
-                if (per2->cx2 > per->cx2) continue;
-                if (per2->cy2 > per->cy2) continue;
+                }
+                if (per2->sy != per->sy) {
+                    continue;
+                }
+                if (per2->z != per->z) {
+                    continue;
+                }
+                if (per2->a != per->a) {
+                    continue;
+                }
+                if (tiles[per2->picnum].dim.width > tiles[per->picnum].dim.width) {
+                    continue;
+                }
+
+                if (tiles[per2->picnum].dim.height > tiles[per->picnum].dim.height) {
+                    continue;
+                }
+                if (per2->cx1 < per->cx1) {
+                    continue;
+                }
+                if (per2->cy1 < per->cy1) {
+                    continue;
+                }
+                if (per2->cx2 > per->cx2) {
+                    continue;
+                }
+                if (per2->cy2 > per->cy2) {
+                    continue;
+                }
                 per2->pagesleft = 0;
             }
             if ((per->z == 65536) && (per->a == 0))
-                for(i=permtail; i!=permhead; i=((i+1)&(MAXPERMS-1)))
-                {
+                for (i=permtail; i!=permhead; i=((i+1)&(MAXPERMS-1))) {
                     per2 = &permfifo[i];
-                    if ((per2->pagesleft&127) == 0) continue;
-                    if (per2->z != 65536) continue;
-                    if (per2->a != 0) continue;
-                    if (per2->cx1 < per->cx1) continue;
-                    if (per2->cy1 < per->cy1) continue;
-                    if (per2->cx2 > per->cx2) continue;
-                    if (per2->cy2 > per->cy2) continue;
-                    if ((per2->sx>>16) < (per->sx>>16)) continue;
-                    if ((per2->sy>>16) < (per->sy>>16)) continue;
-                    if ((per2->sx>>16)+tiles[per2->picnum].dim.width > (per->sx>>16)+tiles[per->picnum].dim.width)
+                    if ((per2->pagesleft&127) == 0) {
                         continue;
-                    if ((per2->sy>>16)+tiles[per2->picnum].dim.height > (per->sy>>16)+tiles[per->picnum].dim.height)
+                    }
+                    if (per2->z != 65536) {
                         continue;
+                    }
+                    if (per2->a != 0) {
+                        continue;
+                    }
+                    if (per2->cx1 < per->cx1) {
+                        continue;
+                    }
+                    if (per2->cy1 < per->cy1) {
+                        continue;
+                    }
+                    if (per2->cx2 > per->cx2) {
+                        continue;
+                    }
+                    if (per2->cy2 > per->cy2) {
+                        continue;
+                    }
+                    if ((per2->sx>>16) < (per->sx>>16)) {
+                        continue;
+                    }
+                    if ((per2->sy>>16) < (per->sy>>16)) {
+                        continue;
+                    }
+                    if ((per2->sx>>16)+tiles[per2->picnum].dim.width > (per->sx>>16)+tiles[per->picnum].dim.width) {
+                        continue;
+                    }
+                    if ((per2->sy>>16)+tiles[per2->picnum].dim.height > (per->sy>>16)+tiles[per->picnum].dim.height) {
+                        continue;
+                    }
                     per2->pagesleft = 0;
                 }
         }
@@ -7779,20 +8383,18 @@ static int getclosestcol(int32_t r, int32_t g, int32_t b)
     b = 64-b;
 
     retcol = -1;
-    for(k=26; k>=0; k--)
-    {
+    for (k=26; k>=0; k--) {
         i = colscan[k]+j;
-        if ((colhere[i>>3]&pow2char[i&7]) == 0) continue;
+        if ((colhere[i>>3]&pow2char[i&7]) == 0) {
+            continue;
+        }
         i = colhead[i];
-        do
-        {
-            pal1 = (uint8_t  *)&palette[i*3];
+        do {
+            pal1 = (uint8_t *)&palette[i*3];
             dist = gdist[pal1[1]+g];
-            if (dist < mindist)
-            {
+            if (dist < mindist) {
                 dist += rdist[pal1[0]+r];
-                if (dist < mindist)
-                {
+                if (dist < mindist) {
                     dist += bdist[pal1[2]+b];
                     if (dist < mindist) {
                         mindist = dist;
@@ -7803,18 +8405,25 @@ static int getclosestcol(int32_t r, int32_t g, int32_t b)
             i = colnext[i];
         } while (i >= 0);
     }
-    if (retcol >= 0) return(retcol);
+    if (retcol >= 0) {
+        return(retcol);
+    }
 
     mindist = 0x7fffffff;
-    pal1 = (uint8_t  *)&palette[768-3];
-    for(i=255; i>=0; i--,pal1-=3)
-    {
+    pal1 = (uint8_t *)&palette[768-3];
+    for (i=255; i>=0; i--,pal1-=3) {
         dist = gdist[pal1[1]+g];
-        if (dist >= mindist) continue;
+        if (dist >= mindist) {
+            continue;
+        }
         dist += rdist[pal1[0]+r];
-        if (dist >= mindist) continue;
+        if (dist >= mindist) {
+            continue;
+        }
         dist += bdist[pal1[2]+b];
-        if (dist >= mindist) continue;
+        if (dist >= mindist) {
+            continue;
+        }
         mindist = dist;
         retcol = i;
     }
@@ -7828,42 +8437,40 @@ void makepalookup(int32_t palnum, uint8_t  *remapbuf, int8_t r,
     int32_t i, j, palscale;
     uint8_t  *ptr, *ptr2;
 
-    if (paletteloaded == 0)
+    if (paletteloaded == 0) {
         return;
-
-    if (palookup[palnum] == NULL)
-    {
-        /* Allocate palookup buffer */
-        if ((palookup[palnum] = (uint8_t  *)kkmalloc(numpalookups<<8)) == NULL)
-            allocache((int32_t *)&palookup[palnum],numpalookups<<8,&permanentlock);
     }
 
-    if (dastat == 0) return;
-    if ((r|g|b|63) != 63) return;
+    if (palookup[palnum] == NULL) {
+        /* Allocate palookup buffer */
+        if ((palookup[palnum] = (uint8_t *)kkmalloc(numpalookups<<8)) == NULL) {
+            allocache((int32_t *)&palookup[palnum],numpalookups<<8,&permanentlock);
+        }
+    }
 
-    if ((r|g|b) == 0)
-    {
-        for(i=0; i<256; i++)
-        {
-            ptr = (uint8_t  *)(FP_OFF(palookup[0])+remapbuf[i]);
-            ptr2 = (uint8_t  *)(FP_OFF(palookup[palnum])+i);
-            for(j=0; j<numpalookups; j++)
-            {
+    if (dastat == 0) {
+        return;
+    }
+    if ((r|g|b|63) != 63) {
+        return;
+    }
+
+    if ((r|g|b) == 0) {
+        for (i=0; i<256; i++) {
+            ptr = (uint8_t *)(FP_OFF(palookup[0])+remapbuf[i]);
+            ptr2 = (uint8_t *)(FP_OFF(palookup[palnum])+i);
+            for (j=0; j<numpalookups; j++) {
                 *ptr2 = *ptr;
                 ptr += 256;
                 ptr2 += 256;
             }
         }
-    }
-    else
-    {
-        ptr2 = (uint8_t  *)FP_OFF(palookup[palnum]);
-        for(i=0; i<numpalookups; i++)
-        {
+    } else {
+        ptr2 = (uint8_t *)FP_OFF(palookup[palnum]);
+        for (i=0; i<numpalookups; i++) {
             palscale = divscale16(i,numpalookups);
-            for(j=0; j<256; j++)
-            {
-                ptr = (uint8_t  *)&palette[remapbuf[j]*3];
+            for (j=0; j<256; j++) {
+                ptr = (uint8_t *)&palette[remapbuf[j]*3];
                 *ptr2++ = getclosestcol((int32_t)ptr[0]+mulscale16(r-ptr[0],palscale),
                                         (int32_t)ptr[1]+mulscale16(g-ptr[1],palscale),
                                         (int32_t)ptr[2]+mulscale16(b-ptr[2],palscale));
@@ -7877,19 +8484,19 @@ void setbrightness(uint8_t  dabrightness, uint8_t  *dapal)
 {
     int32_t i, k;
     uint8_t newPalette[256*4];
-    
+
     //Clamp bightness to [0-15]
     curbrightness = min(max(dabrightness,0),15);
 
     k = 0;
-   
-    for(i=0; i<256; i++){
+
+    for (i=0; i<256; i++) {
         newPalette[k++] = britable[curbrightness][dapal[i*3+2]];
         newPalette[k++] = britable[curbrightness][dapal[i*3+1]];
         newPalette[k++] = britable[curbrightness][dapal[i*3+0]];
         newPalette[k++] = 0;
     }
-    
+
 
     VBE_setPalette(newPalette);
 }
@@ -7902,51 +8509,48 @@ static void fillpolygon(int32_t npoints, uint8_t polyType, int32_t a1, int32_t a
     short *ptr, *ptr2;
     short *dotp1[MAXYDIM], *dotp2[MAXYDIM];
     static short smost[MAXYSAVES];
-    
+
     miny = 0x7fffffff;
     maxy = 0x80000000;
-    for(z=npoints-1; z>=0; z--)
-    {
+    for (z=npoints-1; z>=0; z--) {
         y = pvWalls[z].cameraSpaceCoo[0][VEC_Y];
         miny = min(miny,y);
         maxy = max(maxy,y);
     }
     miny = (miny>>12);
     maxy = (maxy>>12);
-    if (miny < 0) miny = 0;
-    if (maxy >= ydim) maxy = ydim-1;
+    if (miny < 0) {
+        miny = 0;
+    }
+    if (maxy >= ydim) {
+        maxy = ydim-1;
+    }
     ptr = smost;    /* They're pointers! - watch how you optimize this thing */
-    for(y=miny; y<=maxy; y++)
-    {
+    for (y=miny; y<=maxy; y++) {
         dotp1[y] = ptr;
         dotp2[y] = ptr+(MAXNODESPERLINE>>1);
         ptr += MAXNODESPERLINE;
     }
 
-    for(z=npoints-1; z>=0; z--)
-    {
+    for (z=npoints-1; z>=0; z--) {
         zz = pvWalls[z].screenSpaceCoo[0][VEC_COL];
         y1 = pvWalls[z] .cameraSpaceCoo[0][VEC_Y];
         day1 = (y1>>12);
         y2 = pvWalls[zz].cameraSpaceCoo[0][VEC_Y];
         day2 = (y2>>12);
-        if (day1 != day2)
-        {
+        if (day1 != day2) {
             x1 = pvWalls[z ].cameraSpaceCoo[0][VEC_X];
             x2 = pvWalls[zz].cameraSpaceCoo[0][VEC_X];
             xinc = divscale12(x2-x1,y2-y1);
-            if (day2 > day1)
-            {
+            if (day2 > day1) {
                 x1 += mulscale12((day1<<12)+4095-y1,xinc);
-                for(y=day1; y<day2; y++) {
+                for (y=day1; y<day2; y++) {
                     *dotp2[y]++ = (x1>>12);
                     x1 += xinc;
                 }
-            }
-            else
-            {
+            } else {
                 x2 += mulscale12((day2<<12)+4095-y2,xinc);
-                for(y=day2; y<day1; y++) {
+                for (y=day2; y<day1; y++) {
                     *dotp1[y]++ = (x2>>12);
                     x2 += xinc;
                 }
@@ -7961,30 +8565,32 @@ static void fillpolygon(int32_t npoints, uint8_t polyType, int32_t a1, int32_t a
     engine_state->posx += oy*globalx1;
     engine_state->posy += oy*globaly2;
 
-    
+
 
     ptr = smost;
-    for(y=miny; y<=maxy; y++)
-    {
+    for (y=miny; y<=maxy; y++) {
         cnt = dotp1[y]-ptr;
         ptr2 = ptr+(MAXNODESPERLINE>>1);
-        for(z=cnt-1; z>=0; z--)
-        {
+        for (z=cnt-1; z>=0; z--) {
             day1 = 0;
             day2 = 0;
-            for(zz=z; zz>0; zz--)
-            {
-                if (ptr[zz] < ptr[day1]) day1 = zz;
-                if (ptr2[zz] < ptr2[day2]) day2 = zz;
+            for (zz=z; zz>0; zz--) {
+                if (ptr[zz] < ptr[day1]) {
+                    day1 = zz;
+                }
+                if (ptr2[zz] < ptr2[day2]) {
+                    day2 = zz;
+                }
             }
             x1 = ptr[day1];
             ptr[day1] = ptr[z];
             x2 = ptr2[day2]-1;
             ptr2[day2] = ptr2[z];
-            if (x1 > x2) continue;
+            if (x1 > x2) {
+                continue;
+            }
 
-            if (polyType < 1)
-            {
+            if (polyType < 1) {
                 /* maphline */
                 ox = x2+1-(xdim>>1);
                 bx = ox*a1 + engine_state->posx;
@@ -7992,19 +8598,16 @@ static void fillpolygon(int32_t npoints, uint8_t polyType, int32_t a1, int32_t a
 
                 p = ylookup[y]+x2+frameplace;
                 hlineasm4(x2-x1,globalshade<<8,by,bx,p,a1,a2);
-            }
-            else
-            {
+            } else {
                 /* maphline */
                 ox = x1+1-(xdim>>1);
                 bx = ox*a1 + engine_state->posx;
                 by = ox*a2 - engine_state->posy;
 
                 p = ylookup[y]+x1+frameplace;
-                if (polyType == 1)
+                if (polyType == 1) {
                     mhline(globalbufplc,bx,(x2-x1)<<16,0L,by,p,a1,a2,asm3);
-                else
-                {
+                } else {
                     thline(globalbufplc,bx,(x2-x1)<<16,0L,by,p,a1,a2,asm3);
                     transarea += (x2-x1);
                 }
@@ -8032,56 +8635,58 @@ static int clippoly (int32_t npoints, int32_t clipstat)
     cx2 <<= 12;
     cy2 <<= 12;
 
-    if (clipstat&0xa)   /* Need to clip top or left */
-    {
+    if (clipstat&0xa) { /* Need to clip top or left */
         npoints2 = 0;
         start2 = 0;
         z = 0;
         splitcnt = 0;
-        do
-        {
+        do {
             s2 = cx1-pvWalls[z].cameraSpaceCoo[0][VEC_X];
-            do
-            {
+            do {
                 zz = pvWalls[z].screenSpaceCoo[0][VEC_COL];
                 pvWalls[z].screenSpaceCoo[0][VEC_COL] = -1;
                 s1 = s2;
                 s2 = cx1-pvWalls[zz].cameraSpaceCoo[0][VEC_X];
-                if (s1 < 0){
+                if (s1 < 0) {
                     pvWalls[npoints2].cameraSpaceCoo[1][VEC_X] = pvWalls[zz].cameraSpaceCoo[0][VEC_X];
                     pvWalls[npoints2].cameraSpaceCoo[1][VEC_Y] = pvWalls[zz].cameraSpaceCoo[0][VEC_Y];
                     pvWalls[npoints2].screenSpaceCoo[1][VEC_COL] = npoints2+1;
                     npoints2++;
                 }
-                
-                if ((s1^s2) < 0){
+
+                if ((s1^s2) < 0) {
                     pvWalls[npoints2].cameraSpaceCoo[1][VEC_X] =
-                    pvWalls[z].cameraSpaceCoo[0][VEC_X]+scale(pvWalls[zz].cameraSpaceCoo[0][VEC_X]-pvWalls[z].cameraSpaceCoo[0][VEC_X],s1,s1-s2);
+                        pvWalls[z].cameraSpaceCoo[0][VEC_X]+scale(pvWalls[zz].cameraSpaceCoo[0][VEC_X]-pvWalls[z].cameraSpaceCoo[0][VEC_X],s1,s1-s2);
                     pvWalls[npoints2].cameraSpaceCoo[1][VEC_Y] =
-                    pvWalls[z].cameraSpaceCoo[0][VEC_Y]+scale(pvWalls[zz].cameraSpaceCoo[0][VEC_Y]-pvWalls[z].cameraSpaceCoo[0][VEC_Y],s1,s1-s2);
-                    
-                    if (s1 < 0)
+                        pvWalls[z].cameraSpaceCoo[0][VEC_Y]+scale(pvWalls[zz].cameraSpaceCoo[0][VEC_Y]-pvWalls[z].cameraSpaceCoo[0][VEC_Y],s1,s1-s2);
+
+                    if (s1 < 0) {
                         bunchWallsList[splitcnt++] = npoints2;
-                    
+                    }
+
                     pvWalls[npoints2].screenSpaceCoo[1][VEC_COL] = npoints2+1;
                     npoints2++;
                 }
                 z = zz;
             } while (pvWalls[z].screenSpaceCoo[0][VEC_COL] >= 0);
 
-            if (npoints2 >= start2+3)
+            if (npoints2 >= start2+3) {
                 pvWalls[npoints2-1].screenSpaceCoo[1][VEC_COL] = start2, start2 = npoints2;
-            else
+            } else {
                 npoints2 = start2;
+            }
 
             z = 1;
-            while ((z < npoints) && (pvWalls[z].screenSpaceCoo[0][VEC_COL] < 0)) z++;
+            while ((z < npoints) && (pvWalls[z].screenSpaceCoo[0][VEC_COL] < 0)) {
+                z++;
+            }
         } while (z < npoints);
-        if (npoints2 <= 2) return(0);
+        if (npoints2 <= 2) {
+            return(0);
+        }
 
-        for(z=1; z<splitcnt; z++)
-            for(zz=0; zz<z; zz++)
-            {
+        for (z=1; z<splitcnt; z++)
+            for (zz=0; zz<z; zz++) {
                 z1 = bunchWallsList[z];
                 z2 = pvWalls[z1].screenSpaceCoo[1][VEC_COL];
                 z3 = bunchWallsList[zz];
@@ -8090,8 +8695,7 @@ static int clippoly (int32_t npoints, int32_t clipstat)
                 s1 += klabs(pvWalls[z3].cameraSpaceCoo[1][VEC_X]-pvWalls[z4].cameraSpaceCoo[1][VEC_X])+klabs(pvWalls[z3].cameraSpaceCoo[1][VEC_Y]-pvWalls[z4].cameraSpaceCoo[1][VEC_Y]);
                 s2  = klabs(pvWalls[z1].cameraSpaceCoo[1][VEC_X]-pvWalls[z4].cameraSpaceCoo[1][VEC_X])+klabs(pvWalls[z1].cameraSpaceCoo[1][VEC_Y]-pvWalls[z4].cameraSpaceCoo[1][VEC_Y]);
                 s2 += klabs(pvWalls[z3].cameraSpaceCoo[1][VEC_X]-pvWalls[z2].cameraSpaceCoo[1][VEC_X])+klabs(pvWalls[z3].cameraSpaceCoo[1][VEC_Y]-pvWalls[z2].cameraSpaceCoo[1][VEC_Y]);
-                if (s2 < s1)
-                {
+                if (s2 < s1) {
                     t = pvWalls[bunchWallsList[z]].screenSpaceCoo[1][VEC_COL];
                     pvWalls[bunchWallsList[z]].screenSpaceCoo[1][VEC_COL] = pvWalls[bunchWallsList[zz]].screenSpaceCoo[1][VEC_COL];
                     pvWalls[bunchWallsList[zz]].screenSpaceCoo[1][VEC_COL] = t;
@@ -8103,46 +8707,48 @@ static int clippoly (int32_t npoints, int32_t clipstat)
         start2 = 0;
         z = 0;
         splitcnt = 0;
-        do
-        {
+        do {
             s2 = cy1-pvWalls[z].cameraSpaceCoo[1][VEC_Y];
-            do
-            {
+            do {
                 zz = pvWalls[z].screenSpaceCoo[1][VEC_COL];
                 pvWalls[z].screenSpaceCoo[1][VEC_COL] = -1;
                 s1 = s2;
                 s2 = cy1-pvWalls[zz].cameraSpaceCoo[1][VEC_Y];
-                if (s1 < 0)
-                {
+                if (s1 < 0) {
                     pvWalls[npoints].cameraSpaceCoo[0][VEC_X] = pvWalls[z].cameraSpaceCoo[1][VEC_X];
                     pvWalls[npoints].cameraSpaceCoo[0][VEC_Y] = pvWalls[z].cameraSpaceCoo[1][VEC_Y];
                     pvWalls[npoints].screenSpaceCoo[0][VEC_COL] = npoints+1;
                     npoints++;
                 }
-                if ((s1^s2) < 0)
-                {
+                if ((s1^s2) < 0) {
                     pvWalls[npoints].cameraSpaceCoo[0][VEC_X] = pvWalls[z].cameraSpaceCoo[1][VEC_X]+scale(pvWalls[zz].cameraSpaceCoo[1][VEC_X]-pvWalls[z].cameraSpaceCoo[1][VEC_X],s1,s1-s2);
                     pvWalls[npoints].cameraSpaceCoo[0][VEC_Y] = pvWalls[z].cameraSpaceCoo[1][VEC_Y]+scale(pvWalls[zz].cameraSpaceCoo[1][VEC_Y]-pvWalls[z].cameraSpaceCoo[1][VEC_Y],s1,s1-s2);
-                    if (s1 < 0) bunchWallsList[splitcnt++] = npoints;
+                    if (s1 < 0) {
+                        bunchWallsList[splitcnt++] = npoints;
+                    }
                     pvWalls[npoints].screenSpaceCoo[0][VEC_COL] = npoints+1;
                     npoints++;
                 }
                 z = zz;
             } while (pvWalls[z].screenSpaceCoo[1][VEC_COL] >= 0);
 
-            if (npoints >= start2+3)
+            if (npoints >= start2+3) {
                 pvWalls[npoints-1].screenSpaceCoo[0][VEC_COL] = start2, start2 = npoints;
-            else
+            } else {
                 npoints = start2;
+            }
 
             z = 1;
-            while ((z < npoints2) && (pvWalls[z].screenSpaceCoo[1][VEC_COL] < 0)) z++;
+            while ((z < npoints2) && (pvWalls[z].screenSpaceCoo[1][VEC_COL] < 0)) {
+                z++;
+            }
         } while (z < npoints2);
-        if (npoints <= 2) return(0);
+        if (npoints <= 2) {
+            return(0);
+        }
 
-        for(z=1; z<splitcnt; z++)
-            for(zz=0; zz<z; zz++)
-            {
+        for (z=1; z<splitcnt; z++)
+            for (zz=0; zz<z; zz++) {
                 z1 = bunchWallsList[z];
                 z2 = pvWalls[z1].screenSpaceCoo[0][VEC_COL];
                 z3 = bunchWallsList[zz];
@@ -8151,60 +8757,60 @@ static int clippoly (int32_t npoints, int32_t clipstat)
                 s1 += klabs(pvWalls[z3].cameraSpaceCoo[0][VEC_X]-pvWalls[z4].cameraSpaceCoo[0][VEC_X])+klabs(pvWalls[z3].cameraSpaceCoo[0][VEC_Y]-pvWalls[z4].cameraSpaceCoo[0][VEC_Y]);
                 s2  = klabs(pvWalls[z1].cameraSpaceCoo[0][VEC_X]-pvWalls[z4].cameraSpaceCoo[0][VEC_X])+klabs(pvWalls[z1].cameraSpaceCoo[0][VEC_Y]-pvWalls[z4].cameraSpaceCoo[0][VEC_Y]);
                 s2 += klabs(pvWalls[z3].cameraSpaceCoo[0][VEC_X]-pvWalls[z2].cameraSpaceCoo[0][VEC_X])+klabs(pvWalls[z3].cameraSpaceCoo[0][VEC_Y]-pvWalls[z2].cameraSpaceCoo[0][VEC_Y]);
-                if (s2 < s1)
-                {
+                if (s2 < s1) {
                     t = pvWalls[bunchWallsList[z]].screenSpaceCoo[0][VEC_COL];
                     pvWalls[bunchWallsList[z]].screenSpaceCoo[0][VEC_COL] = pvWalls[bunchWallsList[zz]].screenSpaceCoo[0][VEC_COL];
                     pvWalls[bunchWallsList[zz]].screenSpaceCoo[0][VEC_COL] = t;
                 }
             }
     }
-    if (clipstat&0x5)   /* Need to clip bottom or right */
-    {
+    if (clipstat&0x5) { /* Need to clip bottom or right */
         npoints2 = 0;
         start2 = 0;
         z = 0;
         splitcnt = 0;
-        do
-        {
+        do {
             s2 = pvWalls[z].cameraSpaceCoo[0][VEC_X]-cx2;
-            do
-            {
+            do {
                 zz = pvWalls[z].screenSpaceCoo[0][VEC_COL];
                 pvWalls[z].screenSpaceCoo[0][VEC_COL] = -1;
                 s1 = s2;
                 s2 = pvWalls[zz].cameraSpaceCoo[0][VEC_X]-cx2;
-                if (s1 < 0)
-                {
+                if (s1 < 0) {
                     pvWalls[npoints2].cameraSpaceCoo[1][VEC_X] = pvWalls[z].cameraSpaceCoo[0][VEC_X];
                     pvWalls[npoints2].cameraSpaceCoo[1][VEC_Y] = pvWalls[z].cameraSpaceCoo[0][VEC_Y];
                     pvWalls[npoints2].screenSpaceCoo[1][VEC_COL] = npoints2+1;
                     npoints2++;
                 }
-                if ((s1^s2) < 0)
-                {
+                if ((s1^s2) < 0) {
                     pvWalls[npoints2].cameraSpaceCoo[1][VEC_X] = pvWalls[z].cameraSpaceCoo[0][VEC_X]+scale(pvWalls[zz].cameraSpaceCoo[0][VEC_X]-pvWalls[z].cameraSpaceCoo[0][VEC_X],s1,s1-s2);
                     pvWalls[npoints2].cameraSpaceCoo[1][VEC_Y] = pvWalls[z].cameraSpaceCoo[0][VEC_Y]+scale(pvWalls[zz].cameraSpaceCoo[0][VEC_Y]-pvWalls[z].cameraSpaceCoo[0][VEC_Y],s1,s1-s2);
-                    if (s1 < 0) bunchWallsList[splitcnt++] = npoints2;
+                    if (s1 < 0) {
+                        bunchWallsList[splitcnt++] = npoints2;
+                    }
                     pvWalls[npoints2].screenSpaceCoo[1][VEC_COL] = npoints2+1;
                     npoints2++;
                 }
                 z = zz;
             } while (pvWalls[z].screenSpaceCoo[0][VEC_COL] >= 0);
 
-            if (npoints2 >= start2+3)
+            if (npoints2 >= start2+3) {
                 pvWalls[npoints2-1].screenSpaceCoo[1][VEC_COL] = start2, start2 = npoints2;
-            else
+            } else {
                 npoints2 = start2;
+            }
 
             z = 1;
-            while ((z < npoints) && (pvWalls[z].screenSpaceCoo[0][VEC_COL] < 0)) z++;
+            while ((z < npoints) && (pvWalls[z].screenSpaceCoo[0][VEC_COL] < 0)) {
+                z++;
+            }
         } while (z < npoints);
-        if (npoints2 <= 2) return(0);
+        if (npoints2 <= 2) {
+            return(0);
+        }
 
-        for(z=1; z<splitcnt; z++)
-            for(zz=0; zz<z; zz++)
-            {
+        for (z=1; z<splitcnt; z++)
+            for (zz=0; zz<z; zz++) {
                 z1 = bunchWallsList[z];
                 z2 = pvWalls[z1].screenSpaceCoo[1][VEC_COL];
                 z3 = bunchWallsList[zz];
@@ -8213,8 +8819,7 @@ static int clippoly (int32_t npoints, int32_t clipstat)
                 s1 += klabs(pvWalls[z3].cameraSpaceCoo[1][VEC_X]-pvWalls[z4].cameraSpaceCoo[1][VEC_X])+klabs(pvWalls[z3].cameraSpaceCoo[1][VEC_Y]-pvWalls[z4].cameraSpaceCoo[1][VEC_Y]);
                 s2  = klabs(pvWalls[z1].cameraSpaceCoo[1][VEC_X]-pvWalls[z4].cameraSpaceCoo[1][VEC_X])+klabs(pvWalls[z1].cameraSpaceCoo[1][VEC_Y]-pvWalls[z4].cameraSpaceCoo[1][VEC_Y]);
                 s2 += klabs(pvWalls[z3].cameraSpaceCoo[1][VEC_X]-pvWalls[z2].cameraSpaceCoo[1][VEC_X])+klabs(pvWalls[z3].cameraSpaceCoo[1][VEC_Y]-pvWalls[z2].cameraSpaceCoo[1][VEC_Y]);
-                if (s2 < s1)
-                {
+                if (s2 < s1) {
                     t = pvWalls[bunchWallsList[z]].screenSpaceCoo[1][VEC_COL];
                     pvWalls[bunchWallsList[z]].screenSpaceCoo[1][VEC_COL] = pvWalls[bunchWallsList[zz]].screenSpaceCoo[1][VEC_COL];
                     pvWalls[bunchWallsList[zz]].screenSpaceCoo[1][VEC_COL] = t;
@@ -8226,46 +8831,48 @@ static int clippoly (int32_t npoints, int32_t clipstat)
         start2 = 0;
         z = 0;
         splitcnt = 0;
-        do
-        {
+        do {
             s2 = pvWalls[z].cameraSpaceCoo[1][VEC_Y]-cy2;
-            do
-            {
+            do {
                 zz = pvWalls[z].screenSpaceCoo[1][VEC_COL];
                 pvWalls[z].screenSpaceCoo[1][VEC_COL] = -1;
                 s1 = s2;
                 s2 = pvWalls[zz].cameraSpaceCoo[1][VEC_Y]-cy2;
-                if (s1 < 0)
-                {
+                if (s1 < 0) {
                     pvWalls[npoints].cameraSpaceCoo[0][VEC_X] = pvWalls[z].cameraSpaceCoo[1][VEC_X];
                     pvWalls[npoints].cameraSpaceCoo[0][VEC_Y] = pvWalls[z].cameraSpaceCoo[1][VEC_Y];
                     pvWalls[npoints].screenSpaceCoo[0][VEC_COL] = npoints+1;
                     npoints++;
                 }
-                if ((s1^s2) < 0)
-                {
+                if ((s1^s2) < 0) {
                     pvWalls[npoints].cameraSpaceCoo[0][VEC_X] = pvWalls[z].cameraSpaceCoo[1][VEC_X]+scale(pvWalls[zz].cameraSpaceCoo[1][VEC_X]-pvWalls[z].cameraSpaceCoo[1][VEC_X],s1,s1-s2);
                     pvWalls[npoints].cameraSpaceCoo[0][VEC_Y] = pvWalls[z].cameraSpaceCoo[1][VEC_Y]+scale(pvWalls[zz].cameraSpaceCoo[1][VEC_Y]-pvWalls[z].cameraSpaceCoo[1][VEC_Y],s1,s1-s2);
-                    if (s1 < 0) bunchWallsList[splitcnt++] = npoints;
+                    if (s1 < 0) {
+                        bunchWallsList[splitcnt++] = npoints;
+                    }
                     pvWalls[npoints].screenSpaceCoo[0][VEC_COL] = npoints+1;
                     npoints++;
                 }
                 z = zz;
             } while (pvWalls[z].screenSpaceCoo[1][VEC_COL] >= 0);
 
-            if (npoints >= start2+3)
+            if (npoints >= start2+3) {
                 pvWalls[npoints-1].screenSpaceCoo[0][VEC_COL] = start2, start2 = npoints;
-            else
+            } else {
                 npoints = start2;
+            }
 
             z = 1;
-            while ((z < npoints2) && (pvWalls[z].screenSpaceCoo[1][VEC_COL] < 0)) z++;
+            while ((z < npoints2) && (pvWalls[z].screenSpaceCoo[1][VEC_COL] < 0)) {
+                z++;
+            }
         } while (z < npoints2);
-        if (npoints <= 2) return(0);
+        if (npoints <= 2) {
+            return(0);
+        }
 
-        for(z=1; z<splitcnt; z++)
-            for(zz=0; zz<z; zz++)
-            {
+        for (z=1; z<splitcnt; z++)
+            for (zz=0; zz<z; zz++) {
                 z1 = bunchWallsList[z];
                 z2 = pvWalls[z1].screenSpaceCoo[0][VEC_COL];
                 z3 = bunchWallsList[zz];
@@ -8274,8 +8881,7 @@ static int clippoly (int32_t npoints, int32_t clipstat)
                 s1 += klabs(pvWalls[z3].cameraSpaceCoo[0][VEC_X]-pvWalls[z4].cameraSpaceCoo[0][VEC_X])+klabs(pvWalls[z3].cameraSpaceCoo[0][VEC_Y]-pvWalls[z4].cameraSpaceCoo[0][VEC_Y]);
                 s2  = klabs(pvWalls[z1].cameraSpaceCoo[0][VEC_X]-pvWalls[z4].cameraSpaceCoo[0][VEC_X])+klabs(pvWalls[z1].cameraSpaceCoo[0][VEC_Y]-pvWalls[z4].cameraSpaceCoo[0][VEC_Y]);
                 s2 += klabs(pvWalls[z3].cameraSpaceCoo[0][VEC_X]-pvWalls[z2].cameraSpaceCoo[0][VEC_X])+klabs(pvWalls[z3].cameraSpaceCoo[0][VEC_Y]-pvWalls[z2].cameraSpaceCoo[0][VEC_Y]);
-                if (s2 < s1)
-                {
+                if (s2 < s1) {
                     t = pvWalls[bunchWallsList[z]].screenSpaceCoo[0][VEC_COL];
                     pvWalls[bunchWallsList[z]].screenSpaceCoo[0][VEC_COL] = pvWalls[bunchWallsList[zz]].screenSpaceCoo[0][VEC_COL];
                     pvWalls[bunchWallsList[zz]].screenSpaceCoo[0][VEC_COL] = t;
@@ -8296,11 +8902,11 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang, EngineState
     int32_t bakgxvect, bakgyvect, sortnum, gap, npoints;
     int32_t xvect, yvect, xvect2, yvect2;
     int32_t a3;
-    
+
     static uint8_t  polyType;
 
     beforedrawrooms = 0;
-   
+
     //This seems to be dead code.
     //clearbuf(visitedSectors,(int32_t)((numsectors+31)>>5),0L);
 
@@ -8317,36 +8923,39 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang, EngineState
     yvect2 = mulscale16(yvect,yxaspect);
 
     sortnum = 0;
-    for(s=0,sec=&sector[s]; s<numsectors; s++,sec++) { }
+    for (s=0,sec=&sector[s]; s<numsectors; s++,sec++) { }
 
     /* Sort sprite list */
     gap = 1;
-    while (gap < sortnum) gap = (gap<<1)+1;
-    for(gap>>=1; gap>0; gap>>=1)
-        for(i=0; i<sortnum-gap; i++)
-            for(j=i; j>=0; j-=gap)
-            {
-                if (sprite[tsprite[j].owner].z <= sprite[tsprite[j+gap].owner].z) break;
+    while (gap < sortnum) {
+        gap = (gap<<1)+1;
+    }
+    for (gap>>=1; gap>0; gap>>=1)
+        for (i=0; i<sortnum-gap; i++)
+            for (j=i; j>=0; j-=gap) {
+                if (sprite[tsprite[j].owner].z <= sprite[tsprite[j+gap].owner].z) {
+                    break;
+                }
                 swapshort(&tsprite[j].owner,&tsprite[j+gap].owner);
             }
 
-    for(s=sortnum-1; s>=0; s--)
-    {
+    for (s=sortnum-1; s>=0; s--) {
         spr = &sprite[tsprite[s].owner];
-        if ((spr->cstat&48) == 32)
-        {
+        if ((spr->cstat&48) == 32) {
             tilenum = spr->picnum;
             xoff = (int32_t)((int8_t  )((tiles[tilenum].animFlags>>8)&255))+((int32_t)spr->xoffset);
             yoff = (int32_t)((int8_t  )((tiles[tilenum].animFlags>>16)&255))+((int32_t)spr->yoffset);
-            
-            if ((spr->cstat&4) > 0) 
+
+            if ((spr->cstat&4) > 0) {
                 xoff = -xoff;
-            if ((spr->cstat&8) > 0) 
+            }
+            if ((spr->cstat&8) > 0) {
                 yoff = -yoff;
+            }
 
             k = spr->ang;
-	    cosang = fixedPointSin((k+512));
-	    sinang = fixedPointSin(k);
+            cosang = fixedPointSin((k+512));
+            sinang = fixedPointSin(k);
             xspan = tiles[tilenum].dim.width;
             xrepeat = spr->xrepeat;
             yspan = tiles[tilenum].dim.height;
@@ -8405,52 +9014,65 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang, EngineState
             pvWalls[3].cameraSpaceCoo[0][VEC_X] = x;
             pvWalls[3].cameraSpaceCoo[0][VEC_Y] = y;
 
-            if ((i&0xf0) != 0xf0) continue;
+            if ((i&0xf0) != 0xf0) {
+                continue;
+            }
             bakx1 = pvWalls[0].cameraSpaceCoo[0][VEC_X];
             baky1 = mulscale16(pvWalls[0].cameraSpaceCoo[0][VEC_Y]-(ydim<<11),xyaspect)+(ydim<<11);
-            if (i&0x0f)
-            {
+            if (i&0x0f) {
                 npoints = clippoly(npoints,i);
-                if (npoints < 3) continue;
+                if (npoints < 3) {
+                    continue;
+                }
             }
 
             globalpicnum = spr->picnum;
-            if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES)
+            if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
                 globalpicnum = 0;
+            }
             setgotpic(globalpicnum);
-            
+
             if ((tiles[globalpicnum].dim.width <= 0) ||
-                (tiles[globalpicnum].dim.height <= 0))
+                (tiles[globalpicnum].dim.height <= 0)) {
                 continue;
-            
-            if ((tiles[globalpicnum].animFlags&192) != 0) 
+            }
+
+            if ((tiles[globalpicnum].animFlags&192) != 0) {
                 globalpicnum += animateoffs(globalpicnum);
-            
+            }
+
             TILE_MakeAvailable(globalpicnum);
-            
+
             globalbufplc = tiles[globalpicnum].data;
-            if ((sector[spr->sectnum].ceilingstat&1) > 0)
+            if ((sector[spr->sectnum].ceilingstat&1) > 0) {
                 globalshade = ((int32_t)sector[spr->sectnum].ceilingshade);
-            else
+            } else {
                 globalshade = ((int32_t)sector[spr->sectnum].floorshade);
+            }
             globalshade = max(min(globalshade+spr->shade+6,numpalookups-1),0);
             a3 = (int32_t) FP_OFF(palookup[spr->pal]+(globalshade<<8));
             globvis = globalhisibility;
-            if (sec->visibility != 0) globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
+            if (sec->visibility != 0) {
+                globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
+            }
             polyType = ((spr->cstat&2)>>1)+1;
 
             /* relative alignment stuff */
             ox = x2-x1;
             oy = y2-y1;
             i = ox*ox+oy*oy;
-            if (i == 0) continue;
+            if (i == 0) {
+                continue;
+            }
             i = (65536*16384)/i;
             globalx1 = mulscale10(dmulscale10(ox,bakgxvect,oy,bakgyvect),i);
             globaly1 = mulscale10(dmulscale10(ox,bakgyvect,-oy,bakgxvect),i);
             ox = y1-y4;
             oy = x4-x1;
             i = ox*ox+oy*oy;
-            if (i == 0) continue;
+            if (i == 0) {
+                continue;
+            }
             i = (65536*16384)/i;
             globalx2 = mulscale10(dmulscale10(ox,bakgxvect,oy,bakgyvect),i);
             globaly2 = mulscale10(dmulscale10(ox,bakgyvect,-oy,bakgxvect),i);
@@ -8458,8 +9080,7 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang, EngineState
             ox = picsiz[globalpicnum];
             oy = ((ox>>4)&15);
             ox &= 15;
-            if (pow2long[ox] != xspan)
-            {
+            if (pow2long[ox] != xspan) {
                 ox++;
                 globalx1 = mulscale(globalx1,xspan,ox);
                 globaly1 = mulscale(globaly1,xspan,ox);
@@ -8470,12 +9091,15 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang, EngineState
             engine_state->posx = dmulscale28(-baky1,globalx1,-bakx1,globaly1);
             engine_state->posy = dmulscale28(bakx1,globalx2,-baky1,globaly2);
 
-            if ((spr->cstat&2) == 0)
+            if ((spr->cstat&2) == 0) {
                 msethlineshift(ox,oy);
-            else
+            } else {
                 tsethlineshift(ox,oy);
+            }
 
-            if ((spr->cstat&0x4) > 0) globalx1 = -globalx1, globaly1 = -globaly1, engine_state->posx = -engine_state->posx;
+            if ((spr->cstat&0x4) > 0) {
+                globalx1 = -globalx1, globaly1 = -globaly1, engine_state->posx = -engine_state->posx;
+            }
             globalx1 <<= 2;
             engine_state->posx <<= (20+2);
             globaly2 <<= 2;
@@ -8491,15 +9115,16 @@ void clearview(int32_t dacol)
 {
     int32_t p, y, dx;
 
-    if (game_mode.qsetmode != 200) return;
+    if (game_mode.qsetmode != 200) {
+        return;
+    }
 
     dx = windowx2-windowx1+1;
     dacol += (dacol<<8);
     dacol += (dacol<<16);
-    
+
     p = frameplace+ylookup[windowy1]+windowx1;
-    for(y=windowy1; y<=windowy2; y++)
-    {
+    for (y=windowy1; y<=windowy2; y++) {
         clearbufbyte((void *)p,dx,dacol);
         p += ylookup[1];
     }
@@ -8520,7 +9145,7 @@ uint8_t  getpixel(int32_t x, int32_t y)
 
 /* MUST USE RESTOREFORDRAWROOMS AFTER DRAWING */
 int32_t setviewcnt = 0;
-uint8_t* bakframeplace[4];
+uint8_t *bakframeplace[4];
 int32_t bakxsiz[4], bakysiz[4];
 int32_t bakwindowx1[4], bakwindowy1[4];
 int32_t bakwindowx2[4], bakwindowy2[4];
@@ -8530,7 +9155,9 @@ void setviewback(void)
     int32_t i, j, k;
     int16_t bakumost[MAXXDIM+1], bakdmost[MAXXDIM+1];
 
-    if (setviewcnt <= 0) return;
+    if (setviewcnt <= 0) {
+        return;
+    }
     setviewcnt--;
 
     setview(bakwindowx1[setviewcnt],bakwindowy1[setviewcnt],
@@ -8538,12 +9165,15 @@ void setviewback(void)
     copybufbyte(&bakumost[windowx1],&startumost[windowx1],(windowx2-windowx1+1)*sizeof(startumost[0]));
     copybufbyte(&bakdmost[windowx1],&startdmost[windowx1],(windowx2-windowx1+1)*sizeof(startdmost[0]));
     frameplace = bakframeplace[setviewcnt];
-    if (setviewcnt == 0)
+    if (setviewcnt == 0) {
         k = bakxsiz[0];
-    else
+    } else {
         k = max(bakxsiz[setviewcnt-1],bakxsiz[setviewcnt]);
+    }
     j = 0;
-    for(i=0; i<=k; i++) ylookup[i] = j, j += game_mode.bytesperline;
+    for (i=0; i<=k; i++) {
+        ylookup[i] = j, j += game_mode.bytesperline;
+    }
     setBytesPerLine(game_mode.bytesperline);
 }
 
@@ -8563,7 +9193,9 @@ void preparemirror(int32_t dax, int32_t day, int32_t daz,
     y = wall[dawall].y;
     dy = wall[wall[dawall].point2].y-y;
     j = dx*dx + dy*dy;
-    if (j == 0) return;
+    if (j == 0) {
+        return;
+    }
     i = (((dax-x)*dx + (day-y)*dy)<<1);
     *tposx = (x<<1) + scale(dx,i,j) - dax;
     *tposy = (y<<1) + scale(dy,i,j) - day;
@@ -8583,9 +9215,15 @@ void completemirror(void)
         inpreparemirror = 0;
         return;
     }
-    if (mirrorsx1 > 0) mirrorsx1--;
-    if (mirrorsx2 < windowx2-windowx1-1) mirrorsx2++;
-    if (mirrorsx2 < mirrorsx1) return;
+    if (mirrorsx1 > 0) {
+        mirrorsx1--;
+    }
+    if (mirrorsx2 < windowx2-windowx1-1) {
+        mirrorsx2++;
+    }
+    if (mirrorsx2 < mirrorsx1) {
+        return;
+    }
 
     transarea += (mirrorsx2-mirrorsx1)*(windowy2-windowy1);
 
@@ -8593,8 +9231,7 @@ void completemirror(void)
     i = windowx2-windowx1-mirrorsx2-mirrorsx1;
     mirrorsx2 -= mirrorsx1;
     // FIX_00085: Optimized Video driver. FPS increases by +20%.
-    for(dy=mirrorsy2-mirrorsy1-1; dy>=0; dy--)
-    {
+    for (dy=mirrorsy2-mirrorsy1-1; dy>=0; dy--) {
         copybufbyte((void *)(p), buffer, mirrorsx2 + 1);
         buffer[mirrorsx2] = buffer[mirrorsx2 - 1];
         copybufreverse(&buffer[mirrorsx2], (void *)(p+i), mirrorsx2 + 1);
@@ -8608,21 +9245,31 @@ int sectorofwall(short theline)
 {
     int32_t i, gap;
 
-    if ((theline < 0) || (theline >= numwalls)) return(-1);
+    if ((theline < 0) || (theline >= numwalls)) {
+        return(-1);
+    }
     i = wall[theline].nextwall;
-    if (i >= 0) return(wall[i].nextsector);
+    if (i >= 0) {
+        return(wall[i].nextsector);
+    }
 
     gap = (numsectors>>1);
     i = gap;
-    while (gap > 1)
-    {
+    while (gap > 1) {
         gap >>= 1;
-        if (sector[i].wallptr < theline) i += gap;
-        else i -= gap;
+        if (sector[i].wallptr < theline) {
+            i += gap;
+        } else {
+            i -= gap;
+        }
     }
-    while (sector[i].wallptr > theline) i--;
-    while (sector[i].wallptr+sector[i].wallnum <= theline) i++;
-    
+    while (sector[i].wallptr > theline) {
+        i--;
+    }
+    while (sector[i].wallptr+sector[i].wallnum <= theline) {
+        i++;
+    }
+
     return(i);
 }
 
@@ -8632,12 +9279,16 @@ int getceilzofslope(short sectnum, int32_t dax, int32_t day)
     int32_t dx, dy, i, j;
     walltype *wal;
 
-    if (!(sector[sectnum].ceilingstat&2)) return(sector[sectnum].ceilingz);
+    if (!(sector[sectnum].ceilingstat&2)) {
+        return(sector[sectnum].ceilingz);
+    }
     wal = &wall[sector[sectnum].wallptr];
     dx = wall[wal->point2].x-wal->x;
     dy = wall[wal->point2].y-wal->y;
     i = (fixedPointSqrt(dx*dx+dy*dy)<<5);
-    if (i == 0) return(sector[sectnum].ceilingz);
+    if (i == 0) {
+        return(sector[sectnum].ceilingz);
+    }
     j = dmulscale3(dx,day-wal->y,-dy,dax-wal->x);
     return(sector[sectnum].ceilingz+scale(sector[sectnum].ceilingheinum,j,i));
 }
@@ -8648,31 +9299,33 @@ int getflorzofslope(short sectnum, int32_t dax, int32_t day)
     int32_t dx, dy, i, j;
     walltype *wal;
 
-    if (!(sector[sectnum].floorstat&2))
+    if (!(sector[sectnum].floorstat&2)) {
         return(sector[sectnum].floorz);
-    
+    }
+
     wal = &wall[sector[sectnum].wallptr];
     dx = wall[wal->point2].x-wal->x;
     dy = wall[wal->point2].y-wal->y;
     i = (fixedPointSqrt(dx*dx+dy*dy)<<5);
-    
-    if (i == 0)
+
+    if (i == 0) {
         return(sector[sectnum].floorz);
-    
+    }
+
     j = dmulscale3(dx,day-wal->y,-dy,dax-wal->x);
-    
+
     return(sector[sectnum].floorz+scale(sector[sectnum].floorheinum,j,i));
 }
 
 /*
  FCS:
- 
+
  Output the ceiling and floor Z coordinate in the two last parameters for given:
  sectorNumber and worldspace (coordinate X,Y).
- 
+
  If the sector is flat, this is jsut a lookup. But if either the floor/ceiling have
  a slope it requires more calculation
- 
+
  */
 void getzsofslope(short sectnum, int32_t dax, int32_t day, int32_t *ceilz, int32_t *florz)
 {
@@ -8683,22 +9336,25 @@ void getzsofslope(short sectnum, int32_t dax, int32_t day, int32_t *ceilz, int32
     sec = &sector[sectnum];
     *ceilz = sec->ceilingz;
     *florz = sec->floorz;
-    
+
     //If the sector has a slopped ceiling or a slopped floor then it needs more calculation.
-    if ((sec->ceilingstat|sec->floorstat)&2)
-    {
+    if ((sec->ceilingstat|sec->floorstat)&2) {
         wal = &wall[sec->wallptr];
         wal2 = &wall[wal->point2];
         dx = wal2->x-wal->x;
         dy = wal2->y-wal->y;
         i = (fixedPointSqrt(dx*dx+dy*dy)<<5);
-        if (i == 0) return;
+        if (i == 0) {
+            return;
+        }
         j = dmulscale3(dx,day-wal->y,-dy,dax-wal->x);
-        
-        if (sec->ceilingstat&2)
+
+        if (sec->ceilingstat&2) {
             *ceilz = (*ceilz)+scale(sec->ceilingheinum,j,i);
-        if (sec->floorstat&2)
+        }
+        if (sec->floorstat&2) {
             *florz = (*florz)+scale(sec->floorheinum,j,i);
+        }
     }
 }
 
@@ -8713,12 +9369,17 @@ void alignceilslope(short dasect, int32_t x, int32_t y, int32_t z)
     day = wall[wal->point2].y-wal->y;
 
     i = (y-wal->y)*dax - (x-wal->x)*day;
-    if (i == 0) return;
+    if (i == 0) {
+        return;
+    }
     sector[dasect].ceilingheinum = scale((z-sector[dasect].ceilingz)<<8,
                                          fixedPointSqrt(dax*dax+day*day),i);
 
-    if (sector[dasect].ceilingheinum == 0) sector[dasect].ceilingstat &= ~2;
-    else sector[dasect].ceilingstat |= 2;
+    if (sector[dasect].ceilingheinum == 0) {
+        sector[dasect].ceilingstat &= ~2;
+    } else {
+        sector[dasect].ceilingstat |= 2;
+    }
 }
 
 
@@ -8732,12 +9393,17 @@ void alignflorslope(short dasect, int32_t x, int32_t y, int32_t z)
     day = wall[wal->point2].y-wal->y;
 
     i = (y-wal->y)*dax - (x-wal->x)*day;
-    if (i == 0) return;
+    if (i == 0) {
+        return;
+    }
     sector[dasect].floorheinum = scale((z-sector[dasect].floorz)<<8,
                                        fixedPointSqrt(dax*dax+day*day),i);
 
-    if (sector[dasect].floorheinum == 0) sector[dasect].floorstat &= ~2;
-    else sector[dasect].floorstat |= 2;
+    if (sector[dasect].floorheinum == 0) {
+        sector[dasect].floorstat &= ~2;
+    } else {
+        sector[dasect].floorstat |= 2;
+    }
 }
 
 /*
@@ -8749,17 +9415,18 @@ int loopnumofsector(short sectnum, short wallnum)
     int32_t i, numloops, startwall, endwall;
 
     numloops = 0;
-    
+
     startwall = sector[sectnum].wallptr;
     endwall = startwall + sector[sectnum].wallnum;
-    
-    for(i=startwall; i<endwall; i++)
-    {
-        if (i == wallnum)
+
+    for (i=startwall; i<endwall; i++) {
+        if (i == wallnum) {
             return(numloops);
-        
-        if (wall[i].point2 < i)
+        }
+
+        if (wall[i].point2 < i) {
             numloops++;
+        }
     }
     return(-1);
 }
@@ -8773,55 +9440,67 @@ void setfirstwall(short sectnum, short newfirstwall)
     startwall = sector[sectnum].wallptr;
     danumwalls = sector[sectnum].wallnum;
     endwall = startwall+danumwalls;
-    if ((newfirstwall < startwall) || (newfirstwall >= startwall+danumwalls)) return;
-    for(i=0; i<danumwalls; i++)
+    if ((newfirstwall < startwall) || (newfirstwall >= startwall+danumwalls)) {
+        return;
+    }
+    for (i=0; i<danumwalls; i++) {
         memcpy(&wall[i+numwalls],&wall[i+startwall],sizeof(walltype));
+    }
 
     numwallsofloop = 0;
     i = newfirstwall;
-    do
-    {
+    do {
         numwallsofloop++;
         i = wall[i].point2;
     } while (i != newfirstwall);
 
     /* Put correct loop at beginning */
     dagoalloop = loopnumofsector(sectnum,newfirstwall);
-    if (dagoalloop > 0)
-    {
+    if (dagoalloop > 0) {
         j = 0;
-        while (loopnumofsector(sectnum,j+startwall) != dagoalloop) j++;
-        for(i=0; i<danumwalls; i++)
-        {
+        while (loopnumofsector(sectnum,j+startwall) != dagoalloop) {
+            j++;
+        }
+        for (i=0; i<danumwalls; i++) {
             k = i+j;
-            if (k >= danumwalls) k -= danumwalls;
+            if (k >= danumwalls) {
+                k -= danumwalls;
+            }
             memcpy(&wall[startwall+i],&wall[numwalls+k],sizeof(walltype));
 
             wall[startwall+i].point2 += danumwalls-startwall-j;
-            if (wall[startwall+i].point2 >= danumwalls)
+            if (wall[startwall+i].point2 >= danumwalls) {
                 wall[startwall+i].point2 -= danumwalls;
+            }
             wall[startwall+i].point2 += startwall;
         }
         newfirstwall += danumwalls-j;
-        if (newfirstwall >= startwall+danumwalls) newfirstwall -= danumwalls;
+        if (newfirstwall >= startwall+danumwalls) {
+            newfirstwall -= danumwalls;
+        }
     }
 
-    for(i=0; i<numwallsofloop; i++)
+    for (i=0; i<numwallsofloop; i++) {
         memcpy(&wall[i+numwalls],&wall[i+startwall],sizeof(walltype));
-    for(i=0; i<numwallsofloop; i++)
-    {
+    }
+    for (i=0; i<numwallsofloop; i++) {
         k = i+newfirstwall-startwall;
-        if (k >= numwallsofloop) k -= numwallsofloop;
+        if (k >= numwallsofloop) {
+            k -= numwallsofloop;
+        }
         memcpy(&wall[startwall+i],&wall[numwalls+k],sizeof(walltype));
 
         wall[startwall+i].point2 += numwallsofloop-newfirstwall;
-        if (wall[startwall+i].point2 >= numwallsofloop)
+        if (wall[startwall+i].point2 >= numwallsofloop) {
             wall[startwall+i].point2 -= numwallsofloop;
+        }
         wall[startwall+i].point2 += startwall;
     }
 
-    for(i=startwall; i<endwall; i++)
-        if (wall[i].nextwall >= 0) wall[wall[i].nextwall].nextwall = i;
+    for (i=startwall; i<endwall; i++)
+        if (wall[i].nextwall >= 0) {
+            wall[wall[i].nextwall].nextwall = i;
+        }
 }
 
 /* end of engine.c ... */

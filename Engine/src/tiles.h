@@ -34,16 +34,16 @@ EXTERN uint8_t* waloff[MAXTILES];
 
 
 
-typedef struct dimensions_s{
+typedef struct dimensions_s {
     short width;
     short height;
 } dimensions_t;
 
-typedef struct tile_s{
+typedef struct tile_s {
     dimensions_t dim;
     uint8_t lock;
     int32_t animFlags;
-    uint8_t* data;
+    uint8_t *data;
 } tile_t;
 
 
@@ -53,8 +53,8 @@ void setviewtotile(short tilenume, int32_t tileWidth, int32_t tileHeight);
 void squarerotatetile(short tilenume);
 
 void loadtile(short tilenume);
-uint8_t* allocatepermanenttile(short tilenume, int32_t width, int32_t height);
-int loadpics(char  *filename, char * gamedir);
+uint8_t *allocatepermanenttile(short tilenume, int32_t width, int32_t height);
+int loadpics(char  *filename, char *gamedir);
 void copytilepiece(int32_t tilenume1, int32_t sx1, int32_t sy1, int32_t xsiz, int32_t ysiz,int32_t tilenume2, int32_t sx2, int32_t sy2);
 
 

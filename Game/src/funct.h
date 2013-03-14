@@ -11,7 +11,7 @@ of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 See the GNU General Public License for more details.
 
@@ -228,7 +228,7 @@ extern void processinput(short snum);
 //#line "menues.c" 18
 extern void cmenu(short cm);
 //#line "menues.c" 38
-extern void savetemp(char  *fn,uint8_t* daptr,int32_t dasiz);
+extern void savetemp(char  *fn,uint8_t *daptr,int32_t dasiz);
 //#line "menues.c" 49
 extern void getangplayers(short snum);
 //#line "menues.c" 67
@@ -386,7 +386,7 @@ extern void view(struct player_struct *pp,int32_t *vx,int32_t *vy,int32_t *vz,sh
 //#line "game.c" 2137
 extern void drawbackground(void );
 //#line "game.c" 2200
-extern EngineState* displayrooms(short snum,int32_t smoothratio);
+extern EngineState *displayrooms(short snum,int32_t smoothratio);
 //#line "game.c" 2445
 extern short LocateTheLocator(short n,short sn);
 //#line "game.c" 2459
@@ -396,7 +396,7 @@ extern uint8_t  wallswitchcheck(short i);
 //#line "game.c" 2588
 extern short spawn(short j,short pn);
 //#line "game.c" 4181
-extern void animatesprites(int32_t x,int32_t y,short a,int32_t smoothratio, EngineState * engine_state);
+extern void animatesprites(int32_t x,int32_t y,short a,int32_t smoothratio, EngineState *engine_state);
 //#line "game.c" 4859
 extern void cheats(void );
 //#line "game.c" 5303

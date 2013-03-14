@@ -11,7 +11,7 @@ of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 See the GNU General Public License for more details.
 
@@ -30,15 +30,15 @@ Prepared for public release: 03/21/2003 - Charlie Wiederhold, 3D Realms
 extern "C" {
 #endif
 
-/*
-=============================================================================
+    /*
+    =============================================================================
 
-                                    DEFINES
+                                        DEFINES
 
-=============================================================================
-*/
+    =============================================================================
+    */
 
-typedef uint8_t kb_scancode;
+    typedef uint8_t kb_scancode;
 
 #define  sc_None         0
 #define  sc_Bad          0xff
@@ -165,25 +165,25 @@ typedef uint8_t kb_scancode;
 #define MAXKEYBOARDSCAN  128
 
 
-/*
-=============================================================================
+    /*
+    =============================================================================
 
-                               GLOBAL VARIABLES
+                                   GLOBAL VARIABLES
 
-=============================================================================
-*/
+    =============================================================================
+    */
 
-extern uint8_t  KB_KeyDown[ MAXKEYBOARDSCAN ];   // Keyboard state array
-extern kb_scancode KB_LastScan;
+    extern uint8_t  KB_KeyDown[ MAXKEYBOARDSCAN ];   // Keyboard state array
+    extern kb_scancode KB_LastScan;
 
 
-/*
-=============================================================================
+    /*
+    =============================================================================
 
-                                    MACROS
+                                        MACROS
 
-=============================================================================
-*/
+    =============================================================================
+    */
 
 #define KB_GetLastScanCode()    ( KB_LastScan )
 
@@ -196,27 +196,27 @@ extern kb_scancode KB_LastScan;
 #define KB_ClearKeyDown( scan ) { KB_KeyDown[ ( scan ) ] = false; }
 
 #define KB_SetKeyDown( scan ) { KB_KeyDown[ ( scan ) ] = true; }
-/*
-=============================================================================
+    /*
+    =============================================================================
 
-                              FUNCTION PROTOTYPES
+                                  FUNCTION PROTOTYPES
 
-=============================================================================
-*/
+    =============================================================================
+    */
 
-void KB_KeyEvent( int scancode, int keypressed );  // Interprets scancodes
-int KB_KeyWaiting( void );         // Checks if a character is waiting in the keyboard queue
-uint8_t     KB_Getch( void );              // Gets the next keypress
-void    KB_Addch( uint8_t  ch );           // Adds key to end of queue
-void    KB_FlushKeyboardQueue( void ); // Empties the keyboard queue of all waiting characters.
-void    KB_ClearKeysDown( void );      // Clears all keys down flags.
-char  *  KB_ScanCodeToString( kb_scancode scancode ); // convert scancode into a string
-kb_scancode KB_StringToScanCode( char  * string );  // convert a string into a scancode
-void    KB_TurnKeypadOn( void );       // turn the keypad on
-void    KB_TurnKeypadOff( void );      // turn the keypad off
-int KB_KeypadActive( void );       // check whether keypad is active
-void    KB_Startup( void );
-void    KB_Shutdown( void );
+    void KB_KeyEvent( int scancode, int keypressed );  // Interprets scancodes
+    int KB_KeyWaiting( void );         // Checks if a character is waiting in the keyboard queue
+    uint8_t     KB_Getch( void );              // Gets the next keypress
+    void    KB_Addch( uint8_t  ch );           // Adds key to end of queue
+    void    KB_FlushKeyboardQueue( void ); // Empties the keyboard queue of all waiting characters.
+    void    KB_ClearKeysDown( void );      // Clears all keys down flags.
+    char    *KB_ScanCodeToString( kb_scancode scancode ); // convert scancode into a string
+    kb_scancode KB_StringToScanCode( char   *string );  // convert a string into a scancode
+    void    KB_TurnKeypadOn( void );       // turn the keypad on
+    void    KB_TurnKeypadOff( void );      // turn the keypad off
+    int KB_KeypadActive( void );       // check whether keypad is active
+    void    KB_Startup( void );
+    void    KB_Shutdown( void );
 
 #ifdef __cplusplus
 };

@@ -11,7 +11,7 @@ of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 See the GNU General Public License for more details.
 
@@ -30,60 +30,59 @@ Prepared for public release: 03/21/2003 - Charlie Wiederhold, 3D Realms
 extern "C" {
 #endif
 
-enum
-   {
-   filetype_binary,
-   filetype_text
-   };
+    enum
+    {
+        filetype_binary,
+        filetype_text
+    };
 
-enum
-   {
-   access_read,
-   access_write,
-   access_append
-   };
+    enum {
+        access_read,
+        access_write,
+        access_append
+    };
 
 //==========================================================================
 //
 // SafeOpenWrite - Opens a file for writing, returns handle
 //
 //==========================================================================
-int32 SafeOpenWrite ( const char  * filename, int32 filetype );
+    int32 SafeOpenWrite ( const char   *filename, int32 filetype );
 
 //==========================================================================
 //
 // SafeOpenRead - Opens a file for reading, returns handle
 //
 //==========================================================================
-int32 SafeOpenRead ( const char  * filename, int32 filetype );
+    int32 SafeOpenRead ( const char   *filename, int32 filetype );
 
 //==========================================================================
 //
 // SafeOpenAppend - Opens a file for appending, returns handle
 //
 //==========================================================================
-int32 SafeOpenAppend ( const char  * filename, int32 filetype );
+    int32 SafeOpenAppend ( const char   *filename, int32 filetype );
 
 //==========================================================================
 //
 // SafeClose - Close a file denoted by the file handle
 //
 //==========================================================================
-void SafeClose ( int32 handle );
+    void SafeClose ( int32 handle );
 
 //==========================================================================
 //
 // SafeFileExists - Checks for existence of file
 //
 //==========================================================================
-boolean SafeFileExists ( const char  * filename );
+    boolean SafeFileExists ( const char   *filename );
 
 //==========================================================================
 //
 // SafeFileLength - Get length of a file pointed to by handle
 //
 //==========================================================================
-int32 SafeFileLength ( int32 handle );
+    int32 SafeFileLength ( int32 handle );
 
 //==========================================================================
 //
@@ -96,7 +95,7 @@ int32 SafeFileLength ( int32 handle );
 //            count  - number of bytes to read
 //
 //==========================================================================
-void SafeRead (int32 handle, void *buffer, int32 count);
+    void SafeRead (int32 handle, void *buffer, int32 count);
 
 //==========================================================================
 //
@@ -109,7 +108,7 @@ void SafeRead (int32 handle, void *buffer, int32 count);
 //             count  - number of bytes to write
 //
 //==========================================================================
-void SafeWrite (int32 handle, void *buffer, int32 count);
+    void SafeWrite (int32 handle, void *buffer, int32 count);
 
 //==========================================================================
 //
@@ -122,7 +121,7 @@ void SafeWrite (int32 handle, void *buffer, int32 count);
 //            returns number of bytes read
 //
 //==========================================================================
-int32 LoadFile ( const uint8_t  * filename, void ** bufferptr );
+    int32 LoadFile ( const uint8_t   *filename, void **bufferptr );
 
 //==========================================================================
 //
@@ -135,7 +134,7 @@ int32 LoadFile ( const uint8_t  * filename, void ** bufferptr );
 //            count - number of bytes to write
 //
 //==========================================================================
-void SaveFile ( const uint8_t  * filename, void * bufferptr, int32 count );
+    void SaveFile ( const uint8_t   *filename, void *bufferptr, int32 count );
 
 //==========================================================================
 //
@@ -149,7 +148,7 @@ void SaveFile ( const uint8_t  * filename, void * bufferptr, int32 count );
 //                          filename - standard filename
 //
 //==========================================================================
-void GetPathFromEnvironment( uint8_t  *fullname, const uint8_t  *envname, const uint8_t  *filename );
+    void GetPathFromEnvironment( uint8_t  *fullname, const uint8_t  *envname, const uint8_t  *filename );
 
 //==========================================================================
 //
@@ -160,7 +159,7 @@ void GetPathFromEnvironment( uint8_t  *fullname, const uint8_t  *envname, const 
 //                    extension - default extension should include '.'
 //
 //==========================================================================
-void DefaultExtension (uint8_t  *path, const uint8_t  *extension);
+    void DefaultExtension (uint8_t  *path, const uint8_t  *extension);
 
 //==========================================================================
 //
@@ -171,7 +170,7 @@ void DefaultExtension (uint8_t  *path, const uint8_t  *extension);
 //               extension - default path
 //
 //==========================================================================
-void DefaultPath (uint8_t  *path, const uint8_t  *basepath);
+    void DefaultPath (uint8_t  *path, const uint8_t  *basepath);
 
 //==========================================================================
 //
@@ -182,7 +181,7 @@ void DefaultPath (uint8_t  *path, const uint8_t  *basepath);
 //                   dest - where the file base name will be placed
 //
 //==========================================================================
-void ExtractFileBase (uint8_t  *path, uint8_t  *dest);
+    void ExtractFileBase (uint8_t  *path, uint8_t  *dest);
 
 //==========================================================================
 //
@@ -191,15 +190,15 @@ void ExtractFileBase (uint8_t  *path, uint8_t  *dest);
 //                returns false otherwise
 //
 //==========================================================================
-boolean GetExtension( uint8_t  *filename, uint8_t  *extension );
+    boolean GetExtension( uint8_t  *filename, uint8_t  *extension );
 
 //==========================================================================
 //
 // SetExtension - Sets the extension from a name.  Assumes that enough
-// 					space is left at the end of the string to hold an extension.
+//                  space is left at the end of the string to hold an extension.
 //
 //==========================================================================
-void SetExtension( uint8_t  *filename, const uint8_t  *extension );
+    void SetExtension( uint8_t  *filename, const uint8_t  *extension );
 
 #ifdef __MSDOS__
 //******************************************************************************
@@ -216,7 +215,7 @@ void SetExtension( uint8_t  *filename, const uint8_t  *extension );
 //    Pointer to next path
 //
 //******************************************************************************
-uint8_t  * GetPath (uint8_t  * path, uint8_t  *dir);
+    uint8_t   *GetPath (uint8_t   *path, uint8_t  *dir);
 
 //******************************************************************************
 //
@@ -233,7 +232,7 @@ uint8_t  * GetPath (uint8_t  * path, uint8_t  *dir);
 //    FALSE - If unsuccessful.
 //
 //******************************************************************************
-boolean ChangeDirectory (uint8_t  * path);
+    boolean ChangeDirectory (uint8_t   *path);
 
 //******************************************************************************
 //
@@ -250,7 +249,7 @@ boolean ChangeDirectory (uint8_t  * path);
 //    FALSE - If drive change unsuccessful.
 //
 //******************************************************************************
-boolean ChangeDrive (uint8_t  *drive);
+    boolean ChangeDrive (uint8_t  *drive);
 
 #endif
 

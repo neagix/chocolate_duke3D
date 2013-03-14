@@ -11,7 +11,7 @@ extern "C" {
     int _joystick_axis(int axis);
     int _joystick_hat(int hat);
     int _joystick_button(int button);
-    
+
 #ifdef __cplusplus
 };
 

@@ -21,8 +21,8 @@ extern int32_t *horizlookup, *horizlookup2, horizycent;
 extern int32_t oxdimen, oviewingrange, oxyaspect;
 extern int32_t curbrightness;
 extern int32_t  pageoffset, ydim16;
-extern uint8_t* frameplace;
-extern uint8_t* frameoffset;
+extern uint8_t *frameplace;
+extern uint8_t *frameoffset;
 extern uint8_t  textfont[1024], smalltextfont[1024];
 extern uint8_t  pow2char[8];
 extern int32_t searchx, searchy;
@@ -63,8 +63,8 @@ int VBE_setPalette(uint8_t  *palettebuffer);
 
 
 void setvmode(int mode);
-uint8_t  readpixel(uint8_t  * location);
-void drawpixel(uint8_t  * location, uint8_t pixel);
+uint8_t  readpixel(uint8_t   *location);
+void drawpixel(uint8_t   *location, uint8_t pixel);
 
 
 void drawpixel16(int32_t offset);

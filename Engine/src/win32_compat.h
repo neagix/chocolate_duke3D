@@ -16,7 +16,7 @@
  */
 
 
-  
+
 #ifndef _INCLUDE_WIN32_COMPAT_H_
 #define _INCLUDE_WIN32_COMPAT_H_
 
@@ -29,10 +29,10 @@
 #include <stdio.h>
 
 #if (!defined _MSC_VER)
-	#include <unistd.h>
+#include <unistd.h>
 #else
-	#include <fcntl.h>
-    #include <SYS\STAT.H>
+#include <fcntl.h>
+#include <SYS\STAT.H>
 #endif
 
 #include <stdlib.h>
@@ -95,7 +95,7 @@
 #define strncasecmp strnicmp
 
 //Damn you Microsoft, how hard would it REALLY be to support C99 ?!??!?!
-#define inline 
+#define inline
 #include "windows/inttypes.h"
 
 #endif

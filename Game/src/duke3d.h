@@ -11,7 +11,7 @@ of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 See the GNU General Public License for more details.
 
@@ -50,13 +50,13 @@ Prepared for public release: 03/21/2003 - Charlie Wiederhold, 3D Realms
 #include "build.h"
 
 #if (!defined MAX_PATH)
-  #if (defined MAXPATHLEN)
-    #define MAX_PATH MAXPATHLEN
-  #elif (defined PATH_MAX)
-    #define MAX_PATH PATH_MAX
-  #else
-    #define MAX_PATH 256
-  #endif
+#if (defined MAXPATHLEN)
+#define MAX_PATH MAXPATHLEN
+#elif (defined PATH_MAX)
+#define MAX_PATH PATH_MAX
+#else
+#define MAX_PATH 256
+#endif
 #endif
 
 #if PLATFORM_DOS
@@ -95,33 +95,32 @@ extern uint8_t  grpVersion;
 
 
 #define RANCID_ID 1
-#define	XDUKE_ID  2
+#define XDUKE_ID  2
 #define JONOF_ID  3
 
 //Chocolate DukeNukem3D is a fork of xDuke v17.9
 
-#define DUKE_ID			XDUKE_ID
-#define	CHOCOLATE_DUKE_REV_X		1
-#define CHOCOLATE_DUKE_REV_DOT_Y	0   // rev is: CHOCOLATE_DUKE_REV_X.CHOCOLATE_DUKE_REV_DOT_Y
+#define DUKE_ID         XDUKE_ID
+#define CHOCOLATE_DUKE_REV_X        1
+#define CHOCOLATE_DUKE_REV_DOT_Y    0   // rev is: CHOCOLATE_DUKE_REV_X.CHOCOLATE_DUKE_REV_DOT_Y
 
 #define MAX_KNOWN_GRP 4
 
-enum
-{
-	UNKNOWN_GRP = 0,
-	SHAREWARE_GRP13,
-	REGULAR_GRP13D,
-	ATOMIC_GRP14_15,
-	DUKEITOUTINDC_GRP
+enum {
+    UNKNOWN_GRP = 0,
+    SHAREWARE_GRP13,
+    REGULAR_GRP13D,
+    ATOMIC_GRP14_15,
+    DUKEITOUTINDC_GRP
 };
 
-#define CRC_BASE_GRP_SHAREWARE_13	0x983AD923
-#define CRC_BASE_GRP_FULL_13		0xBBC9CE44
-#define CRC_BASE_GRP_PLUTONIUM_14	0xF514A6AC
-#define CRC_BASE_GRP_ATOMIC_15		0xFD3DCFF1 
+#define CRC_BASE_GRP_SHAREWARE_13   0x983AD923
+#define CRC_BASE_GRP_FULL_13        0xBBC9CE44
+#define CRC_BASE_GRP_PLUTONIUM_14   0xF514A6AC
+#define CRC_BASE_GRP_ATOMIC_15      0xFD3DCFF1
 
 // implies  conVersion == 14 or conVersion == 15
-#define PLUTOPAK  (!VOLUMEONE && !VOLUMEALL) 
+#define PLUTOPAK  (!VOLUMEONE && !VOLUMEALL)
 #define VOLUMEONE (getGRPcrc32(0)==CRC_BASE_GRP_SHAREWARE_13)
 // VOLUMEALL = 1.3d full
 #define VOLUMEALL (getGRPcrc32(0)==CRC_BASE_GRP_FULL_13 || conVersion == 13 && getGRPcrc32(0)!=CRC_BASE_GRP_SHAREWARE_13 && getGRPcrc32(0)!=CRC_BASE_GRP_PLUTONIUM_14 && getGRPcrc32(0)!=CRC_BASE_GRP_ATOMIC_15)
@@ -144,8 +143,8 @@ extern int BYTEVERSION_27;
 extern int BYTEVERSION_28;
 extern int BYTEVERSION_29; // really needed???
 extern int BYTEVERSION_116;
-extern int BYTEVERSION_117; 
-extern int BYTEVERSION_118; 
+extern int BYTEVERSION_117;
+extern int BYTEVERSION_118;
 extern int BYTEVERSION_1_3;
 
 
@@ -316,8 +315,7 @@ extern int g_iTicksPerFrame;
 
 #define rnd(X) ((TRAND>>8)>=(255-(X)))
 
-typedef struct
-{
+typedef struct {
     short i;
     int voice;
 } SOUNDOWNER;
@@ -339,8 +337,7 @@ enum USRHOOKS_Errors
 #pragma pack(push)
 #pragma pack(1)
 
-typedef struct
-{
+typedef struct {
     int8_t avel, horz;
     short fvel, svel;
     uint32_t bits;
@@ -355,17 +352,15 @@ extern input recsync[RECSYNCBUFSIZ];
 
 extern int32_t movefifosendplc;
 
-typedef struct
-{
+typedef struct {
     uint8_t  *ptr;
     uint8_t  lock;
     int  length, num;
 } SAMPLE;
 
-struct animwalltype
-{
-        short wallnum;
-        int32_t tag;
+struct animwalltype {
+    short wallnum;
+    int32_t tag;
 };
 extern struct animwalltype animwall[MAXANIMWALLS];
 extern short numanimwalls,probey,lastprobey;
@@ -378,8 +373,7 @@ extern int32_t msx[2048],msy[2048];
 extern short cyclers[MAXCYCLERS][6],numcyclers;
 extern char  myname[2048];
 
-struct user_defs
-{
+struct user_defs {
     uint8_t  god,warp_on,cashman,eog,showallmap;
     uint8_t  show_help,scrollmode,clipping;
     char  user_name[MAXPLAYERS][32];
@@ -402,30 +396,29 @@ struct user_defs
 
     int32 respawn_monsters,respawn_items,respawn_inventory,recstat,monsters_off,brightness;
     int32 m_respawn_items,m_respawn_monsters,m_respawn_inventory,m_recstat,m_monsters_off,detail;
-	// FIX_00082: /q option taken off when playing a demo (multimode_bot)    
-	int32 m_ffire,ffire,m_player_skill,m_level_number,m_volume_number,multimode,multimode_bot;
+    // FIX_00082: /q option taken off when playing a demo (multimode_bot)
+    int32 m_ffire,ffire,m_player_skill,m_level_number,m_volume_number,multimode,multimode_bot;
     int32 player_skill,level_number,volume_number,m_marker,marker,mouseflip;
 
-	int32 showcinematics, hideweapon;
-	int32 auto_aim, gitdat_mdk; //AutoAim toggle variable.
-	int32 weaponautoswitch;
+    int32 showcinematics, hideweapon;
+    int32 auto_aim, gitdat_mdk; //AutoAim toggle variable.
+    int32 weaponautoswitch;
 
-	// FIX_00015: Backward compliance with older demos (down to demos v27, 28, 116 and 117 only)
-	uint8_t  playing_demo_rev;
+    // FIX_00015: Backward compliance with older demos (down to demos v27, 28, 116 and 117 only)
+    uint8_t  playing_demo_rev;
 
-	uint32_t groupefil_crc32[MAXPLAYERS][4];
-	uint16_t conSize[MAXPLAYERS];
+    uint32_t groupefil_crc32[MAXPLAYERS][4];
+    uint16_t conSize[MAXPLAYERS];
 
 #ifdef CHECK_XDUKE_REV
-	uint8_t  rev[MAXPLAYERS][10];
+    uint8_t  rev[MAXPLAYERS][10];
 #endif
-	uint32_t mapCRC[MAXPLAYERS];
-	uint32_t exeCRC[MAXPLAYERS];
-	uint32_t conCRC[MAXPLAYERS];
+    uint32_t mapCRC[MAXPLAYERS];
+    uint32_t exeCRC[MAXPLAYERS];
+    uint32_t conCRC[MAXPLAYERS];
 };
 
-struct player_orig
-{
+struct player_orig {
     int32_t ox,oy,oz;
     short oa,os;
 };
@@ -434,11 +427,10 @@ struct player_orig
 extern uint8_t  numplayersprites;
 
 
-typedef struct
-{
-	unsigned int crc32;
-	char * name;
-	uint32_t size;
+typedef struct {
+    unsigned int crc32;
+    char *name;
+    uint32_t size;
 } crc32_t;
 
 extern crc32_t crc32lookup[];
@@ -448,8 +440,7 @@ void add_ammo( short, short, short, short );
 
 extern int32_t fricxv,fricyv;
 
-struct player_struct
-{
+struct player_struct {
     int32_t zoom,exitx,exity,loogiex[64],loogiey[64],numloogs,loogcnt;
     int32_t posx, posy, posz, horiz, ohoriz, ohorizoff, invdisptime;
     int32_t bobposx,bobposy,oposx,oposy,oposz,pyoff,opyoff;
@@ -475,7 +466,7 @@ struct player_struct
     short heat_amount,actorsqu,timebeforeexit,customexitsound;
 
     short weaprecs[16],weapreccnt;
-	uint32_t interface_toggle_flag;
+    uint32_t interface_toggle_flag;
 
     short rotscrnang,dead_flag,show_empty_weapon;
     short scuba_amount,jetpack_amount,steroids_amount,shield_amount;
@@ -499,17 +490,17 @@ struct player_struct
     uint8_t  max_secret_rooms,secret_rooms,/*fire_flag,*/pals[3];
     uint8_t  max_actors_killed,actors_killed,return_to_center;
 
-	// local but synch variables (ud is local but not synch):
+    // local but synch variables (ud is local but not synch):
 
-	// FIX_00023: Moved Addfaz's autoaim handler to synch variables (to avoid out of synch)
-	int32 auto_aim; //AutoAim toggle variable.
+    // FIX_00023: Moved Addfaz's autoaim handler to synch variables (to avoid out of synch)
+    int32 auto_aim; //AutoAim toggle variable.
 
-	// FIX_00012: added "weapon autoswitch" toggle allowing to turn the autoswitch off
-	//            when picking up new weapons. The weapon sound on pickup will remain on, to not 
-	//           affect the opponent's gameplay (so he can still hear you picking up new weapons)
-	int32 weaponautoswitch;
+    // FIX_00012: added "weapon autoswitch" toggle allowing to turn the autoswitch off
+    //            when picking up new weapons. The weapon sound on pickup will remain on, to not
+    //           affect the opponent's gameplay (so he can still hear you picking up new weapons)
+    int32 weaponautoswitch;
 
-	uint8_t  fakeplayer;
+    uint8_t  fakeplayer;
 };
 
 extern uint8_t  tempbuf[2048];
@@ -566,8 +557,7 @@ extern short camsprite;
 extern uint8_t  inspace(short sectnum);
 
 
-struct weaponhit
-{
+struct weaponhit {
     uint8_t  cgg;
     short picnum,ang,extra,owner,movflag;
     short tempang,actorstayput,dispicnum;
@@ -635,7 +625,7 @@ extern uint8_t  earthquaketime;
 extern uint8_t  networkmode;
 extern uint8_t  lumplockbyte[11];
 
-    //DUKE3D.H - replace the end "my's" with this
+//DUKE3D.H - replace the end "my's" with this
 extern int32_t myx, omyx, myxvel, myy, omyy, myyvel, myz, omyz, myzvel;
 extern short myhoriz, omyhoriz, myhorizoff, omyhorizoff, globalskillsound;
 extern short myang, omyang, mycursectnum, myjumpingcounter;
@@ -651,14 +641,13 @@ extern short weaponsandammosprites[15];
 
 
 //DUKE3D.H:
-typedef struct
-{
-        short frag[MAXPLAYERS], got_access, last_extra, shield_amount, curr_weapon;
-        short ammo_amount[MAX_WEAPONS], holoduke_on;
-        uint8_t  gotweapon[MAX_WEAPONS], inven_icon, jetpack_on, heat_on;
-        short firstaid_amount, steroids_amount, holoduke_amount, jetpack_amount;
-        short heat_amount, scuba_amount, boot_amount;
-        short last_weapon, weapon_pos, kickback_pic;
+typedef struct {
+    short frag[MAXPLAYERS], got_access, last_extra, shield_amount, curr_weapon;
+    short ammo_amount[MAX_WEAPONS], holoduke_on;
+    uint8_t  gotweapon[MAX_WEAPONS], inven_icon, jetpack_on, heat_on;
+    short firstaid_amount, steroids_amount, holoduke_amount, jetpack_amount;
+    short heat_amount, scuba_amount, boot_amount;
+    short last_weapon, weapon_pos, kickback_pic;
 
 } STATUSBARTYPE;
 

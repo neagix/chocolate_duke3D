@@ -2,9 +2,9 @@
 #define _CVARDEFS_H_
 
 #ifdef _WIN32
-   #include "../../Engine/src/windows/inttypes.h"
+#include "../../Engine/src/windows/inttypes.h"
 #else
-   #include <inttypes.h>
+#include <inttypes.h>
 #endif
 
 void CVARDEFS_Init();
@@ -12,16 +12,16 @@ void CVARDEFS_Render();
 //
 // Function declarations
 //
-void CVARDEFS_DefaultFunction(void* var);
-void CVARDEFS_FunctionQuit(void* var);
-void CVARDEFS_FunctionClear(void* var);
-void CVARDEFS_FunctionLevel(void* var);
-void CVARDEFS_FunctionName(void* var);
-void CVARDEFS_FunctionPlayMidi(void* var);
-void CVARDEFS_FunctionFOV(void* var);
-void CVARDEFS_FunctionTickRate(void* var);
-void CVARDEFS_FunctionTicksPerFrame(void* var);
-void CVARDEFS_FunctionHelp(void* var);
+void CVARDEFS_DefaultFunction(void *var);
+void CVARDEFS_FunctionQuit(void *var);
+void CVARDEFS_FunctionClear(void *var);
+void CVARDEFS_FunctionLevel(void *var);
+void CVARDEFS_FunctionName(void *var);
+void CVARDEFS_FunctionPlayMidi(void *var);
+void CVARDEFS_FunctionFOV(void *var);
+void CVARDEFS_FunctionTickRate(void *var);
+void CVARDEFS_FunctionTicksPerFrame(void *var);
+void CVARDEFS_FunctionHelp(void *var);
 
 //
 // Variable declarations

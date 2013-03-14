@@ -37,8 +37,8 @@ void     dfwrite(void *buffer, size_t dasizeof, size_t count, FILE *fil);
 
 int      getGRPcrc32(int grpID);
 
-char*    getGameDir(void);
-void     setGameDir(char* gameDir);
+char    *getGameDir(void);
+void     setGameDir(char *gameDir);
 
 int32_t  TCkopen4load(const char  *filename, int32_t readfromGRP);
 

@@ -14,17 +14,17 @@ int FindDistance3D(int ix, int iy, int iz);
 void Shutdown(void);
 
 #ifndef LITTLE_ENDIAN
-    #ifdef __APPLE__
-    #else
-        #define LITTLE_ENDIAN 1234
-    #endif
+#ifdef __APPLE__
+#else
+#define LITTLE_ENDIAN 1234
+#endif
 #endif
 
 #ifndef BIG_ENDIAN
-     #ifdef __APPLE__
-     #else
-        #define BIG_ENDIAN 4321
-    #endif
+#ifdef __APPLE__
+#else
+#define BIG_ENDIAN 4321
+#endif
 #endif
 
 #if PLATFORM_WIN32

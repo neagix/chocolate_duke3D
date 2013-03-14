@@ -11,7 +11,7 @@ of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 See the GNU General Public License for more details.
 
@@ -28,9 +28,9 @@ Prepared for public release: 03/21/2003 - Charlie Wiederhold, 3D Realms
 #define _types_public
 
 #ifdef _WIN32
-   #include "../../Engine/src/windows/inttypes.h"
+#include "../../Engine/src/windows/inttypes.h"
 #else
-   #include <inttypes.h>
+#include <inttypes.h>
 #endif
 
 #ifdef __cplusplus
@@ -44,24 +44,24 @@ extern "C" {
 //
 //***************************************************************************
 
-typedef uint8_t            uint8;
-typedef uint8                   byte;
-typedef int8_t             int8;
+    typedef uint8_t            uint8;
+    typedef uint8                   byte;
+    typedef int8_t             int8;
 
-typedef uint16_t            uint16;
-typedef uint16                  word;
-typedef short int               int16;
+    typedef uint16_t            uint16;
+    typedef uint16                  word;
+    typedef short int               int16;
 
-typedef unsigned int           uint32;
-typedef int                    int32;
-typedef uint32                  dword;
+    typedef unsigned int           uint32;
+    typedef int                    int32;
+    typedef uint32                  dword;
 
-typedef int32                   fixed;
+    typedef int32                   fixed;
 #define boolean uint8_t
-typedef float                   float32;
-typedef double                  float64;
-typedef int64_t                 float128;
-typedef float64                 appfloat;
+    typedef float                   float32;
+    typedef double                  float64;
+    typedef int64_t                 float128;
+    typedef float64                 appfloat;
 
 
 

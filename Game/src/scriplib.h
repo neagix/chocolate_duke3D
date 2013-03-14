@@ -11,7 +11,7 @@ of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 See the GNU General Public License for more details.
 
@@ -32,338 +32,338 @@ Prepared for public release: 03/21/2003 - Charlie Wiederhold, 3D Realms
 extern "C" {
 #endif
 
-/*
-==============
-=
-= SCRIPT_Init
-=
-==============
-*/
-int32 SCRIPT_Init( uint8_t  * name );
+    /*
+    ==============
+    =
+    = SCRIPT_Init
+    =
+    ==============
+    */
+    int32 SCRIPT_Init( uint8_t   *name );
 
 
-/*
-==============
-=
-= SCRIPT_Free
-=
-==============
-*/
-void SCRIPT_Free( int32 scripthandle );
+    /*
+    ==============
+    =
+    = SCRIPT_Free
+    =
+    ==============
+    */
+    void SCRIPT_Free( int32 scripthandle );
 
-/*
-==============
-=
-= SCRIPT_Parse
-=
-==============
-*/
+    /*
+    ==============
+    =
+    = SCRIPT_Parse
+    =
+    ==============
+    */
 
-int32 SCRIPT_Parse ( uint8_t  *data, int32 length, char  * name );
-
-
-/*
-==============
-=
-= SCRIPT_Load
-=
-==============
-*/
-
-int32 SCRIPT_Load ( char  * filename );
-
-/*
-==============
-=
-= SCRIPT_Save
-=
-==============
-*/
-void SCRIPT_Save (int32 scripthandle, char  * filename);
+    int32 SCRIPT_Parse ( uint8_t  *data, int32 length, char   *name );
 
 
-/*
-==============
-=
-= SCRIPT_NumberSections
-=
-==============
-*/
+    /*
+    ==============
+    =
+    = SCRIPT_Load
+    =
+    ==============
+    */
 
-int32 SCRIPT_NumberSections( int32 scripthandle );
+    int32 SCRIPT_Load ( char   *filename );
 
-/*
-==============
-=
-= SCRIPT_Section
-=
-==============
-*/
-
-uint8_t  * SCRIPT_Section( int32 scripthandle, int32 which );
-
-/*
-==============
-=
-= SCRIPT_NumberEntries
-=
-==============
-*/
-
-int32 SCRIPT_NumberEntries( int32 scripthandle, char  * sectionname );
-
-/*
-==============
-=
-= SCRIPT_Entry
-=
-==============
-*/
-
-char  * SCRIPT_Entry( int32 scripthandle, char  * sectionname, int32 which );
+    /*
+    ==============
+    =
+    = SCRIPT_Save
+    =
+    ==============
+    */
+    void SCRIPT_Save (int32 scripthandle, char   *filename);
 
 
-/*
-==============
-=
-= SCRIPT_GetRaw
-=
-==============
-*/
-char  * SCRIPT_GetRaw(int32 scripthandle, char  * sectionname, char  * entryname);
+    /*
+    ==============
+    =
+    = SCRIPT_NumberSections
+    =
+    ==============
+    */
 
-/*
-==============
-=
-= SCRIPT_GetString
-=
-==============
-*/
-void SCRIPT_GetString
-   (
-   int32 scripthandle,
-   char  * sectionname,
-   char  * entryname,
-   char  * dest
-   );
+    int32 SCRIPT_NumberSections( int32 scripthandle );
 
-/*
-==============
-=
-= SCRIPT_GetDoubleString
-=
-==============
-*/
-void SCRIPT_GetDoubleString
-   (
-   int32 scripthandle,
-   char  * sectionname,
-   char  * entryname,
-   char  * dest1,
-   char  * dest2
-   );
+    /*
+    ==============
+    =
+    = SCRIPT_Section
+    =
+    ==============
+    */
 
-/*
-==============
-=
-= SCRIPT_GetNumber
-=
-==============
-*/
-boolean SCRIPT_GetNumber
-   (
-   int32 scripthandle,
-   char  * sectionname,
-   char  * entryname,
-   int32 * number
-   );
+    uint8_t   *SCRIPT_Section( int32 scripthandle, int32 which );
 
-/*
-==============
-=
-= SCRIPT_GetBoolean
-=
-==============
-*/
-void SCRIPT_GetBoolean
-   (
-   int32 scripthandle,
-   uint8_t  * sectionname,
-   uint8_t  * entryname,
-   boolean * bool
-   );
+    /*
+    ==============
+    =
+    = SCRIPT_NumberEntries
+    =
+    ==============
+    */
 
-/*
-==============
-=
-= SCRIPT_GetFloat
-=
-==============
-*/
+    int32 SCRIPT_NumberEntries( int32 scripthandle, char   *sectionname );
 
-boolean SCRIPT_GetFloat
-   (
-   int32 scripthandle,
-   char  * sectionname,
-   char  * entryname,
-   float * floatnumber
-   );
+    /*
+    ==============
+    =
+    = SCRIPT_Entry
+    =
+    ==============
+    */
+
+    char   *SCRIPT_Entry( int32 scripthandle, char   *sectionname, int32 which );
 
 
-/*
-==============
-=
-= SCRIPT_GetDouble
-=
-==============
-*/
+    /*
+    ==============
+    =
+    = SCRIPT_GetRaw
+    =
+    ==============
+    */
+    char   *SCRIPT_GetRaw(int32 scripthandle, char   *sectionname, char   *entryname);
 
-void SCRIPT_GetDouble
-   (
-   int32 scripthandle,
-   char  * sectionname,
-   char  * entryname,
-   double * number
-   );
+    /*
+    ==============
+    =
+    = SCRIPT_GetString
+    =
+    ==============
+    */
+    void SCRIPT_GetString
+    (
+        int32 scripthandle,
+        char   *sectionname,
+        char   *entryname,
+        char   *dest
+    );
+
+    /*
+    ==============
+    =
+    = SCRIPT_GetDoubleString
+    =
+    ==============
+    */
+    void SCRIPT_GetDoubleString
+    (
+        int32 scripthandle,
+        char   *sectionname,
+        char   *entryname,
+        char   *dest1,
+        char   *dest2
+    );
+
+    /*
+    ==============
+    =
+    = SCRIPT_GetNumber
+    =
+    ==============
+    */
+    boolean SCRIPT_GetNumber
+    (
+        int32 scripthandle,
+        char   *sectionname,
+        char   *entryname,
+        int32 *number
+    );
+
+    /*
+    ==============
+    =
+    = SCRIPT_GetBoolean
+    =
+    ==============
+    */
+    void SCRIPT_GetBoolean
+    (
+        int32 scripthandle,
+        uint8_t   *sectionname,
+        uint8_t   *entryname,
+        boolean *bool
+    );
+
+    /*
+    ==============
+    =
+    = SCRIPT_GetFloat
+    =
+    ==============
+    */
+
+    boolean SCRIPT_GetFloat
+    (
+        int32 scripthandle,
+        char   *sectionname,
+        char   *entryname,
+        float *floatnumber
+    );
+
+
+    /*
+    ==============
+    =
+    = SCRIPT_GetDouble
+    =
+    ==============
+    */
+
+    void SCRIPT_GetDouble
+    (
+        int32 scripthandle,
+        char   *sectionname,
+        char   *entryname,
+        double *number
+    );
 
 
 
-/*
-==============
-=
-= SCRIPT_PutComment
-=
-==============
-*/
-void SCRIPT_PutComment( int32 scripthandle, uint8_t  * sectionname, uint8_t  * comment );
+    /*
+    ==============
+    =
+    = SCRIPT_PutComment
+    =
+    ==============
+    */
+    void SCRIPT_PutComment( int32 scripthandle, uint8_t   *sectionname, uint8_t   *comment );
 
-/*
-==============
-=
-= SCRIPT_PutEOL
-=
-==============
-*/
-void SCRIPT_PutEOL( int32 scripthandle, uint8_t  * sectionname );
+    /*
+    ==============
+    =
+    = SCRIPT_PutEOL
+    =
+    ==============
+    */
+    void SCRIPT_PutEOL( int32 scripthandle, uint8_t   *sectionname );
 
-/*
-==============
-=
-= SCRIPT_PutMultiComment
-=
-==============
-*/
-void SCRIPT_PutMultiComment
-   (
-   int32 scripthandle,
-   uint8_t  * sectionname,
-   uint8_t  * comment,
-   ...
-   );
+    /*
+    ==============
+    =
+    = SCRIPT_PutMultiComment
+    =
+    ==============
+    */
+    void SCRIPT_PutMultiComment
+    (
+        int32 scripthandle,
+        uint8_t   *sectionname,
+        uint8_t   *comment,
+        ...
+    );
 
-/*
-==============
-=
-= SCRIPT_PutSection
-=
-==============
-*/
-void SCRIPT_PutSection( int32 scripthandle, uint8_t  * sectionname );
+    /*
+    ==============
+    =
+    = SCRIPT_PutSection
+    =
+    ==============
+    */
+    void SCRIPT_PutSection( int32 scripthandle, uint8_t   *sectionname );
 
-/*
-==============
-=
-= SCRIPT_PutRaw
-=
-==============
-*/
-void SCRIPT_PutRaw
-   (
-   int32 scripthandle,
-   uint8_t  * sectionname,
-   uint8_t  * entryname,
-   uint8_t  * raw
-   );
+    /*
+    ==============
+    =
+    = SCRIPT_PutRaw
+    =
+    ==============
+    */
+    void SCRIPT_PutRaw
+    (
+        int32 scripthandle,
+        uint8_t   *sectionname,
+        uint8_t   *entryname,
+        uint8_t   *raw
+    );
 
-/*
-==============
-=
-= SCRIPT_PutString
-=
-==============
-*/
-void SCRIPT_PutString
-   (
-   int32 scripthandle,
-   char  * sectionname,
-   char  * entryname,
-   char  * string
-   );
+    /*
+    ==============
+    =
+    = SCRIPT_PutString
+    =
+    ==============
+    */
+    void SCRIPT_PutString
+    (
+        int32 scripthandle,
+        char   *sectionname,
+        char   *entryname,
+        char   *string
+    );
 
-/*
-==============
-=
-= SCRIPT_PutDoubleString
-=
-==============
-*/
-void SCRIPT_PutDoubleString
-   (
-   int32 scripthandle,
-   char  * sectionname,
-   char  * entryname,
-   char  * string1,
-   char  * string2
-   );
+    /*
+    ==============
+    =
+    = SCRIPT_PutDoubleString
+    =
+    ==============
+    */
+    void SCRIPT_PutDoubleString
+    (
+        int32 scripthandle,
+        char   *sectionname,
+        char   *entryname,
+        char   *string1,
+        char   *string2
+    );
 
-/*
-==============
-=
-= SCRIPT_PutNumber
-=
-==============
-*/
-void SCRIPT_PutNumber
-   (
-   int32 scripthandle,
-   char  * sectionname,
-   char  * entryname,
-   int32 number,
-   boolean hexadecimal,
-   boolean defaultvalue
-   );
+    /*
+    ==============
+    =
+    = SCRIPT_PutNumber
+    =
+    ==============
+    */
+    void SCRIPT_PutNumber
+    (
+        int32 scripthandle,
+        char   *sectionname,
+        char   *entryname,
+        int32 number,
+        boolean hexadecimal,
+        boolean defaultvalue
+    );
 
-/*
-==============
-=
-= SCRIPT_PutBoolean
-=
-==============
-*/
-void SCRIPT_PutBoolean
-   (
-   int32 scripthandle,
-   uint8_t  * sectionname,
-   uint8_t  * entryname,
-   boolean bool
-   );
+    /*
+    ==============
+    =
+    = SCRIPT_PutBoolean
+    =
+    ==============
+    */
+    void SCRIPT_PutBoolean
+    (
+        int32 scripthandle,
+        uint8_t   *sectionname,
+        uint8_t   *entryname,
+        boolean bool
+    );
 
-/*
-==============
-=
-= SCRIPT_PutDouble
-=
-==============
-*/
+    /*
+    ==============
+    =
+    = SCRIPT_PutDouble
+    =
+    ==============
+    */
 
-void SCRIPT_PutDouble
-   (
-   int32 scripthandle,
-   uint8_t  * sectionname,
-   uint8_t  * entryname,
-   double number,
-   boolean defaultvalue
-   );
+    void SCRIPT_PutDouble
+    (
+        int32 scripthandle,
+        uint8_t   *sectionname,
+        uint8_t   *entryname,
+        double number,
+        boolean defaultvalue
+    );
 
 
 #ifdef __cplusplus

@@ -8,14 +8,26 @@
 #ifndef __PRAGMAS_H__
 #define __PRAGMAS_H__
 
-#include "platform.h" 
+#include "platform.h"
 
 static __inline void swapchar(uint8_t  *p1, uint8_t  *p2)
-{ uint8_t  tmp = *p1; *p1 = *p2; *p2 = tmp; }
+{
+    uint8_t  tmp = *p1;
+    *p1 = *p2;
+    *p2 = tmp;
+}
 static __inline void swapshort(short *p1, short *p2)
-{ short tmp = *p1; *p1 = *p2; *p2 = tmp; }
+{
+    short tmp = *p1;
+    *p1 = *p2;
+    *p2 = tmp;
+}
 static __inline void swaplong(int32_t *p1, int32_t *p2)
-{ int32_t tmp = *p1; *p1 = *p2; *p2 = tmp; }
+{
+    int32_t tmp = *p1;
+    *p1 = *p2;
+    *p2 = tmp;
+}
 static __inline void swapchar2(uint8_t  *p1, uint8_t  *p2, int xsiz)
 {
     swapchar(p1, p2);
@@ -24,32 +36,35 @@ static __inline void swapchar2(uint8_t  *p1, uint8_t  *p2, int xsiz)
 
 void vlin16first (int32_t i1, int32_t i2);
 
-static inline int32_t sqr (int32_t input1) { return input1*input1; }
+static inline int32_t sqr (int32_t input1)
+{
+    return input1*input1;
+}
 
 /* internal use:32x32 = 64bit */
 static inline int64_t mul32_64(int32_t i1,int32_t i2)
 {
-	return (int64_t)i1*i2;
+    return (int64_t)i1*i2;
 }
 static inline int scale (int32_t input1, int32_t input2, int32_t input3)
 {
-	return (int)(mul32_64(input1,input2)/(int64_t)input3);
+    return (int)(mul32_64(input1,input2)/(int64_t)input3);
 }
 static inline int mulscale (int32_t input1, int32_t input2, int32_t input3)
 {
-	return (int)(mul32_64(input1,input2)>>input3);
+    return (int)(mul32_64(input1,input2)>>input3);
 }
 static inline int dmulscale  (int32_t input1, int32_t input2, int32_t input3,int32_t input4,int32_t input5)
 {
-	return (int)((mul32_64(input1,input2) + mul32_64(input3,input4))>>input5);
+    return (int)((mul32_64(input1,input2) + mul32_64(input3,input4))>>input5);
 }
 static inline int tmulscale(int32_t i1, int32_t i2, int32_t i3, int32_t i4, int32_t i5, int32_t i6,int32_t shift)
 {
-	return (int)((mul32_64(i1,i2) + mul32_64(i3,i4) + mul32_64(i5,i6))>>shift);
+    return (int)((mul32_64(i1,i2) + mul32_64(i3,i4) + mul32_64(i5,i6))>>shift);
 }
 static inline int32_t divscale(int32_t i1, int32_t i2, int32_t i3)
 {
-	return (int32_t)(((int64_t)i1<<i3)/i2);
+    return (int32_t)(((int64_t)i1<<i3)/i2);
 }
 
 #define DEFFUNCS \
@@ -112,20 +127,38 @@ DEFFUNCS
 
 static inline int ksgn(int32_t i1)
 {
-  if (i1 < 0) return -1;
-  else if (i1 > 0) return 1;
-  else return 0;
+    if (i1 < 0) {
+        return -1;
+    } else if (i1 > 0) {
+        return 1;
+    } else {
+        return 0;
+    }
 }
 
-static inline int sgn(int32_t i1) { return ksgn(i1); }
+static inline int sgn(int32_t i1)
+{
+    return ksgn(i1);
+}
 static inline int klabs (int32_t i1)
 {
-  if (i1 < 0) i1 = -i1;
-  return i1;
+    if (i1 < 0) {
+        i1 = -i1;
+    }
+    return i1;
 }
-static inline int mul3 (int32_t i1) { return i1*3; }
-static inline int mul5 (int32_t i1) { return i1*5; }
-static inline int mul9 (int32_t i1) { return i1*9; }
+static inline int mul3 (int32_t i1)
+{
+    return i1*3;
+}
+static inline int mul5 (int32_t i1)
+{
+    return i1*5;
+}
+static inline int mul9 (int32_t i1)
+{
+    return i1*9;
+}
 
 void copybufreverse(void *S, void *D, int32_t c);
 void copybuf(void *s, void *d, int32_t c);
@@ -133,8 +166,8 @@ void clearbuf(void *d, int32_t c, int32_t a);
 void clearbufbyte(void *D, int32_t c, int32_t a);
 void copybufbyte(void *S, void *D, int32_t c);
 
-void qinterpolatedown16 (int32_t* bufptr, int32_t num, int32_t val, int32_t add);
-void qinterpolatedown16short (int32_t* bufptr, int32_t num, int32_t val, int32_t add);
+void qinterpolatedown16 (int32_t *bufptr, int32_t num, int32_t val, int32_t add);
+void qinterpolatedown16short (int32_t *bufptr, int32_t num, int32_t val, int32_t add);
 
 #endif /* !defined _INCLUDE_PRAGMAS_H_ */
 

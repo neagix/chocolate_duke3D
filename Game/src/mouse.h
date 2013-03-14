@@ -11,7 +11,7 @@ of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 See the GNU General Public License for more details.
 
@@ -37,13 +37,13 @@ extern "C" {
 #define RIGHT_MOUSE_PRESSED( button ) ( ( ( button ) & RIGHT_MOUSE ) != 0 )
 #define MIDDLE_MOUSE_PRESSED( button ) ( ( ( button ) & MIDDLE_MOUSE ) != 0 )
 
-boolean MOUSE_Init( void );
-void    MOUSE_Shutdown( void );
-void    MOUSE_ShowCursor( void );
-void    MOUSE_HideCursor( void );
-int32   MOUSE_GetButtons( void );
-void    MOUSE_GetPosition( int32*x, int32*y  );
-void    MOUSE_GetDelta( int32*x, int32*y  );
+    boolean MOUSE_Init( void );
+    void    MOUSE_Shutdown( void );
+    void    MOUSE_ShowCursor( void );
+    void    MOUSE_HideCursor( void );
+    int32   MOUSE_GetButtons( void );
+    void    MOUSE_GetPosition( int32 *x, int32 *y  );
+    void    MOUSE_GetDelta( int32 *x, int32 *y  );
 
 #ifdef __cplusplus
 };
