@@ -326,7 +326,36 @@ int loadplayer(int8_t spot)
     kdfread(&numwalls,2,1,fil);
     kdfread(&wall[0],sizeof(walltype),MAXWALLS,fil);
     kdfread(&numsectors,2,1,fil);
-    kdfread(&sector[0],sizeof(sectortype),MAXSECTORS,fil);
+    kdfread(&sector_on_grp[0], sizeof(SectorOnGRP), MAXSECTORS, fil);
+    
+    for (int i=0; i<MAXSECTORS; i++) {
+        sector[i].wallptr    = sector_on_grp[i].wallptr;
+        sector[i].wallnum    = sector_on_grp[i].wallnum;
+        sector[i].visibility = sector_on_grp[i].visibility;
+        sector[i].filler     = sector_on_grp[i].filler;
+        sector[i].lotag      = sector_on_grp[i].lotag;
+        sector[i].hitag      = sector_on_grp[i].hitag;
+        sector[i].extra      = sector_on_grp[i].extra;
+        
+        sector[i].ceiling.z        = sector_on_grp[i].ceilingz;
+        sector[i].ceiling.picnum   = sector_on_grp[i].ceilingpicnum;
+        sector[i].ceiling.heinum   = sector_on_grp[i].ceilingheinum;
+        sector[i].ceiling.shade    = sector_on_grp[i].ceilingshade;
+        sector[i].ceiling.pal      = sector_on_grp[i].ceilingpal;
+        sector[i].ceiling.xpanning = sector_on_grp[i].ceilingxpanning;
+        sector[i].ceiling.ypanning = sector_on_grp[i].ceilingypanning;
+        sector[i].ceiling.stat     = sector_on_grp[i].ceilingstat;
+        
+        sector[i].floor.z        = sector_on_grp[i].floorz;
+        sector[i].floor.picnum   = sector_on_grp[i].floorpicnum;
+        sector[i].floor.heinum   = sector_on_grp[i].floorheinum;
+        sector[i].floor.shade    = sector_on_grp[i].floorshade;
+        sector[i].floor.pal      = sector_on_grp[i].floorpal;
+        sector[i].floor.xpanning = sector_on_grp[i].floorxpanning;
+        sector[i].floor.ypanning = sector_on_grp[i].floorypanning;
+        sector[i].floor.stat     = sector_on_grp[i].floorstat;
+    }
+    
     kdfread(&sprite[0],sizeof(spritetype),MAXSPRITES,fil);
     kdfread(&headspritesect[0],2,MAXSECTORS+1,fil);
     kdfread(&prevspritesect[0],2,MAXSPRITES,fil);
@@ -609,7 +638,7 @@ int saveplayer(int8_t spot)
     dfwrite(&numwalls,2,1,fil);
     dfwrite(&wall[0],sizeof(walltype),MAXWALLS,fil);
     dfwrite(&numsectors,2,1,fil);
-    dfwrite(&sector[0],sizeof(sectortype),MAXSECTORS,fil);
+    dfwrite(&sector_on_grp[0],sizeof(SectorOnGRP),MAXSECTORS,fil);
     dfwrite(&sprite[0],sizeof(spritetype),MAXSPRITES,fil);
     dfwrite(&headspritesect[0],2,MAXSECTORS+1,fil);
     dfwrite(&prevspritesect[0],2,MAXSPRITES,fil);

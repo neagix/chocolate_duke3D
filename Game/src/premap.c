@@ -328,12 +328,12 @@ void cacheit(void)
         }
 
     for (i=0; i<numsectors; i++) {
-        if ( tiles[sector[i].floorpicnum].data == NULL ) {
-            tloadtile( sector[i].floorpicnum );
+        if ( tiles[sector[i].floor.picnum].data == NULL ) {
+            tloadtile( sector[i].floor.picnum );
         }
-        if ( tiles[sector[i].ceilingpicnum].data == NULL ) {
-            tloadtile( sector[i].ceilingpicnum );
-            if ( tiles[sector[i].ceilingpicnum].data == (uint8_t *)LA) {
+        if ( tiles[sector[i].ceiling.picnum].data == NULL ) {
+            tloadtile( sector[i].ceiling.picnum );
+            if ( tiles[sector[i].ceiling.picnum].data == (uint8_t *)LA) {
                 tloadtile(LA+1);
                 tloadtile(LA+2);
             }
@@ -761,17 +761,17 @@ void prelevel(uint8_t  g)
                 continue;
         }
 
-        if (sector[i].ceilingstat&1) {
-            if (tiles[sector[i].ceilingpicnum].data == NULL) {
-                if (sector[i].ceilingpicnum == LA)
+        if (sector[i].ceiling.stat&1) {
+            if (tiles[sector[i].ceiling.picnum].data == NULL) {
+                if (sector[i].ceiling.picnum == LA)
                     for (j=0; j<5; j++)
-                        if (tiles[sector[i].ceilingpicnum+j].data == NULL) {
-                            tloadtile(sector[i].ceilingpicnum+j);
+                        if (tiles[sector[i].ceiling.picnum+j].data == NULL) {
+                            tloadtile(sector[i].ceiling.picnum+j);
                         }
             }
-            setupbackdrop(sector[i].ceilingpicnum);
+            setupbackdrop(sector[i].ceiling.picnum);
 
-            if (sector[i].ceilingpicnum == CLOUDYSKIES && numclouds < 127) {
+            if (sector[i].ceiling.picnum == CLOUDYSKIES && numclouds < 127) {
                 clouds[numclouds++] = i;
             }
 
@@ -812,7 +812,7 @@ void prelevel(uint8_t  g)
                     cyclers[numcyclers][0] = SECT;
                     cyclers[numcyclers][1] = SLT;
                     cyclers[numcyclers][2] = SS;
-                    cyclers[numcyclers][3] = sector[SECT].floorshade;
+                    cyclers[numcyclers][3] = sector[SECT].floor.shade;
                     cyclers[numcyclers][4] = SHT;
                     cyclers[numcyclers][5] = (SA == 1536);
                     numcyclers++;
@@ -908,9 +908,9 @@ void prelevel(uint8_t  g)
             if (mirrorcnt > 63) {
                 gameexit("\nToo many mirrors (64 max.)");
             }
-            if ( (j >= 0) && sector[j].ceilingpicnum != MIRROR ) {
-                sector[j].ceilingpicnum = MIRROR;
-                sector[j].floorpicnum = MIRROR;
+            if ( (j >= 0) && sector[j].ceiling.picnum != MIRROR ) {
+                sector[j].ceiling.picnum = MIRROR;
+                sector[j].floor.picnum = MIRROR;
                 mirrorwall[mirrorcnt] = i;
                 mirrorsector[mirrorcnt] = j;
                 mirrorcnt++;
@@ -1633,7 +1633,7 @@ void enterlevel(uint8_t  g)
 
 
     for (i=connecthead; i>=0; i=connectpoint2[i])
-        switch (sector[sprite[ps[i].i].sectnum].floorpicnum) {
+        switch (sector[sprite[ps[i].i].sectnum].floor.picnum) {
             case HURTRAIL:
             case FLOORSLIME:
             case FLOORPLASMA:

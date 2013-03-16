@@ -96,8 +96,8 @@ void restoreinterpolations()  //Stick at end of drawscreen
 
 int32_t ceilingspace(int16_t sectnum)
 {
-    if ( (sector[sectnum].ceilingstat&1) && sector[sectnum].ceilingpal == 0 ) {
-        switch (sector[sectnum].ceilingpicnum) {
+    if ( (sector[sectnum].ceiling.stat&1) && sector[sectnum].ceiling.pal == 0 ) {
+        switch (sector[sectnum].ceiling.picnum) {
             case MOONSKY1:
             case BIGORBIT1:
                 return 1;
@@ -108,8 +108,8 @@ int32_t ceilingspace(int16_t sectnum)
 
 int32_t floorspace(int16_t sectnum)
 {
-    if ( (sector[sectnum].floorstat&1) && sector[sectnum].ceilingpal == 0 ) {
-        switch (sector[sectnum].floorpicnum) {
+    if ( (sector[sectnum].floor.stat&1) && sector[sectnum].ceiling.pal == 0 ) {
+        switch (sector[sectnum].floor.picnum) {
             case MOONSKY1:
             case BIGORBIT1:
                 return 1;
@@ -425,7 +425,7 @@ void checkavailweapon( struct player_struct *p )
 
 int32_t ifsquished(short i, short p)
 {
-    sectortype *sc;
+    Sector *sc;
     uint8_t  squishme;
     int32_t floorceildist;
 
@@ -986,10 +986,10 @@ void movefta(void)
                             case NUKEBARRELDENTED:
                             case NUKEBARRELLEAKED:
                             case TRIPBOMB:
-                                if (sector[s->sectnum].ceilingstat&1) {
-                                    s->shade = sector[s->sectnum].ceilingshade;
+                                if (sector[s->sectnum].ceiling.stat&1) {
+                                    s->shade = sector[s->sectnum].ceiling.shade;
                                 } else {
-                                    s->shade = sector[s->sectnum].floorshade;
+                                    s->shade = sector[s->sectnum].floor.shade;
                                 }
 
                                 hittype[i].timetosleep = 0;
@@ -1007,10 +1007,10 @@ void movefta(void)
                 }
             }
             if ( badguy( s ) ) {
-                if (sector[s->sectnum].ceilingstat&1) {
-                    s->shade = sector[s->sectnum].ceilingshade;
+                if (sector[s->sectnum].ceiling.stat&1) {
+                    s->shade = sector[s->sectnum].ceiling.shade;
                 } else {
-                    s->shade = sector[s->sectnum].floorshade;
+                    s->shade = sector[s->sectnum].floor.shade;
                 }
             }
         }
@@ -1146,7 +1146,7 @@ void movecyclers(void)
                     }
 
                 }
-            sector[s].floorshade = sector[s].ceilingshade = j;
+            sector[s].floor.shade = sector[s].ceiling.shade = j;
         }
     }
 }
@@ -1304,10 +1304,10 @@ void moveplayers(void) //Players
             }
         }
 
-        if (sector[s->sectnum].ceilingstat&1) {
-            s->shade += (sector[s->sectnum].ceilingshade-s->shade)>>1;
+        if (sector[s->sectnum].ceiling.stat&1) {
+            s->shade += (sector[s->sectnum].ceiling.shade-s->shade)>>1;
         } else {
-            s->shade += (sector[s->sectnum].floorshade-s->shade)>>1;
+            s->shade += (sector[s->sectnum].floor.shade-s->shade)>>1;
         }
 
 BOLT:
@@ -2123,7 +2123,7 @@ CLEAR_THE_BOLT2:
                     s->cstat ^= 2;    // l not defined here. Line is met in 2nd demo with l = 0.
                 }
 
-                if ( (TRAND&1) && sector[sect].floorpicnum == HURTRAIL ) {
+                if ( (TRAND&1) && sector[sect].floor.picnum == HURTRAIL ) {
                     spritesound(SHORT_CIRCUIT,i);
                 }
 
@@ -2143,14 +2143,14 @@ CLEAR_THE_BOLT2:
                 }
 
                 if ( t[3] == 0 ) {
-                    t[3]=sector[sect].floorshade;
+                    t[3]=sector[sect].floor.shade;
                 }
 
 CLEAR_THE_BOLT:
                 if (t[2]) {
                     t[2]--;
-                    sector[sect].floorshade = 20;
-                    sector[sect].ceilingshade = 20;
+                    sector[sect].floor.shade = 20;
+                    sector[sect].ceiling.shade = 20;
                     goto BOLT;
                 }
                 if ( (s->xrepeat|s->yrepeat) == 0 ) {
@@ -2172,7 +2172,7 @@ CLEAR_THE_BOLT:
                     s->cstat ^= 2;
                 }
 
-                if ( s->picnum == (BOLT1+1) && (TRAND&7) == 0 && sector[sect].floorpicnum == HURTRAIL ) {
+                if ( s->picnum == (BOLT1+1) && (TRAND&7) == 0 && sector[sect].floor.picnum == HURTRAIL ) {
                     spritesound(SHORT_CIRCUIT,i);
                 }
 
@@ -2181,11 +2181,11 @@ CLEAR_THE_BOLT:
                 }
 
                 if (s->picnum&1) {
-                    sector[sect].floorshade = 0;
-                    sector[sect].ceilingshade = 0;
+                    sector[sect].floor.shade = 0;
+                    sector[sect].ceiling.shade = 0;
                 } else {
-                    sector[sect].floorshade = 20;
-                    sector[sect].ceilingshade = 20;
+                    sector[sect].floor.shade = 20;
+                    sector[sect].ceiling.shade = 20;
                 }
                 goto BOLT;
 
@@ -2357,9 +2357,9 @@ void bounce(short i)
     daang = getangle(wall[l].x-wall[k].x,wall[l].y-wall[k].y);
 
     if ( s->z < (hittype[i].floorz+hittype[i].ceilingz)>>1) {
-        k = sector[hitsect].ceilingheinum;
+        k = sector[hitsect].ceiling.heinum;
     } else {
-        k = sector[hitsect].floorheinum;
+        k = sector[hitsect].floor.heinum;
     }
 
     dax = mulscale14(k,fixedPointSin((daang)));
@@ -2609,8 +2609,8 @@ void moveweapons(void)
                         setsprite(i,dax,day,daz);
 
                         if (s->zvel < 0) {
-                            if ( sector[s->sectnum].ceilingstat&1 )
-                                if (sector[s->sectnum].ceilingpal == 0) {
+                            if ( sector[s->sectnum].ceiling.stat&1 )
+                                if (sector[s->sectnum].ceiling.pal == 0) {
                                     KILLIT(i);
                                 }
 
@@ -3275,10 +3275,10 @@ void moveactors(void)
 
                 getglobalz(i);
 
-                if (sector[s->sectnum].ceilingstat&1) {
-                    s->shade += (sector[s->sectnum].ceilingshade-s->shade)>>1;
+                if (sector[s->sectnum].ceiling.stat&1) {
+                    s->shade += (sector[s->sectnum].ceiling.shade-s->shade)>>1;
                 } else {
-                    s->shade += (sector[s->sectnum].floorshade-s->shade)>>1;
+                    s->shade += (sector[s->sectnum].floor.shade-s->shade)>>1;
                 }
 
                 if ( s->z < sector[sect].ceilingz+(32<<8) ) {
@@ -3501,7 +3501,7 @@ void moveactors(void)
 
                 t[1]+=128;
 
-                if (sector[sect].floorstat&1) {
+                if (sector[sect].floor.stat&1) {
                     KILLIT(i);
                 }
 
@@ -3778,7 +3778,7 @@ void moveactors(void)
                         s->zvel = 0;
                         s->cstat &= (65535-8);
 
-                        if ( (sector[sect].ceilingstat&1) || (hittype[i].ceilingz+6144) < s->z) {
+                        if ( (sector[sect].ceiling.stat&1) || (hittype[i].ceilingz+6144) < s->z) {
                             s->z += 2048;
                             t[0] = 3;
                             goto BOLT;
@@ -3809,7 +3809,7 @@ void moveactors(void)
                     s->xrepeat = 36 + (fixedPointCos(t[1])>>11);
                     s->yrepeat = 16 + (fixedPointSin(t[1])>>13);
 
-                    if (rnd(4) && (sector[sect].ceilingstat&1) == 0 &&
+                    if (rnd(4) && (sector[sect].ceiling.stat&1) == 0 &&
                         klabs(hittype[i].floorz-hittype[i].ceilingz)
                         < (192<<8) ) {
                         s->zvel = 0;
@@ -4566,7 +4566,7 @@ void moveexplosions(void)  // STATNUM 5
                         if ( s->sectnum == -1) {
                             KILLIT(i);
                         }
-                        if ( (sector[s->sectnum].floorstat&2) ) {
+                        if ( (sector[s->sectnum].floor.stat&2) ) {
                             KILLIT(i);
                         }
                         t[2]++;
@@ -4597,7 +4597,7 @@ void moveexplosions(void)  // STATNUM 5
 
                 if (t[0] == 0) {
                     t[0] = 1;
-                    if (sector[sect].floorstat&2) {
+                    if (sector[sect].floor.stat&2) {
                         KILLIT(i);
                     } else {
                         insertspriteq(i);
@@ -4826,7 +4826,7 @@ void moveeffectors(void)   //STATNUM 3
     int32_t q=0, l, m, x, st, j, *t;
     short i, k, nexti, nextk, p, sh, nextj;
     spritetype *s;
-    sectortype *sc;
+    Sector *sc;
     walltype *wal;
 
     fricxv = fricyv = 0;
@@ -4947,7 +4947,7 @@ void moveeffectors(void)   //STATNUM 3
                     t[2] += (l*q);
                 }
 
-                if ( l && (sc->floorstat&64) ) {
+                if ( l && (sc->floor.stat&64) ) {
                     for (p=connecthead; p>=0; p=connectpoint2[p]) {
                         if ( ps[p].cursectnum == s->sectnum && ps[p].on_ground == 1) {
 
@@ -5093,11 +5093,11 @@ void moveeffectors(void)   //STATNUM 3
                     s->ang += q;
 
                     if (s->xvel == sc->extra ) {
-                        if ( (sc->floorstat&1) == 0 && (sc->ceilingstat&1) == 0 ) {
+                        if ( (sc->floor.stat&1) == 0 && (sc->ceiling.stat&1) == 0 ) {
                             if ( Sound[hittype[i].lastvx].num == 0 ) {
                                 spritesound(hittype[i].lastvx,i);
                             }
-                        } else if ( ud.monsters_off == 0 && sc->floorpal == 0 && (sc->floorstat&1) && rnd(8) ) {
+                        } else if ( ud.monsters_off == 0 && sc->floor.pal == 0 && (sc->floor.stat&1) && rnd(8) ) {
                             p = findplayer(s,&x);
                             if (x < 20480) {
                                 j = s->ang;
@@ -5108,7 +5108,7 @@ void moveeffectors(void)   //STATNUM 3
                         }
                     }
 
-                    if (s->xvel <= 64 && (sc->floorstat&1) == 0 && (sc->ceilingstat&1) == 0 ) {
+                    if (s->xvel <= 64 && (sc->floor.stat&1) == 0 && (sc->ceiling.stat&1) == 0 ) {
                         stopsound(hittype[i].lastvx);
                     }
 
@@ -5396,10 +5396,10 @@ void moveeffectors(void)   //STATNUM 3
                             spritesound(EARTHQUAKE,ps[screenpeek].i);
                         }
 
-                        if ( klabs( sc->floorheinum-t[5] ) < 8 ) {
-                            sc->floorheinum = t[5];
+                        if ( klabs( sc->floor.heinum-t[5] ) < 8 ) {
+                            sc->floor.heinum = t[5];
                         } else {
-                            sc->floorheinum += ( sgn(t[5]-sc->floorheinum)<<4 );
+                            sc->floor.heinum += ( sgn(t[5]-sc->floor.heinum)<<4 );
                         }
                     }
 
@@ -5445,18 +5445,18 @@ void moveeffectors(void)   //STATNUM 3
 
                 if ( (global_random/(sh+1)&31) < 4 && !t[2]) {
                     //       t[5] = 4+(global_random&7);
-                    sc->ceilingpal = s->owner>>8;
-                    sc->floorpal = s->owner&0xff;
+                    sc->ceiling.pal = s->owner>>8;
+                    sc->floor.pal = s->owner&0xff;
                     t[0] = s->shade + (global_random&15);
                 } else {
                     //       t[5] = 4+(global_random&3);
-                    sc->ceilingpal = s->pal;
-                    sc->floorpal = s->pal;
+                    sc->ceiling.pal = s->pal;
+                    sc->floor.pal = s->pal;
                     t[0] = t[3];
                 }
 
-                sc->ceilingshade = t[0];
-                sc->floorshade = t[0];
+                sc->ceiling.shade = t[0];
+                sc->floor.shade = t[0];
 
                 wal = &wall[sc->wallptr];
 
@@ -5476,21 +5476,21 @@ void moveeffectors(void)   //STATNUM 3
                 if ((global_random/(sh+1)&31) < 4 ) {
                     t[1] = s->shade + (global_random&15);//Got really bright
                     t[0] = s->shade + (global_random&15);
-                    sc->ceilingpal = s->owner>>8;
-                    sc->floorpal = s->owner&0xff;
+                    sc->ceiling.pal = s->owner>>8;
+                    sc->floor.pal = s->owner&0xff;
                     j = 1;
                 } else {
                     t[1] = t[2];
                     t[0] = t[3];
 
-                    sc->ceilingpal = s->pal;
-                    sc->floorpal = s->pal;
+                    sc->ceiling.pal = s->pal;
+                    sc->floor.pal = s->pal;
 
                     j = 0;
                 }
 
-                sc->floorshade = t[1];
-                sc->ceilingshade = t[1];
+                sc->floor.shade = t[1];
+                sc->ceiling.shade = t[1];
 
                 wal = &wall[sc->wallptr];
 
@@ -5512,10 +5512,10 @@ void moveeffectors(void)   //STATNUM 3
                 j = headspritesect[SECT];
                 while (j >= 0) {
                     if (sprite[j].cstat&16) {
-                        if (sc->ceilingstat&1) {
-                            sprite[j].shade = sc->ceilingshade;
+                        if (sc->ceiling.stat&1) {
+                            sprite[j].shade = sc->ceiling.shade;
                         } else {
-                            sprite[j].shade = sc->floorshade;
+                            sprite[j].shade = sc->floor.shade;
                         }
                     }
 
@@ -5580,11 +5580,11 @@ void moveeffectors(void)   //STATNUM 3
 
                 if (rnd(32)) {
                     t[2]+=q;
-                    sc->ceilingshade = 127;
+                    sc->ceiling.shade = 127;
                 } else {
                     t[2] +=
                         getincangle(t[2]+512,getangle(ps[p].posx-s->x,ps[p].posy-s->y))>>2;
-                    sc->ceilingshade = 0;
+                    sc->ceiling.shade = 0;
                 }
                 IFHIT {
                     t[3]++;
@@ -5657,19 +5657,19 @@ void moveeffectors(void)   //STATNUM 3
                                 }
                             }
 
-                            sector[sn].floorshade   += x;
-                            sector[sn].ceilingshade += x;
+                            sector[sn].floor.shade   += x;
+                            sector[sn].ceiling.shade += x;
 
-                            if (sector[sn].floorshade < m) {
-                                sector[sn].floorshade = m;
-                            } else if (sector[sn].floorshade > hittype[j].temp_data[0]) {
-                                sector[sn].floorshade = hittype[j].temp_data[0];
+                            if (sector[sn].floor.shade < m) {
+                                sector[sn].floor.shade = m;
+                            } else if (sector[sn].floor.shade > hittype[j].temp_data[0]) {
+                                sector[sn].floor.shade = hittype[j].temp_data[0];
                             }
 
-                            if (sector[sn].ceilingshade < m) {
-                                sector[sn].ceilingshade = m;
-                            } else if (sector[sn].ceilingshade > hittype[j].temp_data[1]) {
-                                sector[sn].ceilingshade = hittype[j].temp_data[1];
+                            if (sector[sn].ceiling.shade < m) {
+                                sector[sn].ceiling.shade = m;
+                            } else if (sector[sn].ceiling.shade > hittype[j].temp_data[1]) {
+                                sector[sn].ceiling.shade = hittype[j].temp_data[1];
                             }
 
                         }
@@ -5766,8 +5766,8 @@ void moveeffectors(void)   //STATNUM 3
                 break;
             case 12:
                 if ( t[0] == 3 || t[3] == 1 ) { //Lights going off
-                    sc->floorpal = 0;
-                    sc->ceilingpal = 0;
+                    sc->floor.pal = 0;
+                    sc->ceiling.pal = 0;
 
                     wal = &wall[sc->wallptr];
                     for (j = sc->wallnum; j > 0; j--, wal++)
@@ -5776,17 +5776,17 @@ void moveeffectors(void)   //STATNUM 3
                             wal->pal = 0;
                         }
 
-                    sc->floorshade = t[1];
-                    sc->ceilingshade = t[2];
+                    sc->floor.shade = t[1];
+                    sc->ceiling.shade = t[2];
                     t[0]=0;
 
                     j = headspritesect[SECT];
                     while (j >= 0) {
                         if (sprite[j].cstat&16) {
-                            if (sc->ceilingstat&1) {
-                                sprite[j].shade = sc->ceilingshade;
+                            if (sc->ceiling.stat&1) {
+                                sprite[j].shade = sc->ceiling.shade;
                             } else {
-                                sprite[j].shade = sc->floorshade;
+                                sprite[j].shade = sc->floor.shade;
                             }
                         }
                         j = nextspritesect[j];
@@ -5798,12 +5798,12 @@ void moveeffectors(void)   //STATNUM 3
                     }
                 }
                 if ( t[0] == 1 ) { //Lights flickering on
-                    if ( sc->floorshade > s->shade ) {
-                        sc->floorpal = s->pal;
-                        sc->ceilingpal = s->pal;
+                    if ( sc->floor.shade > s->shade ) {
+                        sc->floor.pal = s->pal;
+                        sc->ceiling.pal = s->pal;
 
-                        sc->floorshade -= 2;
-                        sc->ceilingshade -= 2;
+                        sc->floor.shade -= 2;
+                        sc->ceiling.shade -= 2;
 
                         wal = &wall[sc->wallptr];
                         for (j=sc->wallnum; j>0; j--,wal++)
@@ -5818,10 +5818,10 @@ void moveeffectors(void)   //STATNUM 3
                     j = headspritesect[SECT];
                     while (j >= 0) {
                         if (sprite[j].cstat&16) {
-                            if (sc->ceilingstat&1) {
-                                sprite[j].shade = sc->ceilingshade;
+                            if (sc->ceiling.stat&1) {
+                                sprite[j].shade = sc->ceiling.shade;
                             } else {
-                                sprite[j].shade = sc->floorshade;
+                                sprite[j].shade = sc->floor.shade;
                             }
                         }
                         j = nextspritesect[j];
@@ -5864,7 +5864,7 @@ void moveeffectors(void)   //STATNUM 3
                         //Change the shades
 
                         t[3]++;
-                        sc->ceilingstat ^= 1;
+                        sc->ceiling.stat ^= 1;
 
                         if (s->ang == 512) {
                             wal = &wall[sc->wallptr];
@@ -5872,13 +5872,13 @@ void moveeffectors(void)   //STATNUM 3
                                 wal->shade = s->shade;
                             }
 
-                            sc->floorshade = s->shade;
+                            sc->floor.shade = s->shade;
 
                             if (ps[0].one_parallax_sectnum >= 0) {
-                                sc->ceilingpicnum =
-                                    sector[ps[0].one_parallax_sectnum].ceilingpicnum;
-                                sc->ceilingshade  =
-                                    sector[ps[0].one_parallax_sectnum].ceilingshade;
+                                sc->ceiling.picnum =
+                                    sector[ps[0].one_parallax_sectnum].ceiling.picnum;
+                                sc->ceiling.shade  =
+                                    sector[ps[0].one_parallax_sectnum].ceiling.shade;
                             }
                         }
                     }
@@ -6166,10 +6166,10 @@ void moveeffectors(void)   //STATNUM 3
                         while (j >= 0) {
                             if (sprite[j].lotag == 0 && sprite[j].hitag==sh) {
                                 q = sprite[sprite[j].owner].sectnum;
-                                sector[sprite[j].sectnum].floorpal = sector[sprite[j].sectnum].ceilingpal =
-                                        sector[q].floorpal;
-                                sector[sprite[j].sectnum].floorshade = sector[sprite[j].sectnum].ceilingshade =
-                                        sector[q].floorshade;
+                                sector[sprite[j].sectnum].floor.pal = sector[sprite[j].sectnum].ceiling.pal =
+                                        sector[q].floor.pal;
+                                sector[sprite[j].sectnum].floor.shade = sector[sprite[j].sectnum].ceiling.shade =
+                                        sector[q].floor.shade;
 
                                 hittype[sprite[j].owner].temp_data[0] = 2;
                             }
@@ -6188,11 +6188,11 @@ void moveeffectors(void)   //STATNUM 3
                                 case 0:
                                     if (sprite[l].hitag == sh) {
                                         q = sprite[l].sectnum;
-                                        sector[q].floorshade =
-                                        sector[q].ceilingshade =
+                                        sector[q].floor.shade =
+                                        sector[q].ceiling.shade =
                                         sprite[sprite[l].owner].shade;
-                                        sector[q].floorpal =
-                                        sector[q].ceilingpal =
+                                        sector[q].floor.pal =
+                                        sector[q].ceiling.pal =
                                         sprite[sprite[l].owner].pal;
                                     }
                                     break;
@@ -6253,7 +6253,7 @@ void moveeffectors(void)   //STATNUM 3
                             sprite[j].x += x;
                             sprite[j].y += l;
                             setsprite(j,sprite[j].x,sprite[j].y,sprite[j].z);
-                            if ( sector[sprite[j].sectnum].floorstat&2 )
+                            if ( sector[sprite[j].sectnum].floor.stat&2 )
                                 if (sprite[j].statnum == 2) {
                                     makeitfall(j);
                                 }
@@ -6275,11 +6275,11 @@ void moveeffectors(void)   //STATNUM 3
                             setsprite(ps[p].i,ps[p].posx,ps[p].posy,ps[p].posz+PHEIGHT);
                         }
 
-                    sc->floorxpanning-=x>>3;
-                    sc->floorypanning-=l>>3;
+                    sc->floor.xpanning-=x>>3;
+                    sc->floor.ypanning-=l>>3;
 
-                    sc->ceilingxpanning-=x>>3;
-                    sc->ceilingypanning-=l>>3;
+                    sc->ceiling.xpanning-=x>>3;
+                    sc->ceiling.ypanning-=l>>3;
                 }
 
                 break;
@@ -6391,7 +6391,7 @@ void moveeffectors(void)   //STATNUM 3
 
                                         setsprite(j,sprite[j].x,sprite[j].y,sprite[j].z);
 
-                                        if ( sector[sprite[j].sectnum].floorstat&2 )
+                                        if ( sector[sprite[j].sectnum].floor.stat&2 )
                                             if (sprite[j].statnum == 2) {
                                                 makeitfall(j);
                                             }
@@ -6409,7 +6409,7 @@ void moveeffectors(void)   //STATNUM 3
                         fricyv += l<<3;
                     }
 
-                sc->floorxpanning += SP>>7;
+                sc->floor.xpanning += SP>>7;
 
                 break;
 

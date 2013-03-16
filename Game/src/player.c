@@ -35,7 +35,7 @@ void setpal(struct player_struct *p)
 {
     if (p->heat_on) {
         p->palette = slimepal;
-    } else switch (sector[p->cursectnum].ceilingpicnum) {
+    } else switch (sector[p->cursectnum].ceiling.picnum) {
             case FLOORSLIME:
             case FLOORSLIME+1:
             case FLOORSLIME+2:
@@ -565,7 +565,7 @@ void shoot(short i,short atwith)
 
                 if ( hitwall == -1 && hitspr == -1) {
                     if ( zvel < 0 ) {
-                        if ( sector[hitsect].ceilingstat&1 ) {
+                        if ( sector[hitsect].ceiling.stat&1 ) {
                             sprite[k].xrepeat = 0;
                             sprite[k].yrepeat = 0;
                             return;
@@ -1018,7 +1018,7 @@ SKIPBULLETHOLE:
             sprite[j].xrepeat = sprite[j].yrepeat = 1;
 
             if ( hitwall == -1 && hitspr == -1 && hitsect >= 0) {
-                if ( zvel < 0 && (sector[hitsect].ceilingstat&1) == 0) {
+                if ( zvel < 0 && (sector[hitsect].ceiling.stat&1) == 0) {
                     checkhitceiling(hitsect);
                 }
             } else if (hitspr >= 0) {
@@ -1128,7 +1128,7 @@ uint8_t  animatefist(short gs,short snum)
     if (sprite[ps[snum].i].pal == 1) {
         fistpal = 1;
     } else {
-        fistpal = sector[ps[snum].cursectnum].floorpal;
+        fistpal = sector[ps[snum].cursectnum].floor.pal;
     }
 
     rotatesprite(
@@ -1155,7 +1155,7 @@ uint8_t  animateknee(short gs,short snum)
     if (sprite[ps[snum].i].pal == 1) {
         pal = 1;
     } else {
-        pal = sector[ps[snum].cursectnum].floorpal;
+        pal = sector[ps[snum].cursectnum].floor.pal;
         if (pal == 0) {
             pal = ps[snum].palookup;
         }
@@ -1182,7 +1182,7 @@ uint8_t  animateknuckles(short gs,short snum)
     if (sprite[ps[snum].i].pal == 1) {
         pal = 1;
     } else {
-        pal = sector[ps[snum].cursectnum].floorpal;
+        pal = sector[ps[snum].cursectnum].floor.pal;
     }
 
     myospal(160+(sync[snum].avel>>4)-(ps[snum].look_ang>>1),looking_arc+180-((ps[snum].horiz-ps[snum].horizoff)>>4),CRACKKNUCKLES+knuckle_frames[ps[snum].knuckle_incs>>1],gs,4,pal);
@@ -1201,7 +1201,7 @@ void displaymasks(short snum)
     if (sprite[ps[snum].i].pal == 1) {
         p = 1;
     } else {
-        p = sector[ps[snum].cursectnum].floorpal;
+        p = sector[ps[snum].cursectnum].floor.pal;
     }
 
     if (ps[snum].scuba_on) {
@@ -1230,7 +1230,7 @@ uint8_t  animatetip(short gs,short snum)
     if (sprite[ps[snum].i].pal == 1) {
         p = 1;
     } else {
-        p = sector[ps[snum].cursectnum].floorpal;
+        p = sector[ps[snum].cursectnum].floor.pal;
     }
 
     /*    if(ps[snum].access_spritenum >= 0)
@@ -1329,7 +1329,7 @@ void displayweapon(short snum)
         if (sprite[p->i].pal == 1) {
             pal = 1;
         } else {
-            pal = sector[p->cursectnum].floorpal;
+            pal = sector[p->cursectnum].floor.pal;
             if (pal == 0) {
                 pal = p->palookup;
             }
@@ -1368,7 +1368,7 @@ void displayweapon(short snum)
                         if (sprite[p->i].pal == 1) {
                             pal = 1;
                         } else {
-                            pal = sector[p->cursectnum].floorpal;
+                            pal = sector[p->cursectnum].floor.pal;
                             if (pal == 0) {
                                 pal = p->palookup;
                             }
@@ -1387,7 +1387,7 @@ void displayweapon(short snum)
                     if (sprite[p->i].pal == 1) {
                         pal = 1;
                     } else {
-                        pal = sector[p->cursectnum].floorpal;
+                        pal = sector[p->cursectnum].floor.pal;
                     }
 
                     weapon_xoffset += 8;
@@ -1412,7 +1412,7 @@ void displayweapon(short snum)
                     if (sprite[p->i].pal == 1) {
                         pal = 1;
                     } else {
-                        pal = sector[p->cursectnum].floorpal;
+                        pal = sector[p->cursectnum].floor.pal;
                     }
 
                     weapon_xoffset -= fixedPointSin((768+((*kb)<<7)))>>11;
@@ -1434,7 +1434,7 @@ void displayweapon(short snum)
                     if (sprite[p->i].pal == 1) {
                         pal = 1;
                     } else {
-                        pal = sector[p->cursectnum].floorpal;
+                        pal = sector[p->cursectnum].floor.pal;
                     }
 
                     weapon_xoffset -= 8;
@@ -1512,7 +1512,7 @@ void displayweapon(short snum)
                     if (sprite[p->i].pal == 1) {
                         pal = 1;
                     } else {
-                        pal = sector[p->cursectnum].floorpal;
+                        pal = sector[p->cursectnum].floor.pal;
                     }
 
                     if (*kb > 0) {
@@ -1559,7 +1559,7 @@ void displayweapon(short snum)
                     if (sprite[p->i].pal == 1) {
                         pal = 1;
                     } else {
-                        pal = sector[p->cursectnum].floorpal;
+                        pal = sector[p->cursectnum].floor.pal;
                     }
 
                     if ( (*kb) < 5) {
@@ -1600,7 +1600,7 @@ void displayweapon(short snum)
                     if (sprite[p->i].pal == 1) {
                         pal = 1;
                     } else {
-                        pal = sector[p->cursectnum].floorpal;
+                        pal = sector[p->cursectnum].floor.pal;
                     }
 
                     if ((*kb)) {
@@ -1627,7 +1627,7 @@ void displayweapon(short snum)
                     if (sprite[p->i].pal == 1) {
                         pal = 1;
                     } else {
-                        pal = sector[p->cursectnum].floorpal;
+                        pal = sector[p->cursectnum].floor.pal;
                     }
 
                     weapon_xoffset = -48;
@@ -1643,7 +1643,7 @@ void displayweapon(short snum)
                     if (sprite[p->i].pal == 1) {
                         pal = 1;
                     } else {
-                        pal = sector[p->cursectnum].floorpal;
+                        pal = sector[p->cursectnum].floor.pal;
                     }
 
                     if ((*kb)) {
@@ -1668,7 +1668,7 @@ void displayweapon(short snum)
                     if (sprite[p->i].pal == 1) {
                         pal = 1;
                     } else {
-                        pal = sector[p->cursectnum].floorpal;
+                        pal = sector[p->cursectnum].floor.pal;
                     }
 
                     if ((*kb)) {
@@ -1694,7 +1694,7 @@ void displayweapon(short snum)
                     if (sprite[p->i].pal == 1) {
                         pal = 1;
                     } else {
-                        pal = sector[p->cursectnum].floorpal;
+                        pal = sector[p->cursectnum].floor.pal;
                     }
                     if ((*kb) == 0) {
                         if (cw == GROW_WEAPON) {
@@ -2339,7 +2339,7 @@ void processinput(short snum)
     p->ohoriz = p->horiz;
     p->ohorizoff = p->horizoff;
 
-    if ( p->aim_mode == 0 && p->on_ground && psectlotag != 2 && (sector[psect].floorstat&2) ) {
+    if ( p->aim_mode == 0 && p->on_ground && psectlotag != 2 && (sector[psect].floor.stat&2) ) {
         x = p->posx+(fixedPointCos(p->ang)>>5);
         y = p->posy+(fixedPointSin(p->ang)>>5);
         tempsect = psect;
@@ -2694,7 +2694,7 @@ void processinput(short snum)
         p->bobcounter += sprite[p->i].xvel>>1;
     }
 
-    if ( ud.clipping == 0 && ( sector[p->cursectnum].floorpicnum == MIRROR || p->cursectnum < 0 || p->cursectnum >= MAXSECTORS) ) {
+    if ( ud.clipping == 0 && ( sector[p->cursectnum].floor.picnum == MIRROR || p->cursectnum < 0 || p->cursectnum >= MAXSECTORS) ) {
         p->posx = p->oposx;
         p->posy = p->oposy;
     } else {
@@ -2863,7 +2863,7 @@ void processinput(short snum)
                             spawn(pi,PLAYERONWATER);
 
                     p->footprintcount = 6;
-                    if (sector[p->cursectnum].floorpicnum == FLOORSLIME) {
+                    if (sector[p->cursectnum].floor.picnum == FLOORSLIME) {
                         p->footprintpal = 8;
                     } else {
                         p->footprintpal = 0;
@@ -2873,7 +2873,7 @@ void processinput(short snum)
             }
         } else {
             if (p->footprintcount > 0 && p->on_ground)
-                if ( (sector[p->cursectnum].floorstat&2) != 2 ) {
+                if ( (sector[p->cursectnum].floor.stat&2) != 2 ) {
                     for (j=headspritesect[psect]; j>=0; j=nextspritesect[j])
                         if ( sprite[j].picnum == FOOTPRINTS || sprite[j].picnum == FOOTPRINTS2 || sprite[j].picnum == FOOTPRINTS3 || sprite[j].picnum == FOOTPRINTS4 )
                             if (klabs(sprite[j].x-p->posx) < 384)
@@ -2905,7 +2905,7 @@ void processinput(short snum)
         }
 
         if (p->posz < (fz-(i<<8)) ) { //falling
-            if ( (sb_snum&3) == 0 && p->on_ground && (sector[psect].floorstat&2) && p->posz >= (fz-(i<<8)-(16<<8) ) ) {
+            if ( (sb_snum&3) == 0 && p->on_ground && (sector[psect].floor.stat&2) && p->posz >= (fz-(i<<8)-(16<<8) ) ) {
                 p->posz = fz-(i<<8);
             } else {
                 p->on_ground = 0;
@@ -3071,9 +3071,9 @@ void processinput(short snum)
     }
 
     if (p->spritebridge == 0) {
-        j = sector[s->sectnum].floorpicnum;
+        j = sector[s->sectnum].floor.picnum;
 
-        if ( j == PURPLELAVA || sector[s->sectnum].ceilingpicnum == PURPLELAVA ) {
+        if ( j == PURPLELAVA || sector[s->sectnum].ceiling.picnum == PURPLELAVA ) {
             if (p->boot_amount > 0) {
                 p->boot_amount--;
                 p->inven_icon = 7;
@@ -3173,7 +3173,7 @@ void processinput(short snum)
                             if (lz >= 0 && (lz&(MAXSPRITES-1))==49152 ) {
                                 j = sprite[lz&(MAXSPRITES-1)].picnum;
                             } else {
-                                j = sector[psect].floorpicnum;
+                                j = sector[psect].floor.picnum;
                             }
 
                             switch (j) {

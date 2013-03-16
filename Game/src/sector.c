@@ -541,7 +541,7 @@ void operatesectors(short sn,short ii)
     int32_t j=0, l, q, startwall, endwall;
     short i;
     uint8_t  sect_error;
-    sectortype *sptr;
+    Sector *sptr;
 
     sect_error = 0;
     sptr = &sector[sn];
@@ -1010,7 +1010,7 @@ void operateactivators(short low,short snum)
         if (p[4] == low) {
             p[5] = !p[5];
 
-            sector[p[0]].floorshade = sector[p[0]].ceilingshade = p[3];
+            sector[p[0]].floor.shade = sector[p[0]].ceiling.shade = p[3];
             wal = &wall[sector[p[0]].wallptr];
             for (j=sector[p[0]].wallnum; j > 0; j--,wal++) {
                 wal->shade = p[3];
@@ -1475,7 +1475,7 @@ uint8_t  checkhitswitch(short snum,int32_t w,uint8_t  switchtype)
                 if ( (sprite[x].hitag) == lotag ) {
                     switch (sprite[x].lotag) {
                         case 12:
-                            sector[sprite[x].sectnum].floorpal = 0;
+                            sector[sprite[x].sectnum].floor.pal = 0;
                             hittype[x].temp_data[0]++;
                             if (hittype[x].temp_data[0] == 2) {
                                 hittype[x].temp_data[0]++;
@@ -1888,7 +1888,7 @@ uint8_t  checkhitceiling(short sn)
 
 
 
-    switch (sector[sn].ceilingpicnum) {
+    switch (sector[sn].ceiling.picnum) {
         case WALLLIGHT1:
         case WALLLIGHT2:
         case WALLLIGHT3:
@@ -1899,28 +1899,28 @@ uint8_t  checkhitceiling(short sn)
             ceilingglass(ps[myconnectindex].i,sn,10);
             spritesound(GLASS_BREAKING,ps[screenpeek].i);
 
-            if (sector[sn].ceilingpicnum == WALLLIGHT1) {
-                sector[sn].ceilingpicnum = WALLLIGHTBUST1;
+            if (sector[sn].ceiling.picnum == WALLLIGHT1) {
+                sector[sn].ceiling.picnum = WALLLIGHTBUST1;
             }
 
-            if (sector[sn].ceilingpicnum == WALLLIGHT2) {
-                sector[sn].ceilingpicnum = WALLLIGHTBUST2;
+            if (sector[sn].ceiling.picnum == WALLLIGHT2) {
+                sector[sn].ceiling.picnum = WALLLIGHTBUST2;
             }
 
-            if (sector[sn].ceilingpicnum == WALLLIGHT3) {
-                sector[sn].ceilingpicnum = WALLLIGHTBUST3;
+            if (sector[sn].ceiling.picnum == WALLLIGHT3) {
+                sector[sn].ceiling.picnum = WALLLIGHTBUST3;
             }
 
-            if (sector[sn].ceilingpicnum == WALLLIGHT4) {
-                sector[sn].ceilingpicnum = WALLLIGHTBUST4;
+            if (sector[sn].ceiling.picnum == WALLLIGHT4) {
+                sector[sn].ceiling.picnum = WALLLIGHTBUST4;
             }
 
-            if (sector[sn].ceilingpicnum == TECHLIGHT2) {
-                sector[sn].ceilingpicnum = TECHLIGHTBUST2;
+            if (sector[sn].ceiling.picnum == TECHLIGHT2) {
+                sector[sn].ceiling.picnum = TECHLIGHTBUST2;
             }
 
-            if (sector[sn].ceilingpicnum == TECHLIGHT4) {
-                sector[sn].ceilingpicnum = TECHLIGHTBUST4;
+            if (sector[sn].ceiling.picnum == TECHLIGHT4) {
+                sector[sn].ceiling.picnum = TECHLIGHTBUST4;
             }
 
 
@@ -2046,8 +2046,8 @@ void checkhitsprite(short i,short sn)
         case FANSPRITE:
             PN = FANSPRITEBROKE;
             CS &= (65535-257);
-            if ( sector[SECT].floorpicnum == FANSHADOW ) {
-                sector[SECT].floorpicnum = FANSHADOWBROKE;
+            if ( sector[SECT].floor.picnum == FANSHADOW ) {
+                sector[SECT].floor.picnum = FANSHADOWBROKE;
             }
 
             spritesound(GLASS_HEAVYBREAK,i);

@@ -1970,13 +1970,13 @@ void move()
     }
 
     if ( a ) {
-        if (sector[g_sp->sectnum].ceilingstat&1) {
-            g_sp->shade += (sector[g_sp->sectnum].ceilingshade-g_sp->shade)>>1;
+        if (sector[g_sp->sectnum].ceiling.stat&1) {
+            g_sp->shade += (sector[g_sp->sectnum].ceiling.shade-g_sp->shade)>>1;
         } else {
-            g_sp->shade += (sector[g_sp->sectnum].floorshade-g_sp->shade)>>1;
+            g_sp->shade += (sector[g_sp->sectnum].floor.shade-g_sp->shade)>>1;
         }
 
-        if ( sector[g_sp->sectnum].floorpicnum == MIRROR ) {
+        if ( sector[g_sp->sectnum].floor.picnum == MIRROR ) {
             deletesprite(g_i);
         }
     }
@@ -2327,7 +2327,7 @@ uint8_t  parse(void)
                     }
                 }
 
-                if ( hittype[g_i].cgg <= 0 || (sector[g_sp->sectnum].floorstat&2) ) {
+                if ( hittype[g_i].cgg <= 0 || (sector[g_sp->sectnum].floor.stat&2) ) {
                     getglobalz(g_i);
                     hittype[g_i].cgg = 6;
                 } else {
@@ -2874,7 +2874,7 @@ SKIPJIBS:
             parseifelse( sync[g_p].bits&(1<<29));
             break;
         case 64:
-            parseifelse(sector[g_sp->sectnum].ceilingstat&1);
+            parseifelse(sector[g_sp->sectnum].ceiling.stat&1);
             break;
         case 65:
             parseifelse(ud.multimode > 1);

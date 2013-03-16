@@ -666,12 +666,12 @@ static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
     int32_t i, j, ox, oy, x, y1, y2, twall, bwall, zd;
     int32_t xpanning, ypanning;
     int32_t g_x1, g_y1, g_x2, g_y2;
-    sectortype *sec;
+    Sector *sec;
 
     sec = &sector[sectnum];
 
-    if (palookup[sec->ceilingpal] != globalpalwritten) {
-        globalpalwritten = palookup[sec->ceilingpal];
+    if (palookup[sec->ceiling.pal] != globalpalwritten) {
+        globalpalwritten = palookup[sec->ceiling.pal];
     }
 
 
@@ -683,7 +683,7 @@ static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
     }
 
 
-    globalpicnum = sec->ceilingpicnum;
+    globalpicnum = sec->ceiling.picnum;
 
     if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
         globalpicnum = 0;
@@ -705,13 +705,13 @@ static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
 
     globalbufplc = tiles[globalpicnum].data;
 
-    globalshade = (int32_t)sec->ceilingshade;
+    globalshade = (int32_t)sec->ceiling.shade;
     globvis = engine_state->cisibility;
     if (sec->visibility != 0) {
         globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
     }
 
-    globalorientation = (int32_t)sec->ceilingstat;
+    globalorientation = (int32_t)sec->ceiling.stat;
 
 
     if ((globalorientation&64) == 0) {
@@ -785,8 +785,8 @@ static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
     g_y2 <<= yshift;
     xpanning <<= xshift;
     ypanning <<= yshift;
-    xpanning += (((int32_t)sec->ceilingxpanning)<<24);
-    ypanning += (((int32_t)sec->ceilingypanning)<<24);
+    xpanning += (((int32_t)sec->ceiling.xpanning)<<24);
+    ypanning += (((int32_t)sec->ceiling.ypanning)<<24);
     g_y1 = (-g_x1-g_y1)*halfxdimen;
     g_x2 = (g_x2-g_y2)*halfxdimen;
 
@@ -916,14 +916,14 @@ static void florscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
     int32_t xpanning, ypanning;
     int32_t i, j, ox, oy, x, y1, y2, twall, bwall, zd;
     int32_t g_x1, g_y1, g_x2, g_y2;
-    sectortype *sec;
+    Sector *sec;
 
     //Retrieve the sector object
     sec = &sector[sectnum];
 
     //Retrieve the floor palette.
-    if (palookup[sec->floorpal] != globalpalwritten) {
-        globalpalwritten = palookup[sec->floorpal];
+    if (palookup[sec->floor.pal] != globalpalwritten) {
+        globalpalwritten = palookup[sec->floor.pal];
     }
 
     zd = engine_state->posz - sec->floorz;
@@ -934,7 +934,7 @@ static void florscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
     }
 
     //Retrive the floor texture.
-    globalpicnum = sec->floorpicnum;
+    globalpicnum = sec->floor.picnum;
     if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
         globalpicnum = 0;
     }
@@ -961,7 +961,7 @@ static void florscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
     globalbufplc = tiles[globalpicnum].data;
 
     //Retrieve the shade of the sector (illumination level).
-    globalshade = (int32_t)sec->floorshade;
+    globalshade = (int32_t)sec->floor.shade;
 
     globvis = engine_state->cisibility;
     if (sec->visibility != 0) {
@@ -969,7 +969,7 @@ static void florscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
     }
 
 
-    globalorientation = (int32_t)sec->floorstat;
+    globalorientation = (int32_t)sec->floor.stat;
 
 
     if ((globalorientation&64) == 0) {
@@ -1046,8 +1046,8 @@ static void florscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
     g_y2 <<= yshift;
     xpanning <<= xshift;
     ypanning <<= yshift;
-    xpanning += (((int32_t)sec->floorxpanning)<<24);
-    ypanning += (((int32_t)sec->floorypanning)<<24);
+    xpanning += (((int32_t)sec->floor.xpanning)<<24);
+    ypanning += (((int32_t)sec->floor.ypanning)<<24);
     g_y1 = (-g_x1-g_y1)*halfxdimen;
     g_x2 = (g_x2-g_y2)*halfxdimen;
 
@@ -1601,7 +1601,7 @@ static void maskwallscan(int32_t x1, int32_t x2,
 /* renders parallaxed skies/floors  --ryan. */
 static void parascan(int32_t dax1, int32_t dax2, int32_t sectnum,uint8_t  dastat, int32_t bunch, EngineState *engine_state)
 {
-    sectortype *sec;
+    Sector *sec;
     int32_t j, k, l, m, n, x, z, wallnum, nextsectnum, horizbak, zd;
     int32_t xpanning, ypanning;
     short *topptr, *botptr;
@@ -1620,19 +1620,19 @@ static void parascan(int32_t dax1, int32_t dax2, int32_t sectnum,uint8_t  dastat
     }
 
     if (dastat == 0) {
-        globalpal = sec->ceilingpal;
-        globalpicnum = sec->ceilingpicnum;
-        globalshade = (int32_t)sec->ceilingshade;
-        xpanning = (int32_t)sec->ceilingxpanning;
-        ypanning = (int32_t)sec->ceilingypanning;
+        globalpal = sec->ceiling.pal;
+        globalpicnum = sec->ceiling.picnum;
+        globalshade = (int32_t)sec->ceiling.shade;
+        xpanning = (int32_t)sec->ceiling.xpanning;
+        ypanning = (int32_t)sec->ceiling.ypanning;
         topptr = umost;
         botptr = uplc;
     } else {
-        globalpal = sec->floorpal;
-        globalpicnum = sec->floorpicnum;
-        globalshade = (int32_t)sec->floorshade;
-        xpanning = (int32_t)sec->floorxpanning;
-        ypanning = (int32_t)sec->floorypanning;
+        globalpal = sec->floor.pal;
+        globalpicnum = sec->floor.picnum;
+        globalshade = (int32_t)sec->floor.shade;
+        xpanning = (int32_t)sec->floor.xpanning;
+        ypanning = (int32_t)sec->floor.ypanning;
         topptr = dplc;
         botptr = dmost;
     }
@@ -1663,9 +1663,9 @@ static void parascan(int32_t dax1, int32_t dax2, int32_t sectnum,uint8_t  dastat
         nextsectnum = wall[wallnum].nextsector;
 
         if (dastat == 0) {
-            j = sector[nextsectnum].ceilingstat;
+            j = sector[nextsectnum].ceiling.stat;
         } else {
-            j = sector[nextsectnum].floorstat;
+            j = sector[nextsectnum].floor.stat;
         }
 
         if ((nextsectnum < 0) || (wall[wallnum].cstat&32) || ((j&1) == 0)) {
@@ -1766,7 +1766,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
     int32_t g_x1, g_y1, g_x2, g_y2, g_x3, g_y3, g_zx;
     int32_t lx, ly, lz;
     walltype *wal;
-    sectortype *sec;
+    Sector *sec;
 
     sec = &sector[sectnum];
 
@@ -1774,21 +1774,21 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
         if (engine_state->posz <= getceilzofslope((short) sectnum,engine_state->posx,engine_state->posy)) {
             return;    /* Back-face culling */
         }
-        globalorientation = sec->ceilingstat;
-        globalpicnum = sec->ceilingpicnum;
-        globalshade = sec->ceilingshade;
-        globalpal = sec->ceilingpal;
-        daslope = sec->ceilingheinum;
+        globalorientation = sec->ceiling.stat;
+        globalpicnum = sec->ceiling.picnum;
+        globalshade = sec->ceiling.shade;
+        globalpal = sec->ceiling.pal;
+        daslope = sec->ceiling.heinum;
         daz = sec->ceilingz;
     } else {
         if (engine_state->posz >= getflorzofslope((short) sectnum,engine_state->posx,engine_state->posy)) {
             return;    /* Back-face culling */
         }
-        globalorientation = sec->floorstat;
-        globalpicnum = sec->floorpicnum;
-        globalshade = sec->floorshade;
-        globalpal = sec->floorpal;
-        daslope = sec->floorheinum;
+        globalorientation = sec->floor.stat;
+        globalpicnum = sec->floor.picnum;
+        globalshade = sec->floor.shade;
+        globalpal = sec->floor.pal;
+        daslope = sec->floor.heinum;
         daz = sec->floorz;
     }
 
@@ -1887,11 +1887,11 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
     ly <<= j;
 
     if (dastat == 0) {
-        g_x1 += (((int32_t)sec->ceilingxpanning)<<24);
-        g_y1 += (((int32_t)sec->ceilingypanning)<<24);
+        g_x1 += (((int32_t)sec->ceiling.xpanning)<<24);
+        g_y1 += (((int32_t)sec->ceiling.ypanning)<<24);
     } else {
-        g_x1 += (((int32_t)sec->floorxpanning)<<24);
-        g_y1 += (((int32_t)sec->floorypanning)<<24);
+        g_x1 += (((int32_t)sec->floor.xpanning)<<24);
+        g_y1 += (((int32_t)sec->floor.ypanning)<<24);
     }
 
     globvis = engine_state->visibility;
@@ -2070,12 +2070,12 @@ static int wallmost(short *mostbuf, int32_t w, int32_t sectnum, uint8_t  dastat,
 
     if (dastat == 0) {
         z = sector[sectnum].ceilingz - engine_state->posz;
-        if ((sector[sectnum].ceilingstat&2) == 0) {
+        if ((sector[sectnum].ceiling.stat&2) == 0) {
             return(owallmost(mostbuf, w, z, engine_state));
         }
     } else {
         z = sector[sectnum].floorz - engine_state->posz;
-        if ((sector[sectnum].floorstat&2) == 0) {
+        if ((sector[sectnum].floor.stat&2) == 0) {
             return(owallmost(mostbuf, w, z, engine_state));
         }
     }
@@ -2111,10 +2111,10 @@ static int wallmost(short *mostbuf, int32_t w, int32_t sectnum, uint8_t  dastat,
     }
 
     if (dastat == 0) {
-        t = mulscale15(sector[sectnum].ceilingheinum,dasqr);
+        t = mulscale15(sector[sectnum].ceiling.heinum,dasqr);
         z1 = sector[sectnum].ceilingz;
     } else {
-        t = mulscale15(sector[sectnum].floorheinum,dasqr);
+        t = mulscale15(sector[sectnum].floor.heinum,dasqr);
         z1 = sector[sectnum].floorz;
     }
 
@@ -2137,10 +2137,10 @@ static int wallmost(short *mostbuf, int32_t w, int32_t sectnum, uint8_t  dastat,
     }
 
     if (dastat == 0) {
-        t = mulscale15(sector[sectnum].ceilingheinum,dasqr);
+        t = mulscale15(sector[sectnum].ceiling.heinum,dasqr);
         z2 = sector[sectnum].ceilingz;
     } else {
-        t = mulscale15(sector[sectnum].floorheinum,dasqr);
+        t = mulscale15(sector[sectnum].floor.heinum,dasqr);
         z2 = sector[sectnum].floorz;
     }
 
@@ -2241,7 +2241,7 @@ static int wallmost(short *mostbuf, int32_t w, int32_t sectnum, uint8_t  dastat,
 
 static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numbunches, EngineState *engine_state)
 {
-    sectortype *sec, *nextsec;
+    Sector *sec, *nextsec;
     walltype *wal;
     int32_t i, x, x1, x2, cz[5], fz[5];
     int32_t z, wallnum, sectnum, nextsectnum;
@@ -2264,9 +2264,9 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
 
     /* draw ceilings */
     if ((andwstat1&3) != 3) {
-        if ((sec->ceilingstat&3) == 2) {
+        if ((sec->ceiling.stat&3) == 2) {
             grouscan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],sectnum,0,engine_state);
-        } else if ((sec->ceilingstat&1) == 0) {
+        } else if ((sec->ceiling.stat&1) == 0) {
             ceilscan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],
                      pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],
                      sectnum,
@@ -2278,9 +2278,9 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
 
     /* draw floors */
     if ((andwstat2&12) != 12) {
-        if ((sec->floorstat&3) == 2) {
+        if ((sec->floor.stat&3) == 2) {
             grouscan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],sectnum,1,engine_state);
-        } else if ((sec->floorstat&1) == 0) {
+        } else if ((sec->floor.stat&1) == 0) {
             florscan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],sectnum,engine_state);
         } else {
             parascan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],sectnum,1,bunch,engine_state);
@@ -2342,7 +2342,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                 engine_state->maskwall[engine_state->maskwallcnt++] = z;
             }
 
-            if (((sec->ceilingstat&1) == 0) || ((nextsec->ceilingstat&1) == 0)) {
+            if (((sec->ceiling.stat&1) == 0) || ((nextsec->ceiling.stat&1) == 0)) {
                 if ((cz[2] <= cz[0]) && (cz[3] <= cz[1])) {
                     if (globparaceilclip)
                         for (x=x1; x<=x2; x++)
@@ -2445,7 +2445,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                     }
                 }
             }
-            if (((sec->floorstat&1) == 0) || ((nextsec->floorstat&1) == 0)) {
+            if (((sec->floor.stat&1) == 0) || ((nextsec->floor.stat&1) == 0)) {
                 if ((fz[2] >= fz[0]) && (fz[3] >= fz[1])) {
                     if (globparaflorclip)
                         for (x=x1; x<=x2; x++)
@@ -3260,7 +3260,7 @@ int loadboard(char  *filename, int32_t *daposx, int32_t *daposy,
 {
     int x;
     short fil, i, numsprites;
-    sectortype *sect;
+    Sector *sect;
     spritetype *s;
     walltype *w;
 
@@ -3300,20 +3300,20 @@ int loadboard(char  *filename, int32_t *daposx, int32_t *daposy,
         kread16(fil,&sect->wallnum);
         kread32(fil,&sect->ceilingz);
         kread32(fil,&sect->floorz);
-        kread16(fil,&sect->ceilingstat);
-        kread16(fil,&sect->floorstat);
-        kread16(fil,&sect->ceilingpicnum);
-        kread16(fil,&sect->ceilingheinum);
-        kread8(fil,(uint8_t *)&sect->ceilingshade);
-        kread8(fil,(uint8_t *)&sect->ceilingpal);
-        kread8(fil,(uint8_t *)&sect->ceilingxpanning);
-        kread8(fil,(uint8_t *)&sect->ceilingypanning);
-        kread16(fil,&sect->floorpicnum);
-        kread16(fil,&sect->floorheinum);
-        kread8(fil,(uint8_t *)&sect->floorshade);
-        kread8(fil,(uint8_t *)&sect->floorpal);
-        kread8(fil,(uint8_t *)&sect->floorxpanning);
-        kread8(fil,(uint8_t *)&sect->floorypanning);
+        kread16(fil,&sect->ceiling.stat);
+        kread16(fil,&sect->floor.stat);
+        kread16(fil,&sect->ceiling.picnum);
+        kread16(fil,&sect->ceiling.heinum);
+        kread8(fil,(uint8_t *)&sect->ceiling.shade);
+        kread8(fil,(uint8_t *)&sect->ceiling.pal);
+        kread8(fil,(uint8_t *)&sect->ceiling.xpanning);
+        kread8(fil,(uint8_t *)&sect->ceiling.ypanning);
+        kread16(fil,&sect->floor.picnum);
+        kread16(fil,&sect->floor.heinum);
+        kread8(fil,(uint8_t *)&sect->floor.shade);
+        kread8(fil,(uint8_t *)&sect->floor.pal);
+        kread8(fil,(uint8_t *)&sect->floor.xpanning);
+        kread8(fil,(uint8_t *)&sect->floor.ypanning);
         kread8(fil,(uint8_t *)&sect->visibility);
         kread8(fil,(uint8_t *)&sect->filler);
         kread16(fil,&sect->lotag);
@@ -3381,7 +3381,7 @@ int loadboard(char  *filename, int32_t *daposx, int32_t *daposy,
 
     // FIX_00009: Show map CRC and GRP file version of each player in case of Out Of Synch
 
-    mapCRC = crc16((uint8_t *)sector, numsectors*sizeof(sectortype));
+    mapCRC = crc16((uint8_t *)sector, numsectors*sizeof(Sector));
     mapCRC += crc16((uint8_t *)wall, numwalls*sizeof(walltype));
     mapCRC += crc16((uint8_t *)sprite, numsprites*sizeof(spritetype));
 
@@ -3415,7 +3415,7 @@ int saveboard(char  *filename, int32_t *daposx, int32_t *daposy,
     short i, j, numsprites;
     int permissions = 0;
     walltype *w;
-    sectortype *sect;
+    Sector *sect;
 
 #if ((defined PLATFORM_DOS) || (defined PLATFORM_WIN32))
     permissions = S_IWRITE;
@@ -3443,20 +3443,20 @@ int saveboard(char  *filename, int32_t *daposx, int32_t *daposy,
         write16(fil,sect->wallnum);
         write32(fil,sect->ceilingz);
         write32(fil,sect->floorz);
-        write16(fil,sect->ceilingstat);
-        write16(fil,sect->floorstat);
-        write16(fil,sect->ceilingpicnum);
-        write16(fil,sect->ceilingheinum);
-        write8(fil,sect->ceilingshade);
-        write8(fil,sect->ceilingpal);
-        write8(fil,sect->ceilingxpanning);
-        write8(fil,sect->ceilingypanning);
-        write16(fil,sect->floorpicnum);
-        write16(fil,sect->floorheinum);
-        write8(fil,sect->floorshade);
-        write8(fil,sect->floorpal);
-        write8(fil,sect->floorxpanning);
-        write8(fil,sect->floorypanning);
+        write16(fil,sect->ceiling.stat);
+        write16(fil,sect->floor.stat);
+        write16(fil,sect->ceiling.picnum);
+        write16(fil,sect->ceiling.heinum);
+        write8(fil,sect->ceiling.shade);
+        write8(fil,sect->ceiling.pal);
+        write8(fil,sect->ceiling.xpanning);
+        write8(fil,sect->ceiling.ypanning);
+        write16(fil,sect->floor.picnum);
+        write16(fil,sect->floor.heinum);
+        write8(fil,sect->floor.shade);
+        write8(fil,sect->floor.pal);
+        write8(fil,sect->floor.xpanning);
+        write8(fil,sect->floor.ypanning);
         write8(fil,sect->visibility);
         write8(fil,sect->filler);
         write16(fil,sect->lotag);
@@ -4764,7 +4764,7 @@ static void drawmaskwall(EngineState *engine_state)
 {
     int32_t i, j, k, x, z, sectnum, z1, z2, lx, rx, zd;
     int32_t xpanning, ypanning;
-    sectortype *sec, *nsec;
+    Sector *sec, *nsec;
     walltype *wal;
 
     engine_state->maskwallcnt--;
@@ -4999,7 +4999,7 @@ static void ceilspritescan (int32_t x1, int32_t x2, int32_t zd,
 static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *spritesy)
 {
     spritetype *tspr;
-    sectortype *sec;
+    Sector *sec;
     int32_t startum, startdm, sectnum, xb, yp, cstat;
     int32_t siz, xsiz, ysiz, xoff, yoff;
     dimensions_t spriteDim;
@@ -5115,13 +5115,13 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
             return;
         }
 
-        if ((sec->ceilingstat&3) == 0) {
+        if ((sec->ceiling.stat&3) == 0) {
             startum = engine_state->horiz+mulscale24(siz,sec->ceilingz-engine_state->posz)-1;
         } else {
             startum = 0;
         }
 
-        if ((sec->floorstat&3) == 0) {
+        if ((sec->floor.stat&3) == 0) {
             startdm = engine_state->horiz+mulscale24(siz,sec->floorz-engine_state->posz)+1;
         } else {
             startdm = 0x7fffffff;
@@ -5449,10 +5449,10 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
             zd = (((engine_state->posz-z2)*globalyscale)<<8);
         }
 
-        if (((sec->ceilingstat&1) == 0) && (z1 < sec->ceilingz)) {
+        if (((sec->ceiling.stat&1) == 0) && (z1 < sec->ceilingz)) {
             z1 = sec->ceilingz;
         }
-        if (((sec->floorstat&1) == 0) && (z2 > sec->floorz)) {
+        if (((sec->floor.stat&1) == 0) && (z2 > sec->floorz)) {
             z2 = sec->floorz;
         }
 
@@ -6410,7 +6410,7 @@ int nextsectorneighborz(short sectnum, int32_t thez,
 int cansee(int32_t x1, int32_t y1, int32_t z1, short sect1,
            int32_t x2, int32_t y2, int32_t z2, short sect2)
 {
-    sectortype *sec;
+    Sector *sec;
     walltype *wal, *wal2;
     int32_t i, cnt, nexts, x, y, z, cz, fz, dasectnum, dacnt, danum;
     int32_t x21, y21, z21, x31, y31, x34, y34, bot, t;
@@ -6580,7 +6580,7 @@ int hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum,
             short *hitsect, short *hitwall, short *hitsprite,
             int32_t *hitx, int32_t *hity, int32_t *hitz, uint32_t  cliptype)
 {
-    sectortype *sec;
+    Sector *sec;
     walltype *wal, *wal2;
     spritetype *spr;
     int32_t z, zz, x1, y1=0, z1=0, x2, y2, x3, y3, x4, y4, intx, inty, intz;
@@ -6613,7 +6613,7 @@ int hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum,
         sec = &sector[dasector];
 
         x1 = 0x7fffffff;
-        if (sec->ceilingstat&2) {
+        if (sec->ceiling.stat&2) {
             wal = &wall[sec->wallptr];
             wal2 = &wall[wal->point2];
             dax = wal2->x-wal->x;
@@ -6622,7 +6622,7 @@ int hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum,
             if (i == 0) {
                 continue;
             }
-            i = divscale15(sec->ceilingheinum,i);
+            i = divscale15(sec->ceiling.heinum,i);
             dax *= i;
             day *= i;
 
@@ -6656,7 +6656,7 @@ int hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum,
             }
 
         x1 = 0x7fffffff;
-        if (sec->floorstat&2) {
+        if (sec->floor.stat&2) {
             wal = &wall[sec->wallptr];
             wal2 = &wall[wal->point2];
             dax = wal2->x-wal->x;
@@ -6665,7 +6665,7 @@ int hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum,
             if (i == 0) {
                 continue;
             }
-            i = divscale15(sec->floorheinum,i);
+            i = divscale15(sec->floor.heinum,i);
             dax *= i;
             day *= i;
 
@@ -7269,7 +7269,7 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
 {
     walltype *wal, *wal2;
     spritetype *spr;
-    sectortype *sec, *sec2;
+    Sector *sec, *sec2;
     int32_t i, j, templong1, templong2;
     int32_t oxvect, oyvect, goalx, goaly, intx, inty, lx, ly, retval;
     int32_t k, l, clipsectcnt, startwall, endwall, cstat, dasect;
@@ -7366,7 +7366,7 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
 
                 sec2 = &sector[wal->nextsector];
                 if (daz2 < daz-(1<<8))
-                    if ((sec2->floorstat&1) == 0)
+                    if ((sec2->floor.stat&1) == 0)
                         if ((*z) >= daz2-(flordist-1)) {
                             clipyou = 1;
                         }
@@ -7374,7 +7374,7 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
                     daz = getceilzofslope((short)dasect,dax,day);
                     daz2 = getceilzofslope(wal->nextsector,dax,day);
                     if (daz2 > daz+(1<<8))
-                        if ((sec2->ceilingstat&1) == 0)
+                        if ((sec2->ceiling.stat&1) == 0)
                             if ((*z) <= daz2+(ceildist-1)) {
                                 clipyou = 1;
                             }
@@ -7635,7 +7635,7 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
     templong1 = 0x7fffffff;
     for (j=numsectors-1; j>=0; j--)
         if (inside(*x,*y,j) == 1) {
-            if (sector[j].ceilingstat&2) {
+            if (sector[j].ceiling.stat&2) {
                 templong2 = (getceilzofslope((short)j,*x,*y)-(*z));
             } else {
                 templong2 = (sector[j].ceilingz-(*z));
@@ -7647,7 +7647,7 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
                     templong1 = templong2;
                 }
             } else {
-                if (sector[j].floorstat&2) {
+                if (sector[j].floor.stat&2) {
                     templong2 = ((*z)-getflorzofslope((short)j,*x,*y));
                 } else {
                     templong2 = ((*z)-sector[j].floorz);
@@ -7672,7 +7672,7 @@ int pushmove(int32_t *x, int32_t *y, int32_t *z, short *sectnum,
              int32_t walldist, int32_t ceildist, int32_t flordist,
              uint32_t  cliptype)
 {
-    sectortype *sec, *sec2;
+    Sector *sec, *sec2;
     walltype *wal;
     int32_t i, j, k, t, dx, dy, dax, day, daz, daz2, bad, dir;
     int32_t dawalclipmask;
@@ -7734,14 +7734,14 @@ int pushmove(int32_t *x, int32_t *y, int32_t *z, short *sectnum,
 
                         daz = getflorzofslope(clipsectorlist[clipsectcnt],dax,day);
                         daz2 = getflorzofslope(wal->nextsector,dax,day);
-                        if ((daz2 < daz-(1<<8)) && ((sec2->floorstat&1) == 0))
+                        if ((daz2 < daz-(1<<8)) && ((sec2->floor.stat&1) == 0))
                             if (*z >= daz2-(flordist-1)) {
                                 j = 1;
                             }
 
                         daz = getceilzofslope(clipsectorlist[clipsectcnt],dax,day);
                         daz2 = getceilzofslope(wal->nextsector,dax,day);
-                        if ((daz2 > daz+(1<<8)) && ((sec2->ceilingstat&1) == 0))
+                        if ((daz2 > daz+(1<<8)) && ((sec2->ceiling.stat&1) == 0))
                             if (*z <= daz2+(ceildist-1)) {
                                 j = 1;
                             }
@@ -7925,7 +7925,7 @@ void getzrange(int32_t x, int32_t y, int32_t z, short sectnum,
                int32_t *ceilz, int32_t *ceilhit, int32_t *florz, int32_t *florhit,
                int32_t walldist, uint32_t  cliptype)
 {
-    sectortype *sec;
+    Sector *sec;
     walltype *wal, *wal2;
     spritetype *spr;
     int32_t clipsectcnt, startwall, endwall, tilenum, xoff, yoff, dax, day;
@@ -8010,10 +8010,10 @@ void getzrange(int32_t x, int32_t y, int32_t z, short sectnum,
                 }
                 sec = &sector[k];
 
-                if (((sec->ceilingstat&1) == 0) && (z <= sec->ceilingz+(3<<8))) {
+                if (((sec->ceiling.stat&1) == 0) && (z <= sec->ceilingz+(3<<8))) {
                     continue;
                 }
-                if (((sec->floorstat&1) == 0) && (z >= sec->floorz-(3<<8))) {
+                if (((sec->floor.stat&1) == 0) && (z >= sec->floorz-(3<<8))) {
                     continue;
                 }
 
@@ -8944,7 +8944,7 @@ static int clippoly (int32_t npoints, int32_t clipstat)
 
 void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang, EngineState *engine_state)
 {
-    sectortype *sec;
+    Sector *sec;
     spritetype *spr;
     int32_t tilenum, xoff, yoff, i, j, k, l, cosang, sinang, xspan, yspan;
     int32_t xrepeat, yrepeat, x, y, x1, y1, x2, y2, x3, y3, x4, y4, bakx1, baky1;
@@ -9095,10 +9095,10 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang, EngineState
             TILE_MakeAvailable(globalpicnum);
 
             globalbufplc = tiles[globalpicnum].data;
-            if ((sector[spr->sectnum].ceilingstat&1) > 0) {
-                globalshade = ((int32_t)sector[spr->sectnum].ceilingshade);
+            if ((sector[spr->sectnum].ceiling.stat&1) > 0) {
+                globalshade = ((int32_t)sector[spr->sectnum].ceiling.shade);
             } else {
-                globalshade = ((int32_t)sector[spr->sectnum].floorshade);
+                globalshade = ((int32_t)sector[spr->sectnum].floor.shade);
             }
             globalshade = max(min(globalshade+spr->shade+6,numpalookups-1),0);
             a3 = (int32_t) FP_OFF(palookup[spr->pal]+(globalshade<<8));
@@ -9330,7 +9330,7 @@ int getceilzofslope(short sectnum, int32_t dax, int32_t day)
     int32_t dx, dy, i, j;
     walltype *wal;
 
-    if (!(sector[sectnum].ceilingstat&2)) {
+    if (!(sector[sectnum].ceiling.stat&2)) {
         return(sector[sectnum].ceilingz);
     }
     wal = &wall[sector[sectnum].wallptr];
@@ -9341,7 +9341,7 @@ int getceilzofslope(short sectnum, int32_t dax, int32_t day)
         return(sector[sectnum].ceilingz);
     }
     j = dmulscale3(dx,day-wal->y,-dy,dax-wal->x);
-    return(sector[sectnum].ceilingz+scale(sector[sectnum].ceilingheinum,j,i));
+    return(sector[sectnum].ceilingz+scale(sector[sectnum].ceiling.heinum,j,i));
 }
 
 
@@ -9350,7 +9350,7 @@ int getflorzofslope(short sectnum, int32_t dax, int32_t day)
     int32_t dx, dy, i, j;
     walltype *wal;
 
-    if (!(sector[sectnum].floorstat&2)) {
+    if (!(sector[sectnum].floor.stat&2)) {
         return(sector[sectnum].floorz);
     }
 
@@ -9365,7 +9365,7 @@ int getflorzofslope(short sectnum, int32_t dax, int32_t day)
 
     j = dmulscale3(dx,day-wal->y,-dy,dax-wal->x);
 
-    return(sector[sectnum].floorz+scale(sector[sectnum].floorheinum,j,i));
+    return(sector[sectnum].floorz+scale(sector[sectnum].floor.heinum,j,i));
 }
 
 /*
@@ -9382,14 +9382,14 @@ void getzsofslope(short sectnum, int32_t dax, int32_t day, int32_t *ceilz, int32
 {
     int32_t dx, dy, i, j;
     walltype *wal, *wal2;
-    sectortype *sec;
+    Sector *sec;
 
     sec = &sector[sectnum];
     *ceilz = sec->ceilingz;
     *florz = sec->floorz;
 
     //If the sector has a slopped ceiling or a slopped floor then it needs more calculation.
-    if ((sec->ceilingstat|sec->floorstat)&2) {
+    if ((sec->ceiling.stat|sec->floor.stat)&2) {
         wal = &wall[sec->wallptr];
         wal2 = &wall[wal->point2];
         dx = wal2->x-wal->x;
@@ -9400,11 +9400,11 @@ void getzsofslope(short sectnum, int32_t dax, int32_t day, int32_t *ceilz, int32
         }
         j = dmulscale3(dx,day-wal->y,-dy,dax-wal->x);
 
-        if (sec->ceilingstat&2) {
-            *ceilz = (*ceilz)+scale(sec->ceilingheinum,j,i);
+        if (sec->ceiling.stat&2) {
+            *ceilz = (*ceilz)+scale(sec->ceiling.heinum,j,i);
         }
-        if (sec->floorstat&2) {
-            *florz = (*florz)+scale(sec->floorheinum,j,i);
+        if (sec->floor.stat&2) {
+            *florz = (*florz)+scale(sec->floor.heinum,j,i);
         }
     }
 }
@@ -9423,13 +9423,13 @@ void alignceilslope(short dasect, int32_t x, int32_t y, int32_t z)
     if (i == 0) {
         return;
     }
-    sector[dasect].ceilingheinum = scale((z-sector[dasect].ceilingz)<<8,
+    sector[dasect].ceiling.heinum = scale((z-sector[dasect].ceilingz)<<8,
                                          fixedPointSqrt(dax*dax+day*day),i);
 
-    if (sector[dasect].ceilingheinum == 0) {
-        sector[dasect].ceilingstat &= ~2;
+    if (sector[dasect].ceiling.heinum == 0) {
+        sector[dasect].ceiling.stat &= ~2;
     } else {
-        sector[dasect].ceilingstat |= 2;
+        sector[dasect].ceiling.stat |= 2;
     }
 }
 
@@ -9447,13 +9447,13 @@ void alignflorslope(short dasect, int32_t x, int32_t y, int32_t z)
     if (i == 0) {
         return;
     }
-    sector[dasect].floorheinum = scale((z-sector[dasect].floorz)<<8,
+    sector[dasect].floor.heinum = scale((z-sector[dasect].floorz)<<8,
                                        fixedPointSqrt(dax*dax+day*day),i);
 
-    if (sector[dasect].floorheinum == 0) {
-        sector[dasect].floorstat &= ~2;
+    if (sector[dasect].floor.heinum == 0) {
+        sector[dasect].floor.stat &= ~2;
     } else {
-        sector[dasect].floorstat |= 2;
+        sector[dasect].floor.stat |= 2;
     }
 }
 

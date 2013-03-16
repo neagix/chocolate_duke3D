@@ -73,7 +73,24 @@ typedef struct {
     uint8_t  floorpal, floorxpanning, floorypanning;
     uint8_t  visibility, filler;
     short lotag, hitag, extra;
-} sectortype;
+} SectorOnGRP;
+
+typedef struct {
+    int32_t z;
+    short stat;
+    short picnum, heinum;
+    int8_t shade;
+    uint8_t  pal, xpanning, ypanning;
+} InnerSector;
+
+typedef struct {
+    short wallptr, wallnum;
+    int32_t ceilingz, floorz;
+    uint8_t  visibility, filler;
+    short lotag, hitag, extra;
+    InnerSector floor;
+    InnerSector ceiling;
+} Sector;
 
 /*
  * cstat:
@@ -133,7 +150,8 @@ typedef struct {
 
 #pragma pack()
 
-EXTERN sectortype sector[MAXSECTORS];
+EXTERN SectorOnGRP sector_on_grp[MAXSECTORS];
+EXTERN Sector sector[MAXSECTORS];
 EXTERN walltype wall[MAXWALLS];
 EXTERN spritetype sprite[MAXSPRITES];
 
