@@ -176,8 +176,6 @@ int32_t globalshade;
 int16_t globalpicnum, globalshiftval;
 int32_t globalyscale, globalorientation;
 uint8_t *globalbufplc;
-//int32_t g_x1, g_y1, g_x2, g_y2, g_x3, g_y3, g_zx;
-int32_t globalx, globaly, globalz;
 
 //FCS:
 // Those two variables are using during portal flooding:
@@ -1766,6 +1764,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
     int32_t daslope, dasqr;
     int32_t shoffs, shinc, m1, m2, *mptr1, *mptr2, *nptr1, *nptr2;
     int32_t g_x1, g_y1, g_x2, g_y2, g_x3, g_y3, g_zx;
+    int32_t lx, ly, lz;
     walltype *wal;
     sectortype *sec;
 
@@ -1814,8 +1813,8 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
     wx *= i;
     wy *= i;
 
-    globalx = -mulscale19(fixedPointSin(engine_state->ang), xdimenrecip);
-    globaly = mulscale19(fixedPointCos(engine_state->ang), xdimenrecip);
+    lx = -mulscale19(fixedPointSin(engine_state->ang), xdimenrecip);
+    ly = mulscale19(fixedPointCos(engine_state->ang), xdimenrecip);
     g_x1 = (engine_state->posx << 8);
     g_y1 = -(engine_state->posy << 8);
     i = (dax1-halfxdimen)*xdimenrecip;
@@ -1823,7 +1822,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
     g_y2 = mulscale16(fixedPointSin(engine_state->ang)<<4,viewingrangerecip) + mulscale27(fixedPointCos(engine_state->ang),i);
     zd = (xdimscale<<9);
     g_zx = -dmulscale17(wx, g_y2, -wy, g_x2) + mulscale10(1 - engine_state->horiz, zd);
-    globalz = -dmulscale25(wx,globaly,-wy,globalx);
+    lz = -dmulscale25(wx, ly, -wy, lx);
 
     if (globalorientation&64) { /* Relative alignment */
         dx = mulscale14(wall[wal->point2].x-wal->x,dasqr);
@@ -1831,10 +1830,10 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
 
         i = fixedPointSqrt(daslope*daslope+16777216);
 
-        x = globalx;
-        y = globaly;
-        globalx = dmulscale16(x,dx,y,dy);
-        globaly = mulscale12(dmulscale16(-y,dx,x,dy),i);
+        x = lx;
+        y = ly;
+        lx = dmulscale16(x,dx,y,dy);
+        ly = mulscale12(dmulscale16(-y,dx,x,dy),i);
 
         x = ((wal->x - engine_state->posx)<<8);
         y = ((wal->y - engine_state->posy)<<8);
@@ -1847,9 +1846,9 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
         g_y2 = mulscale12(dmulscale16(-y,dx,x,dy),i);
     }
     if (globalorientation&0x4) {
-        i = globalx;
-        globalx = -globaly;
-        globaly = -i;
+        i = lx;
+        lx = -ly;
+        ly = -i;
         i = g_x1;
         g_x1 = g_y1;
         g_y1 = i;
@@ -1858,17 +1857,21 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
         g_y2 = -i;
     }
     if (globalorientation&0x10) {
-        g_x1 = -g_x1, g_x2 = -g_x2, globalx = -globalx;
+        g_x1 = -g_x1;
+        g_x2 = -g_x2;
+        lx = -lx;
     }
     if (globalorientation&0x20) {
-        g_y1 = -g_y1, g_y2 = -g_y2, globaly = -globaly;
+        g_y1 = -g_y1;
+        g_y2 = -g_y2;
+        ly = -ly;
     }
 
     daz = dmulscale9(wx, engine_state->posy - wal->y, -wy, engine_state->posx - wal->x) + ((daz - engine_state->posz)<<8);
     g_x2 = mulscale20(g_x2,daz);
-    globalx = mulscale28(globalx,daz);
+    lx = mulscale28(lx, daz);
     g_y2 = mulscale20(g_y2,-daz);
-    globaly = mulscale28(globaly,-daz);
+    ly = mulscale28(ly, -daz);
 
     i = 8-(picsiz[globalpicnum]&15);
     j = 8-(picsiz[globalpicnum]>>4);
@@ -1878,10 +1881,10 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
     }
     g_x1 <<= (i+12);
     g_x2 <<= i;
-    globalx <<= i;
+    lx <<= i;
     g_y1 <<= (j+12);
     g_y2 <<= j;
-    globaly <<= j;
+    ly <<= j;
 
     if (dastat == 0) {
         g_x1 += (((int32_t)sec->ceilingxpanning)<<24);
@@ -1906,7 +1909,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
 
     l = (zd >> 16);
 
-    shinc = mulscale16(globalz,xdimenscale);
+    shinc = mulscale16(lx, xdimenscale);
     if (shinc > 0) {
         shoffs = (4<<15);
     } else {
@@ -1963,9 +1966,9 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
                 faketimerhandler();
             }
         }
-        g_x2 += globalx;
-        g_y2 += globaly;
-        g_zx += globalz;
+        g_x2 += lx;
+        g_y2 += ly;
+        g_zx += lz;
         shoffs += shinc;
     }
 }
