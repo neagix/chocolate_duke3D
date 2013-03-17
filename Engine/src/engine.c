@@ -488,7 +488,7 @@ skipitaddwall:
 /*
  FCS:
 
- Goal : ????
+ Goal : calculate texture coordinates and scales along a wall
  param 1: Z is the wallID in the list of potentially visible walls.
  param 2: Only used to lookup the xrepeat attribute of the wall.
 
@@ -2062,6 +2062,7 @@ static int owallmost(short *mostbuf, int32_t w, int32_t z, EngineState *engine_s
 }
 
 
+// calculate top and bottom edges of walls
 static int wallmost(short *mostbuf, int32_t w, int32_t sectnum, uint8_t  dastat, EngineState *engine_state)
 {
     int32_t bad, i, j, t, y, z, inty, intz, xcross, yinc, fw;
