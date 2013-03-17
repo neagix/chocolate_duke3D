@@ -1530,7 +1530,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
     sec = &sector[sectnum];
 
     if (dastat == 0) {
-        if (engine_state->posz <= getceilzofslope((short) sectnum,engine_state->posx,engine_state->posy)) {
+        if (engine_state->posz <= GetZOfSlope(sector[sectnum].ceiling, engine_state->posx, engine_state->posy)) {
             return;    /* Back-face culling */
         }
         globalorientation = sec->ceiling.stat;
@@ -1540,7 +1540,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
         daslope = sec->ceiling.heinum;
         daz = sec->ceiling.z;
     } else {
-        if (engine_state->posz >= getflorzofslope((short) sectnum,engine_state->posx,engine_state->posy)) {
+        if (engine_state->posz >= GetZOfSlope(sector[sectnum].floor, engine_state->posx, engine_state->posy)) {
             return;    /* Back-face culling */
         }
         globalorientation = sec->floor.stat;
@@ -7126,8 +7126,8 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
                 if (rintersect(*x,*y,0,gx,gy,0,x1,y1,x2,y2,&dax,&day,&daz) == 0) {
                     dax = *x, day = *y;
                 }
-                daz = getflorzofslope((short)dasect,dax,day);
-                daz2 = getflorzofslope(wal->nextsector,dax,day);
+                daz = GetZOfSlope(sector[dasect].floor, dax, day);
+                daz2 = GetZOfSlope(sector[wal->nextsector].floor, dax, day);
 
                 sec2 = &sector[wal->nextsector];
                 if (daz2 < daz-(1<<8))
@@ -7136,8 +7136,8 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
                             clipyou = 1;
                         }
                 if (clipyou == 0) {
-                    daz = getceilzofslope((short)dasect,dax,day);
-                    daz2 = getceilzofslope(wal->nextsector,dax,day);
+                    daz = GetZOfSlope(sector[dasect].ceiling, dax, day);
+                    daz2 = GetZOfSlope(sector[wal->nextsector].ceiling, dax, day);
                     if (daz2 > daz+(1<<8))
                         if ((sec2->ceiling.stat&1) == 0)
                             if ((*z) <= daz2+(ceildist-1)) {
@@ -7401,7 +7401,7 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
     for (j=numsectors-1; j>=0; j--)
         if (inside(*x,*y,j) == 1) {
             if (sector[j].ceiling.stat&2) {
-                templong2 = (getceilzofslope((short)j,*x,*y)-(*z));
+                templong2 = (GetZOfSlope(sector[j].ceiling, *x, *y) - (*z));
             } else {
                 templong2 = (sector[j].ceiling.z-(*z));
             }
@@ -7413,7 +7413,7 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
                 }
             } else {
                 if (sector[j].floor.stat&2) {
-                    templong2 = ((*z)-getflorzofslope((short)j,*x,*y));
+                    templong2 = ((*z)-GetZOfSlope(sector[j].floor, *x, *y));
                 } else {
                     templong2 = ((*z)-sector[j].floor.z);
                 }
@@ -7497,15 +7497,15 @@ int pushmove(int32_t *x, int32_t *y, int32_t *z, short *sectnum,
                         day = wal->y + mulscale30(day,t);
 
 
-                        daz = getflorzofslope(clipsectorlist[clipsectcnt],dax,day);
-                        daz2 = getflorzofslope(wal->nextsector,dax,day);
+                        daz = GetZOfSlope(sector[clipsectorlist[clipsectcnt]].floor, dax, day);
+                        daz2 = GetZOfSlope(sector[wal->nextsector].floor, dax, day);
                         if ((daz2 < daz-(1<<8)) && ((sec2->floor.stat&1) == 0))
                             if (*z >= daz2-(flordist-1)) {
                                 j = 1;
                             }
 
-                        daz = getceilzofslope(clipsectorlist[clipsectcnt],dax,day);
-                        daz2 = getceilzofslope(wal->nextsector,dax,day);
+                        daz = GetZOfSlope(sector[clipsectorlist[clipsectcnt]].ceiling, dax, day);
+                        daz2 = GetZOfSlope(sector[wal->nextsector].ceiling, dax, day);
                         if ((daz2 > daz+(1<<8)) && ((sec2->ceiling.stat&1) == 0))
                             if (*z <= daz2+(ceildist-1)) {
                                 j = 1;
@@ -9089,49 +9089,29 @@ int sectorofwall(short theline)
     return(i);
 }
 
-
-int getceilzofslope(short sectnum, int32_t dax, int32_t day)
+int32_t GetZOfSlope(InnerSector floor_or_ceiling, int32_t x, int32_t y)
 {
-    int32_t dx, dy, i, j;
+    int32_t distance_x, distance_y, i, j;
     walltype *wal;
 
-    if (!(sector[sectnum].ceiling.stat&2)) {
-        return(sector[sectnum].ceiling.z);
+    if (!(floor_or_ceiling.stat & 2)) {
+        return floor_or_ceiling.z;
     }
-    wal = &wall[sector[sectnum].wallptr];
-    dx = wall[wal->point2].x-wal->x;
-    dy = wall[wal->point2].y-wal->y;
-    i = (fixedPointSqrt(dx*dx+dy*dy)<<5);
+    
+    wal = &wall[floor_or_ceiling.sector->wallptr];
+    distance_x = wall[wal->point2].x - wal->x;
+    distance_y = wall[wal->point2].y - wal->y;
+    i = (fixedPointSqrt(distance_x * distance_x + distance_y * distance_y) << 5);
+    
     if (i == 0) {
-        return(sector[sectnum].ceiling.z);
+        return floor_or_ceiling.z;
     }
-    j = dmulscale3(dx,day-wal->y,-dy,dax-wal->x);
-    return(sector[sectnum].ceiling.z + scale(sector[sectnum].ceiling.heinum,j,i));
+    
+    j = dmulscale3(distance_x, y - wal->y, -distance_y, x - wal->x);
+    
+    return floor_or_ceiling.z + scale(floor_or_ceiling.heinum, j, i);
 }
 
-
-int getflorzofslope(short sectnum, int32_t dax, int32_t day)
-{
-    int32_t dx, dy, i, j;
-    walltype *wal;
-
-    if (!(sector[sectnum].floor.stat&2)) {
-        return(sector[sectnum].floor.z);
-    }
-
-    wal = &wall[sector[sectnum].wallptr];
-    dx = wall[wal->point2].x-wal->x;
-    dy = wall[wal->point2].y-wal->y;
-    i = (fixedPointSqrt(dx*dx+dy*dy)<<5);
-
-    if (i == 0) {
-        return(sector[sectnum].floor.z);
-    }
-
-    j = dmulscale3(dx,day-wal->y,-dy,dax-wal->x);
-
-    return(sector[sectnum].floor.z+scale(sector[sectnum].floor.heinum,j,i));
-}
 
 /*
  FCS:

@@ -66,8 +66,7 @@ extern "C" {
      */
     int initmouse(void);
     int setgamemode(uint8_t  davidoption, int32_t daxdim, int32_t daydim);
-    int getceilzofslope(int16_t sectnum, int32_t dax, int32_t day);
-    int getflorzofslope(int16_t sectnum, int32_t dax, int32_t day);
+    int32_t GetZOfSlope(InnerSector floor_or_ceiling, int32_t dax, int32_t day);
     void getzsofslope(int16_t sectnum, int32_t dax, int32_t day, int32_t *ceilz, int32_t *florz);
     void setaspect(int32_t daxrange, int32_t daaspect);
     int insertsprite(int16_t sectnum, int16_t statnum);

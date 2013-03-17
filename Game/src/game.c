@@ -4137,10 +4137,10 @@ short spawn( short j, short pn )
             sp->cstat |= 128;
             if (j >= 0) {
                 if (sector[sprite[j].sectnum].lotag == 2) {
-                    sp->z = getceilzofslope(SECT,SX,SY)+(16<<8);
+                    sp->z = GetZOfSlope(sector[SECT].ceiling, SX, SY)+(16<<8);
                     sp->cstat |= 8;
                 } else if ( sector[sprite[j].sectnum].lotag == 1) {
-                    sp->z = getflorzofslope(SECT,SX,SY);
+                    sp->z = GetZOfSlope(sector[SECT].floor, SX, SY);
                 }
             }
 
@@ -4708,7 +4708,7 @@ short spawn( short j, short pn )
             }
 
             if (j >= 0) {
-                x = getflorzofslope(sp->sectnum,sp->x,sp->y);
+                x = GetZOfSlope(sector[sp->sectnum].floor, sp->x, sp->y);
                 if (sp->z > x-(12<<8) ) {
                     sp->z = x-(12<<8);
                 }
@@ -9396,7 +9396,7 @@ void fakedomovethings(void)
 
     getzrange(myx,myy,myz,psect,&cz,&hz,&fz,&lz,163L,CLIPMASK0);
 
-    j = getflorzofslope(psect,myx,myy);
+    j = GetZOfSlope(sector[psect].floor, myx, myy);
 
     if ( (lz&49152) == 16384 && psectlotag == 1 && klabs(myz-j) > PHEIGHT+(16<<8) ) {
         psectlotag = 0;
@@ -9408,10 +9408,10 @@ void fakedomovethings(void)
         tempsect = psect;
         updatesector(x,y,&tempsect);
         if (tempsect >= 0) {
-            k = getflorzofslope(psect,x,y);
+            k = GetZOfSlope(sector[psect].floor, x, y);
             if (psect == tempsect) {
                 myhorizoff += mulscale16(j-k,160);
-            } else if (klabs(getflorzofslope(tempsect,x,y)-k) <= (4<<8)) {
+            } else if (klabs(GetZOfSlope(sector[tempsect].floor, x, y)-k) <= (4<<8)) {
                 myhorizoff += mulscale16(j-k,160);
             }
         }
@@ -9426,7 +9426,7 @@ void fakedomovethings(void)
         hz &= (MAXSPRITES-1);
         if (sprite[hz].statnum == 1 && sprite[hz].extra >= 0) {
             hz = 0;
-            cz = getceilzofslope(psect,myx,myy);
+            cz = GetZOfSlope(sector[psect].ceiling, myx, myy);
         }
     }
 

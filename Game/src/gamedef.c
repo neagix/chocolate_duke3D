@@ -1887,7 +1887,7 @@ void move()
         if (a && g_sp->picnum != ROTATEGUN) {
             if ( (g_sp->picnum == DRONE || g_sp->picnum == COMMANDER) && g_sp->extra > 0) {
                 if (g_sp->picnum == COMMANDER) {
-                    hittype[g_i].floorz = l = getflorzofslope(g_sp->sectnum,g_sp->x,g_sp->y);
+                    hittype[g_i].floorz = l = GetZOfSlope(sector[g_sp->sectnum].floor, g_sp->x, g_sp->y);
                     if ( g_sp->z > (l-(8<<8)) ) {
                         if ( g_sp->z > (l-(8<<8)) ) {
                             g_sp->z = l-(8<<8);
@@ -1895,19 +1895,19 @@ void move()
                         g_sp->zvel = 0;
                     }
 
-                    hittype[g_i].ceilingz = l = getceilzofslope(g_sp->sectnum,g_sp->x,g_sp->y);
+                    hittype[g_i].ceilingz = l = GetZOfSlope(sector[g_sp->sectnum].ceiling, g_sp->x, g_sp->y);
                     if ( (g_sp->z-l) < (80<<8) ) {
                         g_sp->z = l+(80<<8);
                         g_sp->zvel = 0;
                     }
                 } else {
                     if ( g_sp->zvel > 0 ) {
-                        hittype[g_i].floorz = l = getflorzofslope(g_sp->sectnum,g_sp->x,g_sp->y);
+                        hittype[g_i].floorz = l = GetZOfSlope(sector[g_sp->sectnum].floor, g_sp->x, g_sp->y);
                         if ( g_sp->z > (l-(30<<8)) ) {
                             g_sp->z = l-(30<<8);
                         }
                     } else {
-                        hittype[g_i].ceilingz = l = getceilzofslope(g_sp->sectnum,g_sp->x,g_sp->y);
+                        hittype[g_i].ceilingz = l = GetZOfSlope(sector[g_sp->sectnum].ceiling, g_sp->x, g_sp->y);
                         if ( (g_sp->z-l) < (50<<8) ) {
                             g_sp->z = l+(50<<8);
                             g_sp->zvel = 0;
@@ -1919,7 +1919,7 @@ void move()
                     g_sp->z = hittype[g_i].floorz;
                 }
                 if ( g_sp->zvel < 0) {
-                    l = getceilzofslope(g_sp->sectnum,g_sp->x,g_sp->y);
+                    l = GetZOfSlope(sector[g_sp->sectnum].ceiling, g_sp->x, g_sp->y);
                     if ( (g_sp->z-l) < (66<<8) ) {
                         g_sp->z = l+(66<<8);
                         g_sp->zvel >>= 1;

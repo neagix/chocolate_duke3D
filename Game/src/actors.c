@@ -805,7 +805,7 @@ void guts(spritetype *s,short gtype, short n, short p)
     }
 
     gutz = s->z-(8<<8);
-    floorz = getflorzofslope(s->sectnum,s->x,s->y);
+    floorz = GetZOfSlope(sector[s->sectnum].floor, s->x, s->y);
 
     if ( gutz > ( floorz-(8<<8) ) ) {
         gutz = floorz-(8<<8);
@@ -847,7 +847,7 @@ void gutsdir(spritetype *s,short gtype, short n, short p)
     }
 
     gutz = s->z-(8<<8);
-    floorz = getflorzofslope(s->sectnum,s->x,s->y);
+    floorz = GetZOfSlope(sector[s->sectnum].floor, s->x, s->y);
 
     if ( gutz > ( floorz-(8<<8) ) ) {
         gutz = floorz-(8<<8);
@@ -4440,7 +4440,7 @@ void moveexplosions(void)  // STATNUM 5
             case MONEY+1:
             case MAIL+1:
             case PAPER+1:
-                hittype[i].floorz = s->z = getflorzofslope(s->sectnum,s->x,s->y);
+                hittype[i].floorz = s->z = GetZOfSlope(sector[s->sectnum].floor, s->x, s->y);
                 break;
             case MONEY:
             case MAIL:
@@ -4467,7 +4467,7 @@ void moveexplosions(void)  // STATNUM 5
                 if (s->sectnum == -1) {
                     KILLIT(i);
                 }
-                l = getflorzofslope(s->sectnum,s->x,s->y);
+                l = GetZOfSlope(sector[s->sectnum].floor, s->x, s->y);
 
                 if ( s->z > l ) {
                     s->z = l;
@@ -4522,8 +4522,8 @@ void moveexplosions(void)  // STATNUM 5
                     sect = s->sectnum;
                 }
 
-                l = getflorzofslope(sect,s->x,s->y);
-                x = getceilzofslope(sect,s->x,s->y);
+                l = GetZOfSlope(sector[sect].floor, s->x, s->y);
+                x = GetZOfSlope(sector[sect].ceiling, s->x, s->y);
                 if (x == l || sect < 0 || sect >= MAXSECTORS) {
                     KILLIT(i);
                 }
@@ -4574,7 +4574,7 @@ void moveexplosions(void)  // STATNUM 5
                         }
                         t[2]++;
                     }
-                    l = getflorzofslope(s->sectnum,s->x,s->y);
+                    l = GetZOfSlope(sector[s->sectnum].floor, s->x, s->y);
 
                     s->z = l-(2<<8);
                     s->xvel = 0;

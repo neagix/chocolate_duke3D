@@ -2323,10 +2323,10 @@ void processinput(short snum)
     shrunk = (s->yrepeat < 32);
     getzrange(p->posx,p->posy,p->posz,psect,&cz,&hz,&fz,&lz,163L,CLIPMASK0);
 
-    j = getflorzofslope(psect,p->posx,p->posy);
+    j = GetZOfSlope(sector[psect].floor, p->posx, p->posy);
 
     p->truefz = j;
-    p->truecz = getceilzofslope(psect,p->posx,p->posy);
+    p->truecz = GetZOfSlope(sector[psect].ceiling, p->posx, p->posy);
 
     truefdist = klabs(p->posz-j);
     if ( (lz&49152) == 16384 && psectlotag == 1 && truefdist > PHEIGHT+(16<<8) ) {
@@ -2345,10 +2345,10 @@ void processinput(short snum)
         tempsect = psect;
         updatesector(x,y,&tempsect);
         if (tempsect >= 0) {
-            k = getflorzofslope(psect,x,y);
+            k = GetZOfSlope(sector[psect].floor, x, y);
             if (psect == tempsect) {
                 p->horizoff += mulscale16(j-k,160);
-            } else if (klabs(getflorzofslope(tempsect,x,y)-k) <= (4<<8)) {
+            } else if (klabs(GetZOfSlope(sector[tempsect].floor, x, y)-k) <= (4<<8)) {
                 p->horizoff += mulscale16(j-k,160);
             }
         }
@@ -4317,10 +4317,11 @@ void computergetinput(int32_t snum, input *syn)
 
                 dx = ((wall[wal->point2].x+wal->x)>>1);
                 dy = ((wall[wal->point2].y+wal->y)>>1);
-                if ((getceilzofslope(j,dx,dy) > getflorzofslope(j,dx,dy)-(28<<8)) && ((sector[j].lotag < 15) || (sector[j].lotag > 22))) {
+                if ((GetZOfSlope(sector[j].ceiling, dx, dy) > GetZOfSlope(sector[j].floor, dx, dy)-(28<<8)) &&
+                    ((sector[j].lotag < 15) || (sector[j].lotag > 22))) {
                     continue;
                 }
-                if (getflorzofslope(j,dx,dy) < getflorzofslope(searchsect[splc],dx,dy)-(72<<8)) {
+                if (GetZOfSlope(sector[j].floor, dx, dy) < GetZOfSlope(sector[searchsect[splc]].floor, dx, dy)-(72<<8)) {
                     continue;
                 }
                 if ((dashow2dsector[j>>3]&(1<<(j&7))) == 0) {
@@ -4486,10 +4487,10 @@ void computergetinput(int32_t snum, input *syn)
         j = 0;
         if ((i&0xc000) == 32768)  //Hit a wall (49152 for sprite)
             if (wall[i&(MAXWALLS-1)].nextsector >= 0) {
-                if (getflorzofslope(wall[i&(MAXWALLS-1)].nextsector,p->posx,p->posy) <= p->posz+(24<<8)) {
+                if (GetZOfSlope(sector[wall[i&(MAXWALLS-1)].nextsector].floor, p->posx, p->posy) <= p->posz+(24<<8)) {
                     j |= 1;
                 }
-                if (getceilzofslope(wall[i&(MAXWALLS-1)].nextsector,p->posx,p->posy) >= p->posz-(24<<8)) {
+                if (GetZOfSlope(sector[wall[i&(MAXWALLS-1)].nextsector].ceiling, p->posx, p->posy) >= p->posz-(24<<8)) {
                     j |= 2;
                 }
             }
