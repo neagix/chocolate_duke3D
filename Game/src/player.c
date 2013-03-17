@@ -397,7 +397,7 @@ void shoot(short i,short atwith)
                                sector[wall[hitwall].nextsector].lotag == 0 &&
                                sector[hitsect].lotag == 0 &&
                                sector[wall[hitwall].nextsector].lotag == 0 &&
-                               (sector[hitsect].floorz-sector[wall[hitwall].nextsector].floorz) > (16<<8) ) ||
+                               (sector[hitsect].floor.z-sector[wall[hitwall].nextsector].floor.z) > (16<<8) ) ||
                              ( wall[hitwall].nextsector == -1 && sector[hitsect].lotag == 0 ) )
                             if ( (wall[hitwall].cstat&16) == 0) {
                                 if (wall[hitwall].nextsector >= 0) {
@@ -462,7 +462,7 @@ void shoot(short i,short atwith)
                     else if ( hitwall >= 0 ) {
                         if ( wall[hitwall].cstat&2 )
                             if (wall[hitwall].nextsector >= 0)
-                                if (hitz >= (sector[wall[hitwall].nextsector].floorz) ) {
+                                if (hitz >= (sector[wall[hitwall].nextsector].floor.z) ) {
                                     hitwall = wall[hitwall].nextwall;
                                 }
 
@@ -658,7 +658,7 @@ SKIPBULLETHOLE:
 
                     if ( wall[hitwall].cstat&2 )
                         if (wall[hitwall].nextsector >= 0)
-                            if (hitz >= (sector[wall[hitwall].nextsector].floorz) ) {
+                            if (hitz >= (sector[wall[hitwall].nextsector].floor.z) ) {
                                 hitwall = wall[hitwall].nextwall;
                             }
 
@@ -4379,7 +4379,7 @@ void computergetinput(int32_t snum, input *syn)
                         daang = ((getangle(wall[wall[k].point2].x-wall[k].x,wall[wall[k].point2].y-wall[k].y)+1536)&2047);
                         goalx[snum] = ((wall[k].x+wall[wall[k].point2].x)>>1)+(fixedPointCos(daang)>>8);
                         goaly[snum] = ((wall[k].y+wall[wall[k].point2].y)>>1)+(fixedPointSin(daang)>>8);
-                        goalz[snum] = sector[goalsect[snum]].floorz-(32<<8);
+                        goalz[snum] = sector[goalsect[snum]].floor.z-(32<<8);
                         break;
                     }
                 }
@@ -4422,7 +4422,7 @@ void computergetinput(int32_t snum, input *syn)
                             daang = ((getangle(wall[wall[k].point2].x-wall[k].x,wall[wall[k].point2].y-wall[k].y)+1536)&2047);
                             goalx[snum] = ((wall[k].x+wall[wall[k].point2].x)>>1)+(fixedPointCos(daang)>>8);
                             goaly[snum] = ((wall[k].y+wall[wall[k].point2].y)>>1)+(fixedPointSin(daang)>>8);
-                            goalz[snum] = sector[goalsect[snum]].floorz-(32<<8);
+                            goalz[snum] = sector[goalsect[snum]].floor.z - (32<<8);
                             break;
                         }
                     }

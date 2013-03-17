@@ -283,7 +283,7 @@ void doanimations(void)
             animatevel[i] = animatevel[animatecnt];
             animatesect[i] = animatesect[animatecnt];
             if ( sector[animatesect[i]].lotag == 18 || sector[animatesect[i]].lotag == 19 )
-                if (animateptr[i] == &sector[animatesect[i]].ceilingz) {
+                if (animateptr[i] == &sector[animatesect[i]].ceiling.z) {
                     continue;
                 }
 
@@ -300,10 +300,10 @@ void doanimations(void)
             a = max(a+v,animategoal[i]);
         }
 
-        if ( animateptr[i] == &sector[animatesect[i]].floorz) {
+        if ( animateptr[i] == &sector[animatesect[i]].floor.z) {
             for (p=connecthead; p>=0; p=connectpoint2[p])
                 if (ps[p].cursectnum == dasect)
-                    if ((sector[dasect].floorz-ps[p].posz) < (64<<8))
+                    if ((sector[dasect].floor.z - ps[p].posz) < (64<<8))
                         if (sprite[ps[p].i].owner >= 0) {
                             ps[p].posz += v;
                             ps[p].poszv = 0;
@@ -318,7 +318,7 @@ void doanimations(void)
                 if (sprite[j].statnum != 3) {
                     hittype[j].bposz = sprite[j].z;
                     sprite[j].z += v;
-                    hittype[j].floorz = sector[dasect].floorz+v;
+                    hittype[j].floorz = sector[dasect].floor.z + v;
                 }
         }
 
@@ -503,7 +503,7 @@ uint8_t  activatewarpelevators(short s,short d) //Parm = sectoreffectornum
     while (i >= 0) {
         if ( SLT == 17 )
             if ( SHT == sprite[s].hitag )
-                if ( (klabs(sector[sn].floorz-hittype[s].temp_data[2]) > SP) ||
+                if ( (klabs(sector[sn].floor.z - hittype[s].temp_data[2]) > SP) ||
                      (sector[SECT].hitag == (sector[sn].hitag-d) ) ) {
                     break;
                 }
@@ -572,7 +572,7 @@ void operatesectors(short sn,short ii)
             break;
 
         case 26: //The split doors
-            i = getanimationgoal(&sptr->ceilingz);
+            i = getanimationgoal(&sptr->ceiling.z);
             if (i == -1) { //if the door has stopped
                 haltsoundhack = 1;
                 sptr->lotag &= 0xff00;
@@ -689,7 +689,7 @@ void operatesectors(short sn,short ii)
                 }
                 return;
             } else {
-                if (sptr->floorz > SZ) {
+                if (sptr->floor.z > SZ) {
                     activatewarpelevators(i,-1);
                 } else {
                     activatewarpelevators(i,1);
@@ -701,20 +701,20 @@ void operatesectors(short sn,short ii)
         case 16:
         case 17:
 
-            i = getanimationgoal(&sptr->floorz);
+            i = getanimationgoal(&sptr->floor.z);
 
             if (i == -1) {
-                i = nextsectorneighborz(sn,sptr->floorz,1,1);
+                i = nextsectorneighborz(sn, sptr->floor.z, 1, 1);
                 if ( i == -1 ) {
-                    i = nextsectorneighborz(sn,sptr->floorz,1,-1);
+                    i = nextsectorneighborz(sn, sptr->floor.z, 1, -1);
                     if ( i == -1 ) {
                         return;
                     }
-                    j = sector[i].floorz;
-                    setanimation(sn,&sptr->floorz,j,sptr->extra);
+                    j = sector[i].floor.z;
+                    setanimation(sn,&sptr->floor.z, j, sptr->extra);
                 } else {
-                    j = sector[i].floorz;
-                    setanimation(sn,&sptr->floorz,j,sptr->extra);
+                    j = sector[i].floor.z;
+                    setanimation(sn, &sptr->floor.z, j, sptr->extra);
                 }
                 callsound(sn,ii);
             }
@@ -724,21 +724,21 @@ void operatesectors(short sn,short ii)
         case 18:
         case 19:
 
-            i = getanimationgoal(&sptr->floorz);
+            i = getanimationgoal(&sptr->floor.z);
 
             if (i==-1) {
-                i = nextsectorneighborz(sn,sptr->floorz,1,-1);
+                i = nextsectorneighborz(sn,sptr->floor.z,1,-1);
                 if (i==-1) {
-                    i = nextsectorneighborz(sn,sptr->floorz,1,1);
+                    i = nextsectorneighborz(sn,sptr->floor.z,1,1);
                 }
                 if (i==-1) {
                     return;
                 }
-                j = sector[i].floorz;
+                j = sector[i].floor.z;
                 q = sptr->extra;
-                l = sptr->ceilingz-sptr->floorz;
-                setanimation(sn,&sptr->floorz,j,q);
-                setanimation(sn,&sptr->ceilingz,j+l,q);
+                l = sptr->ceiling.z - sptr->floor.z;
+                setanimation(sn, &sptr->floor.z, j, q);
+                setanimation(sn, &sptr->ceiling.z, j+l, q);
                 callsound(sn,ii);
             }
             return;
@@ -746,9 +746,9 @@ void operatesectors(short sn,short ii)
         case 29:
 
             if (sptr->lotag&0x8000) {
-                j = sector[nextsectorneighborz(sn,sptr->ceilingz,1,1)].floorz;
+                j = sector[nextsectorneighborz(sn, sptr->ceiling.z,1,1)].floor.z;
             } else {
-                j = sector[nextsectorneighborz(sn,sptr->ceilingz,-1,-1)].ceilingz;
+                j = sector[nextsectorneighborz(sn, sptr->ceiling.z,-1,-1)].ceiling.z;
             }
 
             i = headspritestat[3]; //Effectors
@@ -765,7 +765,7 @@ void operatesectors(short sn,short ii)
 
             sptr->lotag ^= 0x8000;
 
-            setanimation(sn,&sptr->ceilingz,j,sptr->extra);
+            setanimation(sn,&sptr->ceiling.z,j,sptr->extra);
 
             callsound(sn,ii);
 
@@ -785,13 +785,13 @@ REDODOOR:
                     i = nextspritesect[i];
                 }
                 if (i==-1) {
-                    j = sptr->floorz;
+                    j = sptr->floor.z;
                 }
             } else {
-                j = nextsectorneighborz(sn,sptr->ceilingz,-1,-1);
+                j = nextsectorneighborz(sn,sptr->ceiling.z,-1,-1);
 
                 if (j >= 0) {
-                    j = sector[j].ceilingz;
+                    j = sector[j].ceiling.z;
                 } else {
                     sptr->lotag |= 32768;
                     goto REDODOOR;
@@ -800,30 +800,30 @@ REDODOOR:
 
             sptr->lotag ^= 0x8000;
 
-            setanimation(sn,&sptr->ceilingz,j,sptr->extra);
+            setanimation(sn,&sptr->ceiling.z,j,sptr->extra);
             callsound(sn,ii);
 
             return;
 
         case 21:
-            i = getanimationgoal(&sptr->floorz);
+            i = getanimationgoal(&sptr->floor.z);
             if (i >= 0) {
-                if (animategoal[sn] == sptr->ceilingz) {
-                    animategoal[i] = sector[nextsectorneighborz(sn,sptr->ceilingz,1,1)].floorz;
+                if (animategoal[sn] == sptr->ceiling.z) {
+                    animategoal[i] = sector[nextsectorneighborz(sn,sptr->ceiling.z,1,1)].floor.z;
                 } else {
-                    animategoal[i] = sptr->ceilingz;
+                    animategoal[i] = sptr->ceiling.z;
                 }
                 j = animategoal[i];
             } else {
-                if (sptr->ceilingz == sptr->floorz) {
-                    j = sector[nextsectorneighborz(sn,sptr->ceilingz,1,1)].floorz;
+                if (sptr->ceiling.z == sptr->floor.z) {
+                    j = sector[nextsectorneighborz(sn,sptr->ceiling.z,1,1)].floor.z;
                 } else {
-                    j = sptr->ceilingz;
+                    j = sptr->ceiling.z;
                 }
 
                 sptr->lotag ^= 0x8000;
 
-                if (setanimation(sn,&sptr->floorz,j,sptr->extra) >= 0) {
+                if (setanimation(sn,&sptr->floor.z,j,sptr->extra) >= 0) {
                     callsound(sn,ii);
                 }
             }
@@ -834,14 +834,14 @@ REDODOOR:
             // REDODOOR22:
 
             if ( (sptr->lotag&0x8000) ) {
-                q = (sptr->ceilingz+sptr->floorz)>>1;
-                // j = setanimation(sn,&sptr->floorz,q,sptr->extra);
-                j = setanimation(sn,&sptr->ceilingz,q,sptr->extra);
+                q = (sptr->ceiling.z+sptr->floor.z)>>1;
+                // j = setanimation(sn,&sptr->floor.z,q,sptr->extra);
+                j = setanimation(sn,&sptr->ceiling.z,q,sptr->extra);
             } else {
-                q = sector[nextsectorneighborz(sn,sptr->floorz,1,1)].floorz;
+                q = sector[nextsectorneighborz(sn,sptr->floor.z,1,1)].floor.z;
                 // j = setanimation(sn,&sptr->floorz,q,sptr->extra);
-                q = sector[nextsectorneighborz(sn,sptr->ceilingz,-1,-1)].ceilingz;
-                j = setanimation(sn,&sptr->ceilingz,q,sptr->extra);
+                q = sector[nextsectorneighborz(sn,sptr->ceiling.z,-1,-1)].ceiling.z;
+                j = setanimation(sn,&sptr->ceiling.z,q,sptr->extra);
             }
 
             sptr->lotag ^= 0x8000;
@@ -1041,13 +1041,13 @@ void operateactivators(short low,short snum)
                     case 0:
                         break;
                     case 1:
-                        if (sector[SECT].floorz != sector[SECT].ceilingz) {
+                        if (sector[SECT].floor.z != sector[SECT].ceiling.z) {
                             i = nextspritestat[i];
                             continue;
                         }
                         break;
                     case 2:
-                        if (sector[SECT].floorz == sector[SECT].ceilingz) {
+                        if (sector[SECT].floor.z == sector[SECT].ceiling.z) {
                             i = nextspritestat[i];
                             continue;
                         }
@@ -1585,8 +1585,8 @@ void checkhitwall(short spr,short dawallnum,int32_t x,int32_t y,int32_t z,short 
     }
 
     if ( ( (wal->cstat&16) || wal->overpicnum == BIGFORCE ) && wal->nextsector >= 0 )
-        if ( sector[wal->nextsector].floorz > z )
-            if ( sector[wal->nextsector].floorz-sector[wal->nextsector].ceilingz )
+        if ( sector[wal->nextsector].floor.z > z )
+            if ( sector[wal->nextsector].floor.z - sector[wal->nextsector].ceiling.z )
                 switch (wal->overpicnum) {
                     case W_FORCEFIELD:
                     case W_FORCEFIELD+1:
@@ -2070,7 +2070,7 @@ void checkhitsprite(short i,short sn)
         case ANTENNA:
             if (sprite[sn].extra != *actorscrptr[SHOTSPARK1] ) {
                 for (j=0; j<15; j++)
-                    EGS(SECT,SX,SY,sector[SECT].floorz-(12<<8)-(j<<9),SCRAP1+(TRAND&15),-8,64,64,
+                    EGS(SECT,SX,SY,sector[SECT].floor.z-(12<<8)-(j<<9),SCRAP1+(TRAND&15),-8,64,64,
                         TRAND&2047,(TRAND&127)+64,-(TRAND&511)-256,i,5);
                 spawn(i,EXPLOSION2);
                 deletesprite(i);
@@ -2236,7 +2236,7 @@ void checkhitsprite(short i,short sn)
             }
 
             j = spawn(i,STEAM);
-            sprite[j].z = sector[SECT].floorz-(32<<8);
+            sprite[j].z = sector[SECT].floor.z-(32<<8);
             break;
 
         case MONK:
@@ -2413,10 +2413,10 @@ void allignwarpelevators(void)
             while (j >= 0) {
                 if ( (sprite[j].lotag) == 17 && i != j &&
                      (SHT) == (sprite[j].hitag) ) {
-                    sector[sprite[j].sectnum].floorz =
-                        sector[SECT].floorz;
-                    sector[sprite[j].sectnum].ceilingz =
-                        sector[SECT].ceilingz;
+                    sector[sprite[j].sectnum].floor.z =
+                        sector[SECT].floor.z;
+                    sector[sprite[j].sectnum].ceiling.z =
+                        sector[SECT].ceiling.z;
                 }
 
                 j = nextspritestat[j];

@@ -522,18 +522,18 @@ int loadplayer(int8_t spot)
     while (k >= 0) {
         switch (sprite[k].lotag) {
             case 31:
-                setinterpolation(&sector[sprite[k].sectnum].floorz);
+                setinterpolation(&sector[sprite[k].sectnum].floor.z);
                 break;
             case 32:
-                setinterpolation(&sector[sprite[k].sectnum].ceilingz);
+                setinterpolation(&sector[sprite[k].sectnum].ceiling.z);
                 break;
             case 25:
-                setinterpolation(&sector[sprite[k].sectnum].floorz);
-                setinterpolation(&sector[sprite[k].sectnum].ceilingz);
+                setinterpolation(&sector[sprite[k].sectnum].floor.z);
+                setinterpolation(&sector[sprite[k].sectnum].ceiling.z);
                 break;
             case 17:
-                setinterpolation(&sector[sprite[k].sectnum].floorz);
-                setinterpolation(&sector[sprite[k].sectnum].ceilingz);
+                setinterpolation(&sector[sprite[k].sectnum].floor.z);
+                setinterpolation(&sector[sprite[k].sectnum].ceiling.z);
                 break;
             case 0:
             case 5:
@@ -4215,8 +4215,8 @@ void drawoverheadmap(int32_t cposx, int32_t cposy, int32_t czoom, short cang)
         startwall = sector[i].wallptr;
         endwall = sector[i].wallptr + sector[i].wallnum;
 
-        z1 = sector[i].ceilingz;
-        z2 = sector[i].floorz;
+        z1 = sector[i].ceiling.z;
+        z2 = sector[i].floor.z;
 
         for (j=startwall,wal=&wall[startwall]; j<endwall; j++,wal++) {
             k = wal->nextwall;
@@ -4224,8 +4224,8 @@ void drawoverheadmap(int32_t cposx, int32_t cposy, int32_t czoom, short cang)
                 continue;
             }
 
-            if (sector[wal->nextsector].ceilingz == z1)
-                if (sector[wal->nextsector].floorz == z2)
+            if (sector[wal->nextsector].ceiling.z == z1)
+                if (sector[wal->nextsector].floor.z == z2)
                     if (((wal->cstat|wall[wal->nextwall].cstat)&(16+32)) == 0) {
                         continue;
                     }

@@ -85,7 +85,6 @@ typedef struct {
 
 typedef struct {
     short wallptr, wallnum;
-    int32_t ceilingz, floorz;
     uint8_t  visibility, filler;
     short lotag, hitag, extra;
     InnerSector floor;

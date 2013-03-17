@@ -3082,7 +3082,7 @@ void displayrest(int32_t smoothratio, EngineState *engine_state)
         if (sector[i].lotag == 32767) {
             continue;
         }
-        if (sector[i].ceilingz >= sector[i].floorz) {
+        if (sector[i].ceiling.z >= sector[i].floor.z) {
             continue;
         }
     }
@@ -3518,14 +3518,14 @@ static void SE40_Draw(int spnum,int32_t x,int32_t y,int32_t z,short a,short h,in
             sprite[j].hitag==sprite[floor1].hitag
            ) {
             if (k==40) {
-                tempsectorz[sprite[j].sectnum]=sector[sprite[j].sectnum].floorz;
-                sector[sprite[j].sectnum].floorz+=(((z-sector[sprite[j].sectnum].floorz)/32768)+1)*32768;
+                tempsectorz[sprite[j].sectnum]=sector[sprite[j].sectnum].floor.z;
+                sector[sprite[j].sectnum].floor.z += (((z-sector[sprite[j].sectnum].floor.z)/32768)+1)*32768;
                 tempsectorpicnum[sprite[j].sectnum]=sector[sprite[j].sectnum].floor.picnum;
                 sector[sprite[j].sectnum].floor.picnum=13;
             }
             if (k==41) {
-                tempsectorz[sprite[j].sectnum]=sector[sprite[j].sectnum].ceilingz;
-                sector[sprite[j].sectnum].ceilingz+=(((z-sector[sprite[j].sectnum].ceilingz)/32768)-1)*32768;
+                tempsectorz[sprite[j].sectnum]=sector[sprite[j].sectnum].ceiling.z;
+                sector[sprite[j].sectnum].ceiling.z += (((z-sector[sprite[j].sectnum].ceiling.z)/32768)-1)*32768;
                 tempsectorpicnum[sprite[j].sectnum]=sector[sprite[j].sectnum].ceiling.picnum;
                 sector[sprite[j].sectnum].ceiling.picnum=13;
             }
@@ -3546,11 +3546,11 @@ static void SE40_Draw(int spnum,int32_t x,int32_t y,int32_t z,short a,short h,in
             sprite[j].hitag==sprite[floor1].hitag
            ) {
             if (k==40) {
-                sector[sprite[j].sectnum].floorz=tempsectorz[sprite[j].sectnum];
+                sector[sprite[j].sectnum].floor.z = tempsectorz[sprite[j].sectnum];
                 sector[sprite[j].sectnum].floor.picnum=tempsectorpicnum[sprite[j].sectnum];
             }
             if (k==41) {
-                sector[sprite[j].sectnum].ceilingz=tempsectorz[sprite[j].sectnum];
+                sector[sprite[j].sectnum].ceiling.z = tempsectorz[sprite[j].sectnum];
                 sector[sprite[j].sectnum].ceiling.picnum=tempsectorpicnum[sprite[j].sectnum];
             }
         }// end if
@@ -4012,8 +4012,8 @@ short spawn( short j, short pn )
         hittype[i].movflag = 0;
         hittype[i].tempang = 0;
         hittype[i].dispicnum = 0;
-        hittype[i].floorz = sector[SECT].floorz;
-        hittype[i].ceilingz = sector[SECT].ceilingz;
+        hittype[i].floorz = sector[SECT].floor.z;
+        hittype[i].ceilingz = sector[SECT].ceiling.z;
 
         hittype[i].lastvx = 0;
         hittype[i].lastvy = 0;
@@ -4200,7 +4200,7 @@ short spawn( short j, short pn )
             if (sp->picnum == TRANSPORTERBEAM) {
                 sp->xrepeat = 31;
                 sp->yrepeat = 1;
-                sp->z = sector[sprite[j].sectnum].floorz-(40<<8);
+                sp->z = sector[sprite[j].sectnum].floor.z - (40<<8);
             } else {
                 if (sprite[j].statnum == 4) {
                     sp->xrepeat = 8;
@@ -4281,13 +4281,13 @@ short spawn( short j, short pn )
             s1 = sp->sectnum;
 
             updatesector(sp->x+108,sp->y+108,&s1);
-            if (s1 >= 0 && sector[s1].floorz == sector[sp->sectnum].floorz) {
+            if (s1 >= 0 && sector[s1].floor.z == sector[sp->sectnum].floor.z) {
                 updatesector(sp->x-108,sp->y-108,&s1);
-                if (s1 >= 0 && sector[s1].floorz == sector[sp->sectnum].floorz) {
+                if (s1 >= 0 && sector[s1].floor.z == sector[sp->sectnum].floor.z) {
                     updatesector(sp->x+108,sp->y-108,&s1);
-                    if (s1 >= 0 && sector[s1].floorz == sector[sp->sectnum].floorz) {
+                    if (s1 >= 0 && sector[s1].floor.z == sector[sp->sectnum].floor.z) {
                         updatesector(sp->x-108,sp->y+108,&s1);
-                        if (s1 >= 0 && sector[s1].floorz != sector[sp->sectnum].floorz) {
+                        if (s1 >= 0 && sector[s1].floor.z != sector[sp->sectnum].floor.z) {
                             sp->xrepeat = sp->yrepeat = 0;
                             changespritestat(i,5);
                             break;
@@ -4494,13 +4494,13 @@ short spawn( short j, short pn )
                 s1 = sp->sectnum;
 
                 updatesector(sp->x+84,sp->y+84,&s1);
-                if (s1 >= 0 && sector[s1].floorz == sector[sp->sectnum].floorz) {
+                if (s1 >= 0 && sector[s1].floor.z == sector[sp->sectnum].floor.z) {
                     updatesector(sp->x-84,sp->y-84,&s1);
-                    if (s1 >= 0 && sector[s1].floorz == sector[sp->sectnum].floorz) {
+                    if (s1 >= 0 && sector[s1].floor.z == sector[sp->sectnum].floor.z) {
                         updatesector(sp->x+84,sp->y-84,&s1);
-                        if (s1 >= 0 && sector[s1].floorz == sector[sp->sectnum].floorz) {
+                        if (s1 >= 0 && sector[s1].floor.z == sector[sp->sectnum].floor.z) {
                             updatesector(sp->x-84,sp->y+84,&s1);
-                            if (s1 >= 0 && sector[s1].floorz != sector[sp->sectnum].floorz) {
+                            if (s1 >= 0 && sector[s1].floor.z != sector[sp->sectnum].floor.z) {
                                 sp->xrepeat = sp->yrepeat = 0;
                                 changespritestat(i,5);
                                 break;
@@ -4522,7 +4522,7 @@ short spawn( short j, short pn )
                 sp->ang = sprite[j].ang;
             }
 
-            sp->z = sector[sect].floorz;
+            sp->z = sector[sect].floor.z;
             if (sector[sect].lotag != 1 && sector[sect].lotag != 2) {
                 sp->xrepeat = sp->yrepeat = 32;
             }
@@ -4764,7 +4764,7 @@ short spawn( short j, short pn )
             sp->cstat |= 64|257;
 
             sp->picnum += 2;
-            sp->z = sector[sect].ceilingz+(48<<8);
+            sp->z = sector[sect].ceiling.z+(48<<8);
             T5 = tempwallptr;
 
             msx[tempwallptr] = sp->x;
@@ -4838,9 +4838,9 @@ short spawn( short j, short pn )
             changespritestat(i,6);
             break;
         case TOUCHPLATE:
-            T3 = sector[sect].floorz;
+            T3 = sector[sect].floor.z;
             if (sector[sect].lotag != 1 && sector[sect].lotag != 2) {
-                sector[sect].floorz = sp->z;
+                sector[sect].floor.z = sp->z;
             }
             if (sp->pal && ud.multimode > 1) {
                 sp->xrepeat=sp->yrepeat=0;
@@ -5249,7 +5249,7 @@ short spawn( short j, short pn )
                         OW = i;
                     }
 
-                    T5 = sector[sect].floorz == SZ;
+                    T5 = sector[sect].floor.z == SZ;
                     sp->cstat = 0;
                     changespritestat(i,9);
                     return i;
@@ -5260,14 +5260,14 @@ short spawn( short j, short pn )
                 case 18:
 
                     if (sp->ang == 512) {
-                        T2 = sector[sect].ceilingz;
+                        T2 = sector[sect].ceiling.z;
                         if (sp->pal) {
-                            sector[sect].ceilingz = sp->z;
+                            sector[sect].ceiling.z = sp->z;
                         }
                     } else {
-                        T2 = sector[sect].floorz;
+                        T2 = sector[sect].floor.z;
                         if (sp->pal) {
-                            sector[sect].floorz = sp->z;
+                            sector[sect].floor.z = sp->z;
                         }
                     }
 
@@ -5278,13 +5278,13 @@ short spawn( short j, short pn )
                     sp->owner = -1;
                     break;
                 case 25: // Pistons
-                    T4 = sector[sect].ceilingz;
+                    T4 = sector[sect].ceiling.z;
                     T5 = 1;
-                    sector[sect].ceilingz = sp->z;
-                    setinterpolation(&sector[sect].ceilingz);
+                    sector[sect].ceiling.z = sp->z;
+                    setinterpolation(&sector[sect].ceiling.z);
                     break;
                 case 35:
-                    sector[sect].ceilingz = sp->z;
+                    sector[sect].ceiling.z = sp->z;
                     break;
                 case 27:
                     if (ud.recstat == 1) {
@@ -5300,8 +5300,8 @@ short spawn( short j, short pn )
 
                 case 13:
 
-                    T1 = sector[sect].ceilingz;
-                    T2 = sector[sect].floorz;
+                    T1 = sector[sect].ceiling.z;
+                    T2 = sector[sect].floor.z;
 
                     if ( klabs(T1-sp->z) < klabs(T2-sp->z) ) {
                         sp->owner = 1;
@@ -5311,12 +5311,12 @@ short spawn( short j, short pn )
 
                     if (sp->ang == 512) {
                         if (sp->owner) {
-                            sector[sect].ceilingz = sp->z;
+                            sector[sect].ceiling.z = sp->z;
                         } else {
-                            sector[sect].floorz = sp->z;
+                            sector[sect].floor.z = sp->z;
                         }
                     } else {
-                        sector[sect].ceilingz = sector[sect].floorz = sp->z;
+                        sector[sect].ceiling.z = sector[sect].floor.z = sp->z;
                     }
 
                     if ( sector[sect].ceiling.stat&1 ) {
@@ -5352,17 +5352,17 @@ short spawn( short j, short pn )
 
                 case 17:
 
-                    T3 = sector[sect].floorz; //Stopping loc
+                    T3 = sector[sect].floor.z; //Stopping loc
 
-                    j = nextsectorneighborz(sect,sector[sect].floorz,-1,-1);
-                    T4 = sector[j].ceilingz;
+                    j = nextsectorneighborz(sect,sector[sect].floor.z,-1,-1);
+                    T4 = sector[j].ceiling.z;
 
-                    j = nextsectorneighborz(sect,sector[sect].ceilingz,1,1);
-                    T5 = sector[j].floorz;
+                    j = nextsectorneighborz(sect,sector[sect].ceiling.z,1,1);
+                    T5 = sector[j].floor.z;
 
                     if (numplayers < 2) {
-                        setinterpolation(&sector[sect].floorz);
-                        setinterpolation(&sector[sect].ceilingz);
+                        setinterpolation(&sector[sect].floor.z);
+                        setinterpolation(&sector[sect].ceiling.z);
                     }
 
                     break;
@@ -5438,10 +5438,10 @@ short spawn( short j, short pn )
                     break;
 
                 case 31:
-                    T2 = sector[sect].floorz;
+                    T2 = sector[sect].floor.z;
                     //    T3 = sp->hitag;
                     if (sp->ang != 1536) {
-                        sector[sect].floorz = sp->z;
+                        sector[sect].floor.z = sp->z;
                     }
 
                     startwall = sector[sect].wallptr;
@@ -5452,14 +5452,14 @@ short spawn( short j, short pn )
                             wall[s].hitag = 9999;
                         }
 
-                    setinterpolation(&sector[sect].floorz);
+                    setinterpolation(&sector[sect].floor.z);
 
                     break;
                 case 32:
-                    T2 = sector[sect].ceilingz;
+                    T2 = sector[sect].ceiling.z;
                     T3 = sp->hitag;
                     if (sp->ang != 1536) {
-                        sector[sect].ceilingz = sp->z;
+                        sector[sect].ceiling.z = sp->z;
                     }
 
                     startwall = sector[sect].wallptr;
@@ -5470,7 +5470,7 @@ short spawn( short j, short pn )
                             wall[s].hitag = 9999;
                         }
 
-                    setinterpolation(&sector[sect].ceilingz);
+                    setinterpolation(&sector[sect].ceiling.z);
 
                     break;
 
@@ -5493,7 +5493,7 @@ short spawn( short j, short pn )
 
                 case 9:
                     if ( sector[sect].lotag &&
-                         labs(sector[sect].ceilingz-sp->z) > 1024) {
+                         labs(sector[sect].ceiling.z-sp->z) > 1024) {
                         sector[sect].lotag |= 32768;    //If its open
                     }
                 case 8:
@@ -5537,7 +5537,7 @@ short spawn( short j, short pn )
                             } else {
                                 sprite[i].clipdist = 0;
                             }
-                            T4 = sector[sect].floorz;
+                            T4 = sector[sect].floor.z;
                             sector[sect].hitag = i;
                         }
 
@@ -5612,7 +5612,7 @@ short spawn( short j, short pn )
                     }
 
                     else if (sp->lotag == 16) {
-                        T4 = sector[sect].ceilingz;
+                        T4 = sector[sect].ceiling.z;
                     }
 
                     else if ( sp->lotag == 26 ) {
@@ -6371,7 +6371,7 @@ PALONLY:
                         int32_t daz,xrep,yrep;
 
                         if ( (sector[sect].lotag&0xff) > 2 || s->statnum == 4 || s->statnum == 5 || s->picnum == DRONE || s->picnum == COMMANDER ) {
-                            daz = sector[sect].floorz;
+                            daz = sector[sect].floor.z;
                         } else {
                             daz = hittype[i].floorz;
                         }
@@ -6440,7 +6440,7 @@ PALONLY:
             case BURNING:
             case BURNING2:
                 if ( sprite[s->owner].picnum != TREE1 && sprite[s->owner].picnum != TREE2 ) {
-                    t->z = sector[t->sectnum].floorz;
+                    t->z = sector[t->sectnum].floor.z;
                 }
                 t->shade = -127;
                 break;
@@ -10699,9 +10699,9 @@ void vglass(int32_t x,int32_t y,short a,short wn,short n)
     if (sect == -1) {
         return;
     }
-    zincs = ( sector[sect].floorz-sector[sect].ceilingz ) / n;
+    zincs = ( sector[sect].floor.z-sector[sect].ceiling.z ) / n;
 
-    for (z = sector[sect].ceilingz; z < sector[sect].floorz; z += zincs ) {
+    for (z = sector[sect].ceiling.z; z < sector[sect].floor.z; z += zincs ) {
         EGS(sect,x,y,z-(TRAND&8191),GLASSPIECES+(z&(TRAND%3)),-32,36,36,a+128-(TRAND&255),16+(TRAND&31),0,-1,5);
     }
 }
@@ -10741,7 +10741,7 @@ void lotsofglass(short i,short wallnum,short n)
 
         updatesector(x1,y1,&sect);
         if (sect >= 0) {
-            z = sector[sect].floorz-(TRAND&(klabs(sector[sect].ceilingz-sector[sect].floorz)));
+            z = sector[sect].floor.z-(TRAND&(klabs(sector[sect].ceiling.z-sector[sect].floor.z)));
             if ( z < -(32<<8) || z > (32<<8) ) {
                 z = SZ-(32<<8)+(TRAND&((64<<8)-1));
             }
@@ -10782,7 +10782,7 @@ void ceilingglass(short i,short sectnum,short n)
             x1 += xv;
             y1 += yv;
             a = TRAND&2047;
-            z = sector[sectnum].ceilingz+((TRAND&15)<<8);
+            z = sector[sectnum].ceiling.z+((TRAND&15)<<8);
             EGS(sectnum,x1,y1,z,GLASSPIECES+(j%3),-32,36,36,a,(TRAND&31),0,i,5);
         }
     }
@@ -10816,7 +10816,7 @@ void lotsofcolourglass(short i,short wallnum,short n)
         y1 += yv;
 
         updatesector(x1,y1,&sect);
-        z = sector[sect].floorz-(TRAND&(klabs(sector[sect].ceilingz-sector[sect].floorz)));
+        z = sector[sect].floor.z-(TRAND&(klabs(sector[sect].ceiling.z-sector[sect].floor.z)));
         if ( z < -(32<<8) || z > (32<<8) ) {
             z = SZ-(32<<8)+(TRAND&((64<<8)-1));
         }

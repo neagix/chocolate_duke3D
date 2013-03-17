@@ -234,13 +234,13 @@ void getglobalz(short i)
                 ssp(i,CLIPMASK0);
             } else if (s->statnum == 4 && sprite[lz].picnum == APLAYER)
                 if (s->owner == lz) {
-                    hittype[i].ceilingz = sector[s->sectnum].ceilingz;
-                    hittype[i].floorz   = sector[s->sectnum].floorz;
+                    hittype[i].ceilingz = sector[s->sectnum].ceiling.z;
+                    hittype[i].floorz   = sector[s->sectnum].floor.z;
                 }
         }
     } else {
-        hittype[i].ceilingz = sector[s->sectnum].ceilingz;
-        hittype[i].floorz   = sector[s->sectnum].floorz;
+        hittype[i].ceilingz = sector[s->sectnum].ceiling.z;
+        hittype[i].floorz   = sector[s->sectnum].floor.z;
     }
 }
 
@@ -263,8 +263,8 @@ void makeitfall(short i)
     if ( ( s->statnum == 1 || s->statnum == 10 || s->statnum == 2 || s->statnum == 6 ) ) {
         getzrange(s->x,s->y,s->z-(FOURSLEIGHT),s->sectnum,&hittype[i].ceilingz,&hz,&hittype[i].floorz,&lz,127L,CLIPMASK0);
     } else {
-        hittype[i].ceilingz = sector[s->sectnum].ceilingz;
-        hittype[i].floorz   = sector[s->sectnum].floorz;
+        hittype[i].ceilingz = sector[s->sectnum].ceiling.z;
+        hittype[i].floorz   = sector[s->sectnum].floor.z;
     }
 
     if ( s->z < hittype[i].floorz-(FOURSLEIGHT) ) {
@@ -2713,7 +2713,7 @@ SKIPJIBS:
 
             break;
         case 43:
-            parseifelse( klabs(g_sp->z-sector[g_sp->sectnum].floorz) < (32<<8) && sector[g_sp->sectnum].lotag == 1);
+            parseifelse( klabs(g_sp->z-sector[g_sp->sectnum].floor.z) < (32<<8) && sector[g_sp->sectnum].lotag == 1);
             break;
         case 44:
             parseifelse( sector[g_sp->sectnum].lotag == 2);
@@ -2884,7 +2884,7 @@ SKIPJIBS:
             if ( sector[g_sp->sectnum].lotag == 0 ) {
                 neartag(g_sp->x,g_sp->y,g_sp->z-(32<<8),g_sp->sectnum,g_sp->ang,&neartagsector,&neartagwall,&neartagsprite,&neartaghitdist,768L,1);
                 if ( neartagsector >= 0 && isanearoperator(sector[neartagsector].lotag) )
-                    if ( (sector[neartagsector].lotag&0xff) == 23 || sector[neartagsector].floorz == sector[neartagsector].ceilingz )
+                    if ( (sector[neartagsector].lotag&0xff) == 23 || sector[neartagsector].floor.z == sector[neartagsector].ceiling.z )
                         if ( (sector[neartagsector].lotag&16384) == 0 )
                             if ( (sector[neartagsector].lotag&32768) == 0 ) {
                                 j = headspritesect[neartagsector];

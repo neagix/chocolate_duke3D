@@ -755,7 +755,7 @@ void prelevel(uint8_t  g)
         switch (sector[i].lotag) {
             case 20:
             case 22:
-                if ( sector[i].floorz > sector[i].ceilingz) {
+                if ( sector[i].floor.z > sector[i].ceiling.z) {
                     sector[i].lotag |= 32768;
                 }
                 continue;
