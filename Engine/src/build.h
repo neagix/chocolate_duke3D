@@ -75,21 +75,27 @@ typedef struct {
     short lotag, hitag, extra;
 } SectorOnGRP;
 
-typedef struct {
+struct _Sector;
+
+struct _InnerSector {
     int32_t z;
     short stat;
     short picnum, heinum;
     int8_t shade;
     uint8_t  pal, xpanning, ypanning;
-} InnerSector;
+    struct _Sector *sector;
+} _InnerSector;
 
-typedef struct {
+struct _Sector {
     short wallptr, wallnum;
     uint8_t  visibility, filler;
     short lotag, hitag, extra;
-    InnerSector floor;
-    InnerSector ceiling;
-} Sector;
+    struct _InnerSector floor;
+    struct _InnerSector ceiling;
+};
+
+typedef struct _InnerSector InnerSector;
+typedef struct _Sector Sector;
 
 /*
  * cstat:

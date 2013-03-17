@@ -656,29 +656,25 @@ static void slowhline (int32_t xr, int32_t yp,
 }
 
 
-int32_t GetDistanceFromFloorOrCeiling (Sector sector, int32_t z_position, bool is_floor) {
-    return is_floor ? z_position - sector.floor.z : sector.ceiling.z - z_position;
+int32_t GetDistanceFromFloorOrCeiling (InnerSector floor_or_ceiling, int32_t z_position, bool is_floor) {
+    return is_floor ? z_position - floor_or_ceiling.z : floor_or_ceiling.z - z_position;
 }
 
 
 // Renders non-parallaxed ceilings or floors
-static void FloorCeilingScan (int32_t x1, int32_t x2, Sector sector, bool is_floor, EngineState *engine_state)
+static void FloorCeilingScan (int32_t x1, int32_t x2, InnerSector floor_or_ceiling, bool is_floor, EngineState *engine_state)
 {
     int8_t xshift, yshift;
     int32_t xpanning, ypanning;
     int32_t i, j, ox, oy, x, y1, y2, twall, bwall, zd;
     int32_t g_x1, g_y1, g_x2, g_y2;
-    InnerSector floor_or_ceiling;
-    
-    //Retrieve the sector object
-    floor_or_ceiling = is_floor ? sector.floor : sector.ceiling;
-    
+        
     //Retrieve the floor palette.
     if (palookup[floor_or_ceiling.pal] != globalpalwritten) {
         globalpalwritten = palookup[floor_or_ceiling.pal];
     }
     
-    zd = GetDistanceFromFloorOrCeiling(sector, engine_state->posz, is_floor);
+    zd = GetDistanceFromFloorOrCeiling(floor_or_ceiling, engine_state->posz, is_floor);
     
     //We are UNDER the floor: Do NOT render anything.
     if (zd > 0) {
@@ -715,8 +711,8 @@ static void FloorCeilingScan (int32_t x1, int32_t x2, Sector sector, bool is_flo
     globalshade = (int32_t)floor_or_ceiling.shade;
     
     globvis = engine_state->cisibility;
-    if (sector.visibility != 0) {
-        globvis = mulscale4(globvis,(int32_t)((uint8_t )(sector.visibility+16)));
+    if (floor_or_ceiling.sector->visibility != 0) {
+        globvis = mulscale4(globvis,(int32_t)((uint8_t )(floor_or_ceiling.sector->visibility+16)));
     }
     
     globalorientation = (int32_t)floor_or_ceiling.stat;
@@ -729,7 +725,7 @@ static void FloorCeilingScan (int32_t x1, int32_t x2, Sector sector, bool is_flo
         xpanning = (engine_state->posx<<20);
         ypanning = -(engine_state->posy<<20);
     } else {
-        j = sector.wallptr;
+        j = floor_or_ceiling.sector->wallptr;
         ox = wall[wall[j].point2].x - wall[j].x;
         oy = wall[wall[j].point2].y - wall[j].y;
         i = fixedPointSqrt(ox*ox+oy*oy);
@@ -925,14 +921,14 @@ static void FloorCeilingScan (int32_t x1, int32_t x2, Sector sector, bool is_flo
 /* renders non-parallaxed ceilings. --ryan. */
 static void CeilingScan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engine_state)
 {
-    FloorCeilingScan(x1, x2, sector[sectnum], false, engine_state);
+    FloorCeilingScan(x1, x2, sector[sectnum].ceiling, false, engine_state);
 }
 
 
 /* renders non-parallaxed floors. --ryan. */
 static void FloorScan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engine_state)
 {
-    FloorCeilingScan(x1, x2, sector[sectnum], true, engine_state);
+    FloorCeilingScan(x1, x2, sector[sectnum].floor, true, engine_state);
 }
 
 
@@ -3086,6 +3082,8 @@ int loadboard(char  *filename, int32_t *daposx, int32_t *daposy,
         kread16(fil,&sect->lotag);
         kread16(fil,&sect->hitag);
         kread16(fil,&sect->extra);
+
+        sect->ceiling.sector = sect->floor.sector = sect;
     }
 
     kread16(fil,&numwalls);

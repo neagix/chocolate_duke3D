@@ -345,6 +345,7 @@ int loadplayer(int8_t spot)
         sector[i].ceiling.xpanning = sector_on_grp[i].ceilingxpanning;
         sector[i].ceiling.ypanning = sector_on_grp[i].ceilingypanning;
         sector[i].ceiling.stat     = sector_on_grp[i].ceilingstat;
+        sector[i].ceiling.sector   = &sector[i];
         
         sector[i].floor.z        = sector_on_grp[i].floorz;
         sector[i].floor.picnum   = sector_on_grp[i].floorpicnum;
@@ -354,6 +355,7 @@ int loadplayer(int8_t spot)
         sector[i].floor.xpanning = sector_on_grp[i].floorxpanning;
         sector[i].floor.ypanning = sector_on_grp[i].floorypanning;
         sector[i].floor.stat     = sector_on_grp[i].floorstat;
+        sector[i].floor.sector   = &sector[i];
     }
     
     kdfread(&sprite[0],sizeof(spritetype),MAXSPRITES,fil);
