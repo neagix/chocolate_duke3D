@@ -12,7 +12,7 @@
 #include <string.h>
 
 
-
+#include <stdbool.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -656,64 +656,71 @@ static void slowhline (int32_t xr, int32_t yp,
 }
 
 
+int32_t GetDistanceFromFloorOrCeiling (Sector sector, int32_t z_position, bool is_floor) {
+    return is_floor ? z_position - sector.floor.z : sector.ceiling.z - z_position;
+}
 
 
-
-/* renders non-parallaxed ceilings. --ryan. */
-static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engine_state)
+// Renders non-parallaxed ceilings or floors
+static void FloorCeilingScan (int32_t x1, int32_t x2, Sector sector, bool is_floor, EngineState *engine_state)
 {
     int8_t xshift, yshift;
-    int32_t i, j, ox, oy, x, y1, y2, twall, bwall, zd;
     int32_t xpanning, ypanning;
+    int32_t i, j, ox, oy, x, y1, y2, twall, bwall, zd;
     int32_t g_x1, g_y1, g_x2, g_y2;
-    Sector *sec;
-
-    sec = &sector[sectnum];
-
-    if (palookup[sec->ceiling.pal] != globalpalwritten) {
-        globalpalwritten = palookup[sec->ceiling.pal];
+    InnerSector floor_or_ceiling;
+    
+    //Retrieve the sector object
+    floor_or_ceiling = is_floor ? sector.floor : sector.ceiling;
+    
+    //Retrieve the floor palette.
+    if (palookup[floor_or_ceiling.pal] != globalpalwritten) {
+        globalpalwritten = palookup[floor_or_ceiling.pal];
     }
-
-
-    zd = sec->ceiling.z - engine_state->posz;
-
-
+    
+    zd = GetDistanceFromFloorOrCeiling(sector, engine_state->posz, is_floor);
+    
+    //We are UNDER the floor: Do NOT render anything.
     if (zd > 0) {
         return;
     }
-
-
-    globalpicnum = sec->ceiling.picnum;
-
+    
+    //Retrive the floor texture.
+    globalpicnum = floor_or_ceiling.picnum;
     if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
         globalpicnum = 0;
     }
-
+    
+    //Lock the floor texture
     setgotpic(globalpicnum);
-
-    //Check the tile dimension are valid.
+    
+    //This tile has unvalid dimensions (negative)
     if ((tiles[globalpicnum].dim.width <= 0) ||
         (tiles[globalpicnum].dim.height <= 0)) {
         return;
     }
-
+    
+    //If this is an animated texture: Animate it.
     if (tiles[globalpicnum].animFlags&192) {
         globalpicnum += animateoffs(globalpicnum);
     }
-
+    
+    //If the texture is not in RAM: Load it !!
     TILE_MakeAvailable(globalpicnum);
-
+    
+    //Check where is the texture in RAM
     globalbufplc = tiles[globalpicnum].data;
-
-    globalshade = (int32_t)sec->ceiling.shade;
+    
+    //Retrieve the shade of the sector (illumination level).
+    globalshade = (int32_t)floor_or_ceiling.shade;
+    
     globvis = engine_state->cisibility;
-    if (sec->visibility != 0) {
-        globvis = mulscale4(globvis,(int32_t)((uint8_t )(sec->visibility+16)));
+    if (sector.visibility != 0) {
+        globvis = mulscale4(globvis,(int32_t)((uint8_t )(sector.visibility+16)));
     }
-
-    globalorientation = (int32_t)sec->ceiling.stat;
-
-
+    
+    globalorientation = (int32_t)floor_or_ceiling.stat;
+    
     if ((globalorientation&64) == 0) {
         g_x1 = fixedPointSin(engine_state->ang);
         g_x2 = fixedPointSin(engine_state->ang);
@@ -722,24 +729,24 @@ static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
         xpanning = (engine_state->posx<<20);
         ypanning = -(engine_state->posy<<20);
     } else {
-        j = sec->wallptr;
+        j = sector.wallptr;
         ox = wall[wall[j].point2].x - wall[j].x;
         oy = wall[wall[j].point2].y - wall[j].y;
         i = fixedPointSqrt(ox*ox+oy*oy);
-
+        
         if (i == 0) {
             i = 1024;
         } else {
             i = 1048576/i;
         }
-
+        
         g_x1 = mulscale10(dmulscale10(ox, fixedPointSin(engine_state->ang), -oy, fixedPointCos(engine_state->ang)), i);
         g_y1 = mulscale10(dmulscale10(ox, fixedPointCos(engine_state->ang),  oy, fixedPointSin(engine_state->ang)), i);
         g_x2 = -g_x1;
         g_y2 = -g_y1;
-
-        ox = ((wall[j].x-engine_state->posx)<<6);
-        oy = ((wall[j].y-engine_state->posy)<<6);
+        
+        ox = ((wall[j].x - engine_state->posx)<<6);
+        oy = ((wall[j].y - engine_state->posy)<<6);
         i = dmulscale14(oy, fixedPointCos(engine_state->ang), -ox, fixedPointSin(engine_state->ang));
         j = dmulscale14(ox, fixedPointCos(engine_state->ang),  oy, fixedPointSin(engine_state->ang));
         ox = i;
@@ -747,7 +754,7 @@ static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
         xpanning = g_x1*ox - g_y1*oy;
         ypanning = g_y2*ox + g_x2*oy;
     }
-
+    
     g_x2 = mulscale16(g_x2,viewingrangerecip);
     g_y1 = mulscale16(g_y1,viewingrangerecip);
     xshift = (8-(picsiz[globalpicnum]&15));
@@ -756,7 +763,7 @@ static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
         xshift++;
         yshift++;
     }
-
+    
     if ((globalorientation&0x4) > 0) {
         i = xpanning;
         xpanning = ypanning;
@@ -768,30 +775,33 @@ static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
         g_x1 = g_y2;
         g_y2 = i;
     }
+    
     if ((globalorientation&0x10) > 0) {
         g_x1 = -g_x1;
         g_y1 = -g_y1;
         xpanning = -xpanning;
     }
+    
     if ((globalorientation&0x20) > 0) {
         g_x2 = -g_x2;
         g_y2 = -g_y2;
         ypanning = -ypanning;
     }
-
+    
     g_x1 <<= xshift;
     g_y1 <<= xshift;
     g_x2 <<= yshift;
     g_y2 <<= yshift;
     xpanning <<= xshift;
     ypanning <<= yshift;
-    xpanning += (((int32_t)sec->ceiling.xpanning)<<24);
-    ypanning += (((int32_t)sec->ceiling.ypanning)<<24);
+    xpanning += (((int32_t)floor_or_ceiling.xpanning) << 24);
+    ypanning += (((int32_t)floor_or_ceiling.ypanning) << 24);
     g_y1 = (-g_x1-g_y1)*halfxdimen;
     g_x2 = (g_x2-g_y2)*halfxdimen;
-
+    
+    //Setup the drawing routine paramters
     sethlinesizes(picsiz[globalpicnum]&15,picsiz[globalpicnum]>>4,globalbufplc);
-
+    
     g_x2 += g_y2*(x1-1);
     g_y1 += g_x1*(x1-1);
     g_x1 = mulscale16(g_x1, zd);
@@ -799,13 +809,13 @@ static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
     g_y1 = mulscale16(g_y1, zd);
     g_y2 = mulscale16(g_y2, zd);
     globvis = klabs(mulscale10(globvis, zd));
-
+    
     if (!(globalorientation&0x180)) {
-        y1 = umost[x1];
+        y1 = is_floor ? max(dplc[x1], umost[x1]) : umost[x1];
         y2 = y1;
         for (x=x1; x<=x2; x++) {
-            twall = umost[x]-1;
-            bwall = min(uplc[x],dmost[x]);
+            twall = is_floor ? max(dplc[x], umost[x]) - 1 : umost[x]-1;
+            bwall = is_floor ? dmost[x] : min(uplc[x],dmost[x]);
             if (twall < bwall-1) {
                 if (twall >= y2) {
                     while (y1 < y2-1) {
@@ -835,7 +845,7 @@ static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
                     g_y1 += g_x1;
                     break;
                 }
-                y1 = umost[x+1];
+                y1 = is_floor ? max(dplc[x+1], umost[x+1]) : umost[x+1];
                 y2 = y1;
             }
             g_x2 += g_y2;
@@ -844,10 +854,11 @@ static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
         while (y1 < y2-1) {
             hline(x2, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, engine_state);
         }
+        
         faketimerhandler();
         return;
     }
-
+    
     switch (globalorientation&0x180) {
         case 128:
             msethlineshift(picsiz[globalpicnum]&15,picsiz[globalpicnum]>>4);
@@ -861,12 +872,12 @@ static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
             tsethlineshift(picsiz[globalpicnum]&15,picsiz[globalpicnum]>>4);
             break;
     }
-
-    y1 = umost[x1];
+    
+    y1 = is_floor ? max(dplc[x1], umost[x1]) : umost[x1];
     y2 = y1;
     for (x=x1; x<=x2; x++) {
-        twall = umost[x]-1;
-        bwall = min(uplc[x],dmost[x]);
+        twall = is_floor ? max(dplc[x], umost[x]) - 1 : umost[x] - 1;
+        bwall = is_floor ? dmost[x] : min(uplc[x], dmost[x]);
         if (twall < bwall-1) {
             if (twall >= y2) {
                 while (y1 < y2-1) {
@@ -896,280 +907,32 @@ static void ceilscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engi
                 g_y1 += g_x1;
                 break;
             }
-            y1 = umost[x+1];
+            y1 = is_floor ? max(dplc[x+1], umost[x+1]) : umost[x+1];
             y2 = y1;
         }
         g_x2 += g_y2;
         g_y1 += g_x1;
     }
+    
     while (y1 < y2-1) {
         slowhline(x2, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, engine_state);
     }
+    
     faketimerhandler();
 }
 
 
-/* renders non-parallaxed floors. --ryan. */
-static void florscan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engine_state)
+/* renders non-parallaxed ceilings. --ryan. */
+static void CeilingScan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engine_state)
 {
-    int8_t xshift, yshift;
-    int32_t xpanning, ypanning;
-    int32_t i, j, ox, oy, x, y1, y2, twall, bwall, zd;
-    int32_t g_x1, g_y1, g_x2, g_y2;
-    Sector *sec;
-
-    //Retrieve the sector object
-    sec = &sector[sectnum];
-
-    //Retrieve the floor palette.
-    if (palookup[sec->floor.pal] != globalpalwritten) {
-        globalpalwritten = palookup[sec->floor.pal];
-    }
-
-    zd = engine_state->posz - sec->floor.z;
-
-    //We are UNDER the floor: Do NOT render anything.
-    if (zd > 0) {
-        return;
-    }
-
-    //Retrive the floor texture.
-    globalpicnum = sec->floor.picnum;
-    if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
-        globalpicnum = 0;
-    }
-
-    //Lock the floor texture
-    setgotpic(globalpicnum);
+    FloorCeilingScan(x1, x2, sector[sectnum], false, engine_state);
+}
 
 
-    //This tile has unvalid dimensions ( negative)
-    if ((tiles[globalpicnum].dim.width <= 0) ||
-        (tiles[globalpicnum].dim.height <= 0)) {
-        return;
-    }
-
-    //If this is an animated texture: Animate it.
-    if (tiles[globalpicnum].animFlags&192) {
-        globalpicnum += animateoffs(globalpicnum);
-    }
-
-    //If the texture is not in RAM: Load it !!
-    TILE_MakeAvailable(globalpicnum);
-
-    //Check where is the texture in RAM
-    globalbufplc = tiles[globalpicnum].data;
-
-    //Retrieve the shade of the sector (illumination level).
-    globalshade = (int32_t)sec->floor.shade;
-
-    globvis = engine_state->cisibility;
-    if (sec->visibility != 0) {
-        globvis = mulscale4(globvis,(int32_t)((sec->visibility+16)));
-    }
-
-
-    globalorientation = (int32_t)sec->floor.stat;
-
-
-    if ((globalorientation&64) == 0) {
-        g_x1 = fixedPointSin(engine_state->ang);
-        g_x2 = fixedPointSin(engine_state->ang);
-        g_y1 = fixedPointCos(engine_state->ang);
-        g_y2 = fixedPointCos(engine_state->ang);
-        xpanning = (engine_state->posx<<20);
-        ypanning = -(engine_state->posy<<20);
-    } else {
-        j = sec->wallptr;
-        ox = wall[wall[j].point2].x - wall[j].x;
-        oy = wall[wall[j].point2].y - wall[j].y;
-        i = fixedPointSqrt(ox*ox+oy*oy);
-        if (i == 0) {
-            i = 1024;
-        } else {
-            i = 1048576/i;
-        }
-        g_x1 = mulscale10(dmulscale10(ox, fixedPointSin(engine_state->ang), -oy, fixedPointCos(engine_state->ang)), i);
-        g_y1 = mulscale10(dmulscale10(ox, fixedPointCos(engine_state->ang),  oy, fixedPointSin(engine_state->ang)), i);
-        g_x2 = -g_x1;
-        g_y2 = -g_y1;
-
-        ox = ((wall[j].x - engine_state->posx)<<6);
-        oy = ((wall[j].y - engine_state->posy)<<6);
-        i = dmulscale14(oy, fixedPointCos(engine_state->ang), -ox, fixedPointSin(engine_state->ang));
-        j = dmulscale14(ox, fixedPointCos(engine_state->ang),  oy, fixedPointSin(engine_state->ang));
-        ox = i;
-        oy = j;
-        xpanning = g_x1*ox - g_y1*oy;
-        ypanning = g_y2*ox + g_x2*oy;
-    }
-
-
-    g_x2 = mulscale16(g_x2,viewingrangerecip);
-    g_y1 = mulscale16(g_y1,viewingrangerecip);
-    xshift = (8-(picsiz[globalpicnum]&15));
-    yshift = (8-(picsiz[globalpicnum]>>4));
-    if (globalorientation&8) {
-        xshift++;
-        yshift++;
-    }
-
-    if ((globalorientation&0x4) > 0) {
-        i = xpanning;
-        xpanning = ypanning;
-        ypanning = i;
-        i = g_x2;
-        g_x2 = -g_y1;
-        g_y1 = -i;
-        i = g_x1;
-        g_x1 = g_y2;
-        g_y2 = i;
-    }
-
-
-    if ((globalorientation&0x10) > 0) {
-        g_x1 = -g_x1;
-        g_y1 = -g_y1;
-        xpanning = -xpanning;
-    }
-
-    if ((globalorientation&0x20) > 0) {
-        g_x2 = -g_x2;
-        g_y2 = -g_y2;
-        ypanning = -ypanning;
-    }
-
-
-    g_x1 <<= xshift;
-    g_y1 <<= xshift;
-    g_x2 <<= yshift;
-    g_y2 <<= yshift;
-    xpanning <<= xshift;
-    ypanning <<= yshift;
-    xpanning += (((int32_t)sec->floor.xpanning)<<24);
-    ypanning += (((int32_t)sec->floor.ypanning)<<24);
-    g_y1 = (-g_x1-g_y1)*halfxdimen;
-    g_x2 = (g_x2-g_y2)*halfxdimen;
-
-    //Setup the drawing routine paramters
-    sethlinesizes(picsiz[globalpicnum]&15,picsiz[globalpicnum]>>4,globalbufplc);
-
-    g_x2 += g_y2*(x1-1);
-    g_y1 += g_x1*(x1-1);
-    g_x1 = mulscale16(g_x1, zd);
-    g_x2 = mulscale16(g_x2, zd);
-    g_y1 = mulscale16(g_y1, zd);
-    g_y2 = mulscale16(g_y2, zd);
-    globvis = klabs(mulscale10(globvis, zd));
-
-    if (!(globalorientation&0x180)) {
-        y1 = max(dplc[x1],umost[x1]);
-        y2 = y1;
-        for (x=x1; x<=x2; x++) {
-            twall = max(dplc[x],umost[x])-1;
-            bwall = dmost[x];
-            if (twall < bwall-1) {
-                if (twall >= y2) {
-                    while (y1 < y2-1) {
-                        hline(x-1, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, engine_state);
-                    }
-                    y1 = twall;
-                } else {
-                    while (y1 < twall) {
-                        hline(x-1, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, engine_state);
-                    }
-                    while (y1 > twall) {
-                        lastx[y1--] = x;
-                    }
-                }
-                while (y2 > bwall) {
-                    hline(x-1, --y2, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, engine_state);
-                }
-                while (y2 < bwall) {
-                    lastx[y2++] = x;
-                }
-            } else {
-                while (y1 < y2-1) {
-                    hline(x-1, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, engine_state);
-                }
-                if (x == x2) {
-                    g_x2 += g_y2;
-                    g_y1 += g_x1;
-                    break;
-                }
-                y1 = max(dplc[x+1],umost[x+1]);
-                y2 = y1;
-            }
-            g_x2 += g_y2;
-            g_y1 += g_x1;
-        }
-        while (y1 < y2-1) {
-            hline(x2, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, engine_state);
-        }
-
-        faketimerhandler();
-        return;
-    }
-
-    switch (globalorientation&0x180) {
-        case 128:
-            msethlineshift(picsiz[globalpicnum]&15,picsiz[globalpicnum]>>4);
-            break;
-        case 256:
-            settrans(TRANS_NORMAL);
-            tsethlineshift(picsiz[globalpicnum]&15,picsiz[globalpicnum]>>4);
-            break;
-        case 384:
-            settrans(TRANS_REVERSE);
-            tsethlineshift(picsiz[globalpicnum]&15,picsiz[globalpicnum]>>4);
-            break;
-    }
-
-    y1 = max(dplc[x1],umost[x1]);
-    y2 = y1;
-    for (x=x1; x<=x2; x++) {
-        twall = max(dplc[x],umost[x])-1;
-        bwall = dmost[x];
-        if (twall < bwall-1) {
-            if (twall >= y2) {
-                while (y1 < y2-1) {
-                    slowhline(x-1, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, engine_state);
-                }
-                y1 = twall;
-            } else {
-                while (y1 < twall) {
-                    slowhline(x-1, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, engine_state);
-                }
-                while (y1 > twall) {
-                    lastx[y1--] = x;
-                }
-            }
-            while (y2 > bwall) {
-                slowhline(x-1, --y2, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, engine_state);
-            }
-            while (y2 < bwall) {
-                lastx[y2++] = x;
-            }
-        } else {
-            while (y1 < y2-1) {
-                slowhline(x-1, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, engine_state);
-            }
-            if (x == x2) {
-                g_x2 += g_y2;
-                g_y1 += g_x1;
-                break;
-            }
-            y1 = max(dplc[x+1],umost[x+1]);
-            y2 = y1;
-        }
-        g_x2 += g_y2;
-        g_y1 += g_x1;
-    }
-    while (y1 < y2-1) {
-        slowhline(x2, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, engine_state);
-    }
-
-    faketimerhandler();
+/* renders non-parallaxed floors. --ryan. */
+static void FloorScan (int32_t x1, int32_t x2, int32_t sectnum, EngineState *engine_state)
+{
+    FloorCeilingScan(x1, x2, sector[sectnum], true, engine_state);
 }
 
 
@@ -2265,13 +2028,13 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
 
     /* draw ceilings */
     if ((andwstat1&3) != 3) {
-        if ((sec->ceiling.stat&3) == 2) {
+        if ((sec->ceiling.stat & 3) == 2) {
             grouscan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],sectnum,0,engine_state);
         } else if ((sec->ceiling.stat&1) == 0) {
-            ceilscan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],
-                     pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],
-                     sectnum,
-                     engine_state);
+            CeilingScan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],
+                        pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],
+                        sectnum,
+                        engine_state);
         } else {
             parascan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],sectnum,0,bunch,engine_state);
         }
@@ -2279,10 +2042,13 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
 
     /* draw floors */
     if ((andwstat2&12) != 12) {
-        if ((sec->floor.stat&3) == 2) {
+        if ((sec->floor.stat & 3) == 2) {
             grouscan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],sectnum,1,engine_state);
         } else if ((sec->floor.stat&1) == 0) {
-            florscan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],sectnum,engine_state);
+            FloorScan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],
+                      pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],
+                      sectnum,
+                      engine_state);
         } else {
             parascan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],sectnum,1,bunch,engine_state);
         }
