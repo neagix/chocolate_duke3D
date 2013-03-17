@@ -9094,6 +9094,7 @@ int32_t GetZOfSlope(InnerSector floor_or_ceiling, int32_t x, int32_t y)
     int32_t distance_x, distance_y, i, j;
     walltype *wal;
 
+    // If the sector is flat, just return the Z coordinate
     if (!(floor_or_ceiling.stat & 2)) {
         return floor_or_ceiling.z;
     }
@@ -9123,35 +9124,10 @@ int32_t GetZOfSlope(InnerSector floor_or_ceiling, int32_t x, int32_t y)
  a slope it requires more calculation
 
  */
-void getzsofslope(short sectnum, int32_t dax, int32_t day, int32_t *ceilz, int32_t *florz)
+void getzsofslope(short sectnum, int32_t x, int32_t y, int32_t *ceiling_z, int32_t *floor_z)
 {
-    int32_t dx, dy, i, j;
-    walltype *wal, *wal2;
-    Sector *sec;
-
-    sec = &sector[sectnum];
-    *ceilz = sec->ceiling.z;
-    *florz = sec->floor.z;
-
-    //If the sector has a slopped ceiling or a slopped floor then it needs more calculation.
-    if ((sec->ceiling.stat|sec->floor.stat)&2) {
-        wal = &wall[sec->wallptr];
-        wal2 = &wall[wal->point2];
-        dx = wal2->x-wal->x;
-        dy = wal2->y-wal->y;
-        i = (fixedPointSqrt(dx*dx+dy*dy)<<5);
-        if (i == 0) {
-            return;
-        }
-        j = dmulscale3(dx,day-wal->y,-dy,dax-wal->x);
-
-        if (sec->ceiling.stat&2) {
-            *ceilz = (*ceilz)+scale(sec->ceiling.heinum,j,i);
-        }
-        if (sec->floor.stat&2) {
-            *florz = (*florz)+scale(sec->floor.heinum,j,i);
-        }
-    }
+    *ceiling_z = GetZOfSlope(sector[sectnum].ceiling, x, y);
+    *floor_z = GetZOfSlope(sector[sectnum].floor, x, y);
 }
 
 
