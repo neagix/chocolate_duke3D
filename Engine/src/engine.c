@@ -2893,90 +2893,6 @@ static void transmaskvline(int32_t x, int32_t zd, int32_t xpanning, EngineState 
     transarea += y2v-y1v;
 }
 
-static void transmaskvline2 (int32_t x, int32_t zd, int32_t xpanning, EngineState *engine_state)
-{
-    int32_t i, y1, y2, x2;
-    short y1ve[2], y2ve[2];
-    int32_t bufplce[4], vplce[4], vince[4];
-    int32_t asm1l, asm2l;
-
-    if ((x < 0) || (x >= xdimen)) {
-        return;
-    }
-    if (x == xdimen-1) {
-        transmaskvline(x, zd, xpanning, engine_state);
-        return;
-    }
-
-    x2 = x+1;
-
-    y1ve[0] = max(uwall[x],startumost[x+windowx1]-windowy1);
-    y2ve[0] = min(dwall[x],startdmost[x+windowx1]-windowy1)-1;
-    if (y2ve[0] < y1ve[0]) {
-        transmaskvline(x2, zd, xpanning, engine_state);
-        return;
-    }
-    y1ve[1] = max(uwall[x2],startumost[x2+windowx1]-windowy1);
-    y2ve[1] = min(dwall[x2],startdmost[x2+windowx1]-windowy1)-1;
-    if (y2ve[1] < y1ve[1]) {
-        transmaskvline(x, zd, xpanning, engine_state);
-        return;
-    }
-
-    palookupoffse[0] = (int32_t)FP_OFF(palookup[globalpal]) + (getpalookup((int32_t)mulscale16(swall[x],globvis),globalshade)<<8);
-    palookupoffse[1] = (int32_t)FP_OFF(palookup[globalpal]) + (getpalookup((int32_t)mulscale16(swall[x2],globvis),globalshade)<<8);
-
-    setuptvlineasm2(globalshiftval,palookupoffse[0],palookupoffse[1]);
-
-    vince[0] = swall[x]*globalyscale;
-    vince[1] = swall[x2]*globalyscale;
-    vplce[0] = zd + vince[0] * (y1ve[0] - engine_state->horiz + 1);
-    vplce[1] = zd + vince[1] * (y1ve[1] - engine_state->horiz + 1);
-
-    i = lwall[x] + xpanning;
-    if (i >= tiles[globalpicnum].dim.width) {
-        i %= tiles[globalpicnum].dim.width;
-    }
-    bufplce[0] = tiles[globalpicnum].data+i*tiles[globalpicnum].dim.height;
-
-    i = lwall[x2] + xpanning;
-    if (i >= tiles[globalpicnum].dim.width) {
-        i %= tiles[globalpicnum].dim.width;
-    }
-    bufplce[1] = tiles[globalpicnum].data+i*tiles[globalpicnum].dim.height;
-
-
-    y1 = max(y1ve[0],y1ve[1]);
-    y2 = min(y2ve[0],y2ve[1]);
-
-    i = x+frameoffset;
-
-    if (y1ve[0] != y1ve[1]) {
-        if (y1ve[0] < y1) {
-            vplce[0] = tvlineasm1(vince[0],palookupoffse[0],y1-y1ve[0]-1,vplce[0],bufplce[0],ylookup[y1ve[0]]+i);
-        } else {
-            vplce[1] = tvlineasm1(vince[1],palookupoffse[1],y1-y1ve[1]-1,vplce[1],bufplce[1],ylookup[y1ve[1]]+i+1);
-        }
-    }
-
-    if (y2 > y1) {
-        asm1l = vince[1];
-        asm2l = ylookup[y2]+i+1;
-        tvlineasm2(vplce[1],vince[0],bufplce[0],bufplce[1],vplce[0],ylookup[y1]+i, &asm1l, &asm2l);
-        transarea += ((y2-y1)<<1);
-    } else {
-        asm1l = vplce[0];
-        asm2l = vplce[1];
-    }
-
-    if (y2ve[0] > y2ve[1]) {
-        tvlineasm1(vince[0],palookupoffse[0],y2ve[0]-y2-1,asm1l,bufplce[0],ylookup[y2+1]+i);
-    } else if (y2ve[0] < y2ve[1]) {
-        tvlineasm1(vince[1],palookupoffse[1],y2ve[1]-y2-1,asm2l,bufplce[1],ylookup[y2+1]+i+1);
-    }
-
-    faketimerhandler();
-}
 
 // transmaskwallscan is like maskwallscan, but it can also blend to the background
 static void transmaskwallscan(int32_t x1, int32_t x2, int32_t zd, int32_t xpanning, EngineState *engine_state)
@@ -2997,15 +2913,11 @@ static void transmaskwallscan(int32_t x1, int32_t x2, int32_t zd, int32_t xpanni
     while ((startumost[x+windowx1] > startdmost[x+windowx1]) && (x <= x2)) {
         x++;
     }
-    if ((x <= x2) && (x&1)) {
-        transmaskvline(x, zd, xpanning, engine_state), x++;
-    }
-    while (x < x2) {
-        transmaskvline2(x, zd, xpanning, engine_state), x += 2;
-    }
+
     while (x <= x2) {
         transmaskvline(x, zd, xpanning, engine_state), x++;
     }
+    
     faketimerhandler();
 }
 
