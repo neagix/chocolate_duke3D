@@ -239,23 +239,23 @@ static __inline int32_t getclipmask(int32_t a, int32_t b, int32_t c, int32_t d)
 {
     // Ken did this
     d = ((a<0)*8) + ((b<0)*4) + ((c<0)*2) + (d<0);
-    return(((d<<4)^0xf0)|d);
+    return (((d<<4)^0xf0)|d);
 }
 
 //CC: Returns 1/denominator shifted 30
 int32_t krecip(int32_t denominator)
 {
-    return(int32_t)(1073741824.0/denominator);
+    return (int32_t)(1073741824.0/denominator);
 }
 
 uint16_t _swap16(uint16_t D)
 {
-    return((D<<8)|(D>>8));
+    return ((D<<8)|(D>>8));
 }
 
 unsigned int _swap32(unsigned int D)
 {
-    return((D<<24)|((D<<8)&0x00FF0000)|((D>>8)&0x0000FF00)|(D>>24));
+    return ((D<<24)|((D<<8)&0x00FF0000)|((D>>8)&0x0000FF00)|(D>>24));
 }
 
 /*
@@ -3276,13 +3276,9 @@ static void loadpalette(void)
     int32_t k, fil;
 
 
-    if (paletteloaded != 0) {
-        return;
-    }
+    if (paletteloaded != 0) return;
 
-    if ((fil = TCkopen4load("palette.dat",0)) == -1) {
-        return;
-    }
+    if ((fil = TCkopen4load("palette.dat",0)) == -1) return;
 
     kread(fil,palette,768);
 
@@ -4135,18 +4131,10 @@ int clipinsidebox(int32_t x, int32_t y, short wallnum, int32_t walldist)
     x2 = wal->x+walldist-x;
     y2 = wal->y+walldist-y;
 
-    if ((x1 < 0) && (x2 < 0)) {
-        return(0);
-    }
-    if ((y1 < 0) && (y2 < 0)) {
-        return(0);
-    }
-    if ((x1 >= r) && (x2 >= r)) {
-        return(0);
-    }
-    if ((y1 >= r) && (y2 >= r)) {
-        return(0);
-    }
+    if ((x1 < 0) && (x2 < 0)) return 0;
+    if ((y1 < 0) && (y2 < 0)) return 0;
+    if ((x1 >= r) && (x2 >= r)) return 0;
+    if ((y1 >= r) && (y2 >= r)) return 0;
 
     x2 -= x1;
     y2 -= y1;
@@ -6884,24 +6872,19 @@ static int raytrace(int32_t x3, int32_t y3, int32_t *x4, int32_t *y4)
         y21 = y2-y1;
 
         topu = x21*(y3-y1) - (x3-x1)*y21;
-        if (topu <= 0) {
-            continue;
-        }
-        if (x21*(*y4-y1) > (*x4-x1)*y21) {
-            continue;
-        }
+        
+        if (topu <= 0) continue;
+        if (x21*(*y4-y1) > (*x4-x1)*y21) continue;
+        
         x43 = *x4-x3;
         y43 = *y4-y3;
-        if (x43*(y1-y3) > (x1-x3)*y43) {
-            continue;
-        }
-        if (x43*(y2-y3) <= (x2-x3)*y43) {
-            continue;
-        }
+        
+        if (x43*(y1-y3) > (x1-x3)*y43) continue;
+        if (x43*(y2-y3) <= (x2-x3)*y43) continue;
+        
         bot = x43*y21 - x21*y43;
-        if (bot == 0) {
-            continue;
-        }
+
+        if (bot == 0) continue;
 
         cnt = 256;
         do {
@@ -6981,18 +6964,10 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
         endwall = startwall + sec->wallnum;
         for (j=startwall,wal=&wall[startwall]; j<endwall; j++,wal++) {
             wal2 = &wall[wal->point2];
-            if ((wal->x < xmin) && (wal2->x < xmin)) {
-                continue;
-            }
-            if ((wal->x > xmax) && (wal2->x > xmax)) {
-                continue;
-            }
-            if ((wal->y < ymin) && (wal2->y < ymin)) {
-                continue;
-            }
-            if ((wal->y > ymax) && (wal2->y > ymax)) {
-                continue;
-            }
+            if ((wal->x < xmin) && (wal2->x < xmin)) continue;
+            if ((wal->x > xmax) && (wal2->x > xmax)) continue;
+            if ((wal->y < ymin) && (wal2->y < ymin)) continue;
+            if ((wal->y > ymax) && (wal2->y > ymax)) continue;
 
             x1 = wal->x;
             y1 = wal->y;
@@ -7015,9 +6990,7 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
             } else {
                 day = dy*(xmin-x1);
             }
-            if (dax >= day) {
-                continue;
-            }
+            if (dax >= day) continue;
 
             clipyou = 0;
             if ((wal->nextsector < 0) || (wal->cstat&dawalclipmask)) {
@@ -7636,20 +7609,12 @@ void getzrange(int32_t x, int32_t y, int32_t z, short sectnum,
                 wal2 = &wall[wal->point2];
                 x1 = wal->x;
                 x2 = wal2->x;
-                if ((x1 < xmin) && (x2 < xmin)) {
-                    continue;
-                }
-                if ((x1 > xmax) && (x2 > xmax)) {
-                    continue;
-                }
+                if ((x1 < xmin) && (x2 < xmin)) continue;
+                if ((x1 > xmax) && (x2 > xmax)) continue;
                 y1 = wal->y;
                 y2 = wal2->y;
-                if ((y1 < ymin) && (y2 < ymin)) {
-                    continue;
-                }
-                if ((y1 > ymax) && (y2 > ymax)) {
-                    continue;
-                }
+                if ((y1 < ymin) && (y2 < ymin)) continue;
+                if ((y1 > ymax) && (y2 > ymax)) continue;
 
                 dx = x2-x1;
                 dy = y2-y1;
@@ -7666,41 +7631,26 @@ void getzrange(int32_t x, int32_t y, int32_t z, short sectnum,
                 } else {
                     day = dy*(xmin-x1);
                 }
-                if (dax >= day) {
-                    continue;
-                }
+                if (dax >= day) continue;
 
-                if (wal->cstat&dawalclipmask) {
-                    continue;
-                }
+                if (wal->cstat&dawalclipmask) continue;
                 sec = &sector[k];
 
-                if (((sec->ceiling.stat&1) == 0) && (z <= sec->ceiling.z+(3<<8))) {
-                    continue;
-                }
-                if (((sec->floor.stat&1) == 0) && (z >= sec->floor.z-(3<<8))) {
-                    continue;
-                }
+                if (((sec->ceiling.stat&1) == 0) && (z <= sec->ceiling.z+(3<<8))) continue;
+                if (((sec->floor.stat&1) == 0) && (z >= sec->floor.z-(3<<8))) continue;
 
-                for (i=clipsectnum-1; i>=0; i--) if (clipsectorlist[i] == k) {
-                        break;
-                    }
+                for (i=clipsectnum-1; i>=0; i--) {
+                    if (clipsectorlist[i] == k) break;
+                }
                 if (i < 0) {
                     clipsectorlist[clipsectnum++] = k;
                 }
 
-                if ((x1 < xmin+MAXCLIPDIST) && (x2 < xmin+MAXCLIPDIST)) {
-                    continue;
-                }
-                if ((x1 > xmax-MAXCLIPDIST) && (x2 > xmax-MAXCLIPDIST)) {
-                    continue;
-                }
-                if ((y1 < ymin+MAXCLIPDIST) && (y2 < ymin+MAXCLIPDIST)) {
-                    continue;
-                }
-                if ((y1 > ymax-MAXCLIPDIST) && (y2 > ymax-MAXCLIPDIST)) {
-                    continue;
-                }
+                if ((x1 < xmin+MAXCLIPDIST) && (x2 < xmin+MAXCLIPDIST)) continue;
+                if ((x1 > xmax-MAXCLIPDIST) && (x2 > xmax-MAXCLIPDIST)) continue;
+                if ((y1 < ymin+MAXCLIPDIST) && (y2 < ymin+MAXCLIPDIST)) continue;
+                if ((y1 > ymax-MAXCLIPDIST) && (y2 > ymax-MAXCLIPDIST)) continue;
+                
                 if (dx > 0) {
                     dax += dx*MAXCLIPDIST;
                 } else {
@@ -7711,9 +7661,7 @@ void getzrange(int32_t x, int32_t y, int32_t z, short sectnum,
                 } else {
                     day += dy*MAXCLIPDIST;
                 }
-                if (dax >= day) {
-                    continue;
-                }
+                if (dax >= day) continue;
 
                 /* It actually got here, through all the continue's! */
                 getzsofslope((short)k,x,y,&daz,&daz2);
@@ -7999,78 +7947,34 @@ void rotatesprite(int32_t sx, int32_t sy, int32_t z, short a, short picnum,
         if (dastat&64) { /* If non-masking write, checking for overlapping cases */
             for (i=permtail; i!=permhead; i=((i+1)&(MAXPERMS-1))) {
                 per2 = &permfifo[i];
-                if ((per2->pagesleft&127) == 0) {
-                    continue;
-                }
-                if (per2->sx != per->sx) {
-                    continue;
-                }
-                if (per2->sy != per->sy) {
-                    continue;
-                }
-                if (per2->z != per->z) {
-                    continue;
-                }
-                if (per2->a != per->a) {
-                    continue;
-                }
-                if (tiles[per2->picnum].dim.width > tiles[per->picnum].dim.width) {
-                    continue;
-                }
+                if ((per2->pagesleft&127) == 0) continue;
+                if (per2->sx != per->sx) continue;
+                if (per2->sy != per->sy) continue;
+                if (per2->z != per->z) continue;
+                if (per2->a != per->a) continue;
+                if (tiles[per2->picnum].dim.width > tiles[per->picnum].dim.width) continue;
 
-                if (tiles[per2->picnum].dim.height > tiles[per->picnum].dim.height) {
-                    continue;
-                }
-                if (per2->cx1 < per->cx1) {
-                    continue;
-                }
-                if (per2->cy1 < per->cy1) {
-                    continue;
-                }
-                if (per2->cx2 > per->cx2) {
-                    continue;
-                }
-                if (per2->cy2 > per->cy2) {
-                    continue;
-                }
+                if (tiles[per2->picnum].dim.height > tiles[per->picnum].dim.height) continue;
+                if (per2->cx1 < per->cx1) continue;
+                if (per2->cy1 < per->cy1) continue;
+                if (per2->cx2 > per->cx2) continue;
+                if (per2->cy2 > per->cy2) continue;
                 per2->pagesleft = 0;
             }
             if ((per->z == 65536) && (per->a == 0))
                 for (i=permtail; i!=permhead; i=((i+1)&(MAXPERMS-1))) {
                     per2 = &permfifo[i];
-                    if ((per2->pagesleft&127) == 0) {
-                        continue;
-                    }
-                    if (per2->z != 65536) {
-                        continue;
-                    }
-                    if (per2->a != 0) {
-                        continue;
-                    }
-                    if (per2->cx1 < per->cx1) {
-                        continue;
-                    }
-                    if (per2->cy1 < per->cy1) {
-                        continue;
-                    }
-                    if (per2->cx2 > per->cx2) {
-                        continue;
-                    }
-                    if (per2->cy2 > per->cy2) {
-                        continue;
-                    }
-                    if ((per2->sx>>16) < (per->sx>>16)) {
-                        continue;
-                    }
-                    if ((per2->sy>>16) < (per->sy>>16)) {
-                        continue;
-                    }
-                    if ((per2->sx>>16)+tiles[per2->picnum].dim.width > (per->sx>>16)+tiles[per->picnum].dim.width) {
-                        continue;
-                    }
-                    if ((per2->sy>>16)+tiles[per2->picnum].dim.height > (per->sy>>16)+tiles[per->picnum].dim.height) {
-                        continue;
-                    }
+                    if ((per2->pagesleft&127) == 0) continue;
+                    if (per2->z != 65536) continue;
+                    if (per2->a != 0) continue;
+                    if (per2->cx1 < per->cx1) continue;
+                    if (per2->cy1 < per->cy1) continue;
+                    if (per2->cx2 > per->cx2) continue;
+                    if (per2->cy2 > per->cy2) continue;
+                    if ((per2->sx>>16) < (per->sx>>16)) continue;
+                    if ((per2->sy>>16) < (per->sy>>16)) continue;
+                    if ((per2->sx>>16)+tiles[per2->picnum].dim.width > (per->sx>>16)+tiles[per->picnum].dim.width) continue;
+                    if ((per2->sy>>16)+tiles[per2->picnum].dim.height > (per->sy>>16)+tiles[per->picnum].dim.height) continue;
                     per2->pagesleft = 0;
                 }
         }
@@ -8125,17 +8029,11 @@ static int getclosestcol(int32_t r, int32_t g, int32_t b)
     pal1 = (uint8_t *)&palette[768-3];
     for (i=255; i>=0; i--,pal1-=3) {
         dist = gdist[pal1[1]+g];
-        if (dist >= mindist) {
-            continue;
-        }
+        if (dist >= mindist) continue;
         dist += rdist[pal1[0]+r];
-        if (dist >= mindist) {
-            continue;
-        }
+        if (dist >= mindist) continue;
         dist += bdist[pal1[2]+b];
-        if (dist >= mindist) {
-            continue;
-        }
+        if (dist >= mindist) continue;
         mindist = dist;
         retcol = i;
     }
