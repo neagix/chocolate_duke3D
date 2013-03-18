@@ -296,39 +296,6 @@ int32_t tvlineasm1(int32_t i1, uint8_t   *texture, int32_t numPixels, int32_t i4
 }
 
 
-//FCS This is used to fill the inside of a wall (so it draws VERTICAL column, always).
-void Draw4VerticalLines(int32_t columnIndex, int32_t framebuffer, int32_t *buffer, int32_t *vplce, int32_t *vince)
-{
-    int i;
-    uint32_t temp;
-    uint32_t index = (framebuffer + ylookup[columnIndex]);
-    uint8_t  *dest = (uint8_t *)(-ylookup[columnIndex]);
-
-    if (!RENDER_DRAW_WALL_INSIDE) return;
-
-    do {
-        // Is this check really required?
-        if (pixelsAllowed <= 0) return;
-
-        for (i = 0; i < 4; i++) {
-            temp = ((uint32_t)vplce[i]) >> machmv;
-            temp = (((uint8_t *)(buffer[i]))[temp]);
-
-            if (temp != 255) {
-                if (pixelsAllowed-- > 0) {
-                    dest[index+i] = palookupoffse[i][temp];
-                }
-            }
-
-            vplce[i] += vince[i];
-        }
-
-        dest += bytesperline;
-        
-    } while (((uint32_t)dest - bytesperline) < ((uint32_t)dest));
-}
-
-
 void SetupVerticalLine(int32_t i1)
 {
     //Only keep 5 first bits

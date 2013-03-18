@@ -45,7 +45,6 @@ extern "C" {
     int32_t tvlineasm1(int32_t,uint8_t *,int32_t,int32_t,uint8_t *,uint8_t   *dest);
     void setuptvlineasm2(int32_t,int32_t,int32_t);
     void tvlineasm2(uint32_t,uint32_t,uint32_t,uint32_t,uint32_t,uint32_t, int32_t *, int32_t *);
-    void Draw4VerticalLines(int32_t,int32_t, int32_t *, int32_t *, int32_t *);
     void SetupVerticalLine(int32_t);
     void setupspritevline(int32_t,int32_t,int32_t,int32_t,int32_t,int32_t);
     void spritevline(int32_t,uint32_t,int32_t,uint32_t,uint8_t *,uint8_t *);
