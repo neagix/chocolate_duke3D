@@ -209,34 +209,32 @@ void setBytesPerLine(int32_t _bytesperline)
 
 
 //FCS:  RENDER TOP AND BOTTOM COLUMN
-int32_t prevlineasm1(int32_t i1, uint8_t *palette, int32_t i3, int32_t i4, uint8_t  *source, uint8_t  *dest)
+int32_t prevlineasm1(int32_t vince, uint8_t *palette, int32_t numPixels, int32_t vplce, uint8_t  *texture, uint8_t  *dest)
 {
 
 
-    if (i3 == 0) {
+    if (numPixels == 0) {
         if (!RENDER_DRAW_TOP_AND_BOTTOM_COLUMN) {
             return 0;
         }
 
-        i1 += i4;
-        i4 = ((uint32_t)i4) >> machmv;
-        i4 = (i4&0xffffff00) | source[i4];
+        vince += vplce;
+        vplce = ((uint32_t)vplce) >> machmv;
+        vplce = (vplce&0xffffff00) | texture[vplce];
 
         if (pixelsAllowed-- > 0) {
-            *dest = palette[i4];
+            *dest = palette[vplce];
         }
 
-
-
-        return i1;
+        return vince;
     } else {
-        return DrawVerticalLine(i1,palette,i3,i4,source,dest);
+        return DrawVerticalLine(vince, palette, numPixels, vplce, texture, dest);
     }
 }
 
 
 //FCS: This is used to draw wall border vertical lines
-int32_t DrawVerticalLine(int32_t vince, uint8_t *palookupoffse, int32_t numPixels, int32_t vplce, uint8_t *texture, uint8_t *dest)
+int32_t DrawVerticalLine(int32_t vince, uint8_t *palette, int32_t numPixels, int32_t vplce, uint8_t *texture, uint8_t *dest)
 {
     uint32_t temp;
 
@@ -253,7 +251,7 @@ int32_t DrawVerticalLine(int32_t vince, uint8_t *palookupoffse, int32_t numPixel
         // 255 is the index for transparent color index. Skip drawing this pixel.
         if (temp != 255) {
             if (pixelsAllowed-- > 0) {
-                *dest = palookupoffse[temp];
+                *dest = palette[temp];
             }
         }
 
