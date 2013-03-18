@@ -35,6 +35,8 @@ static int transrev = 0;
 
 
 /* ---------------  WALLS RENDERING METHOD (USED TO BE HIGHLY OPTIMIZED ASSEMBLY) ----------------------------*/
+static uint8_t  machmv;
+
 static uint8_t machxbits_al;
 static uint8_t bitsSetup;
 static uint8_t *textureSetup;
@@ -206,9 +208,6 @@ void setBytesPerLine(int32_t _bytesperline)
 }
 
 
-
-static uint8_t  mach3_al;
-
 //FCS:  RENDER TOP AND BOTTOM COLUMN
 int32_t prevlineasm1(int32_t i1, uint8_t *palette, int32_t i3, int32_t i4, uint8_t  *source, uint8_t  *dest)
 {
@@ -220,7 +219,7 @@ int32_t prevlineasm1(int32_t i1, uint8_t *palette, int32_t i3, int32_t i4, uint8
         }
 
         i1 += i4;
-        i4 = ((uint32_t)i4) >> mach3_al;
+        i4 = ((uint32_t)i4) >> machmv;
         i4 = (i4&0xffffff00) | source[i4];
 
         if (pixelsAllowed-- > 0) {
@@ -231,13 +230,13 @@ int32_t prevlineasm1(int32_t i1, uint8_t *palette, int32_t i3, int32_t i4, uint8
 
         return i1;
     } else {
-        return vlineasm1(i1,palette,i3,i4,source,dest);
+        return DrawVerticalLine(i1,palette,i3,i4,source,dest);
     }
 }
 
 
 //FCS: This is used to draw wall border vertical lines
-int32_t vlineasm1(int32_t vince, uint8_t *palookupoffse, int32_t numPixels, int32_t vplce, uint8_t *texture, uint8_t *dest)
+int32_t DrawVerticalLine(int32_t vince, uint8_t *palookupoffse, int32_t numPixels, int32_t vplce, uint8_t *texture, uint8_t *dest)
 {
     uint32_t temp;
 
@@ -247,12 +246,15 @@ int32_t vlineasm1(int32_t vince, uint8_t *palookupoffse, int32_t numPixels, int3
 
     numPixels++;
     while (numPixels) {
-        temp = ((uint32_t)vplce) >> mach3_al;
+        temp = ((uint32_t)vplce) >> machmv;
 
         temp = texture[temp];
 
-        if (pixelsAllowed-- > 0) {
-            *dest = palookupoffse[temp];
+        // 255 is the index for transparent color index. Skip drawing this pixel.
+        if (temp != 255) {
+            if (pixelsAllowed-- > 0) {
+                *dest = palookupoffse[temp];
+            }
         }
 
         vplce += vince;
@@ -378,34 +380,6 @@ void tvlineasm2(uint32_t i1, uint32_t i2, uint32_t i3, uint32_t i4, uint32_t i5,
 }
 
 
-
-static uint8_t  machmv;
-int32_t mvlineasm1(int32_t vince, uint8_t *palookupoffse, int32_t i3, int32_t vplce, uint8_t *texture, uint8_t  *dest)
-{
-    uint32_t temp;
-
-    for (; i3>=0; i3--) {
-        temp = ((uint32_t)vplce) >> machmv;
-        temp = texture[temp];
-
-        if (temp != 255) {
-            if (pixelsAllowed-- > 0) {
-                *dest = palookupoffse[temp];
-            }
-        }
-
-        vplce += vince;
-        dest += bytesperline;
-    }
-    return vplce;
-}
-
-
-void setupvlineasm(int32_t i1)
-{
-    mach3_al = (i1&0x1f);
-}
-
 //FCS This is used to fill the inside of a wall (so it draws VERTICAL column, always).
 void vlineasm4(int32_t columnIndex, int32_t framebuffer, int32_t *buffer, int32_t *vplce, int32_t *vince)
 {
@@ -426,7 +400,7 @@ void vlineasm4(int32_t columnIndex, int32_t framebuffer, int32_t *buffer, int32_
         do {
             for (i = 0; i < 4; i++) {
 
-                temp = ((uint32_t)vplce[i]) >> mach3_al;
+                temp = ((uint32_t)vplce[i]) >> machmv;
                 temp = (((uint8_t *)(buffer[i]))[temp]);
 
                 if (pixelsAllowed-- > 0) {
@@ -441,7 +415,7 @@ void vlineasm4(int32_t columnIndex, int32_t framebuffer, int32_t *buffer, int32_
 }
 
 
-void setupmvlineasm(int32_t i1)
+void SetupVerticalLine(int32_t i1)
 {
     //Only keep 5 first bits
     machmv = (i1&0x1f);
