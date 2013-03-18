@@ -376,37 +376,35 @@ void tvlineasm2(uint32_t i1, uint32_t i2, uint32_t i3, uint32_t i4, uint32_t i5,
 
 
 //FCS This is used to fill the inside of a wall (so it draws VERTICAL column, always).
-void vlineasm4(int32_t columnIndex, int32_t framebuffer, int32_t *buffer, int32_t *vplce, int32_t *vince)
+void Draw4VerticalLines(int32_t columnIndex, int32_t framebuffer, int32_t *buffer, int32_t *vplce, int32_t *vince)
 {
+    int i;
+    uint32_t temp;
+    uint32_t index = (framebuffer + ylookup[columnIndex]);
+    uint8_t  *dest = (uint8_t *)(-ylookup[columnIndex]);
 
-    if (!RENDER_DRAW_WALL_INSIDE) {
-        return ;
-    }
+    if (!RENDER_DRAW_WALL_INSIDE) return;
 
-    {
-        int i;
-        uint32_t temp;
+    do {
+        // Is this check really required?
+        if (pixelsAllowed <= 0) return;
 
-        uint32_t index = (framebuffer + ylookup[columnIndex]);
-        uint8_t  *dest= (uint8_t *)(-ylookup[columnIndex]);
-        //uint8_t  *dest= (uint8_t *)framebuffer;
+        for (i = 0; i < 4; i++) {
+            temp = ((uint32_t)vplce[i]) >> machmv;
+            temp = (((uint8_t *)(buffer[i]))[temp]);
 
-        //uint32_t index = 0;
-        do {
-            for (i = 0; i < 4; i++) {
-
-                temp = ((uint32_t)vplce[i]) >> machmv;
-                temp = (((uint8_t *)(buffer[i]))[temp]);
-
+            if (temp != 255) {
                 if (pixelsAllowed-- > 0) {
-                    dest[index+i] = palookupoffse [i] [temp];
+                    dest[index+i] = palookupoffse[i][temp];
                 }
-
-                vplce[i] += vince[i];
             }
-            dest += bytesperline;
-        } while (((uint32_t)dest - bytesperline) < ((uint32_t)dest));
-    }
+
+            vplce[i] += vince[i];
+        }
+
+        dest += bytesperline;
+        
+    } while (((uint32_t)dest - bytesperline) < ((uint32_t)dest));
 }
 
 
@@ -416,35 +414,6 @@ void SetupVerticalLine(int32_t i1)
     machmv = (i1&0x1f);
 }
 
-
-void mvlineasm4(int32_t column, int32_t framebufferOffset, int32_t *buffer, int32_t *vplce, int32_t *vince)
-{
-    int i;
-    uint32_t temp;
-    uint32_t index = (framebufferOffset + ylookup[column]);
-    uint8_t  *dest = (uint8_t *)(-ylookup[column]);
-
-    do {
-
-        if (pixelsAllowed <= 0) {
-            return;
-        }
-
-        for (i = 0; i < 4; i++) {
-
-            temp = ((uint32_t)vplce[i]) >> machmv;
-            temp = (((uint8_t *)(buffer[i]))[temp]);
-            if (temp != 255) {
-                if (pixelsAllowed-- > 0) {
-                    dest[index+i] = palookupoffse[i][temp];
-                }
-            }
-            vplce[i] += vince[i];
-        }
-        dest += bytesperline;
-
-    } while (((uint32_t)dest - bytesperline) < ((uint32_t)dest));
-}
 /* END ---------------  WALLS RENDERING METHOD (USED TO BE HIGHLY OPTIMIZED ASSEMBLY) ----------------------------*/
 
 

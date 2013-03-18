@@ -1105,7 +1105,7 @@ static void wallscan(int32_t x1, int32_t x2,
         }
 
         if (d4 >= u4) {
-            vlineasm4(d4-u4+1,ylookup[u4]+x+frameoffset,bufplce,vplce,vince);
+            Draw4VerticalLines(d4-u4+1,ylookup[u4]+x+frameoffset,bufplce,vplce,vince);
         }
 
         i = x+frameoffset+ylookup[d4+1];
@@ -1301,7 +1301,7 @@ static void maskwallscan(int32_t x1, int32_t x2,
         }
 
         if (d4 >= u4) {
-            mvlineasm4(d4-u4+1,ylookup[u4]+x+frameoffset,bufplce,vplce,vince);
+            Draw4VerticalLines(d4 - u4 + 1, ylookup[u4] + x + frameoffset, bufplce, vplce, vince);
         }
 
         i = x+frameoffset+ylookup[d4+1];
@@ -3864,7 +3864,7 @@ static void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short pi
                     }
 
                     if (d4 >= u4) {
-                        vlineasm4(d4-u4+1,ylookup[u4]+p, bufplce,vplce,vince);
+                        Draw4VerticalLines(d4-u4+1,ylookup[u4]+p, bufplce,vplce,vince);
                     }
 
                     i = p+ylookup[d4+1];
@@ -3911,7 +3911,7 @@ static void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short pi
                     }
 
                     if (d4 >= u4) {
-                        mvlineasm4(d4-u4+1,ylookup[u4]+p,bufplce,vplce,vince);
+                        Draw4VerticalLines(d4 - u4 + 1, ylookup[u4] + p, bufplce, vplce, vince);
                     }
 
                     i = p+ylookup[d4+1];
