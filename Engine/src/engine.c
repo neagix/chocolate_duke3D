@@ -3504,100 +3504,51 @@ static void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short pi
                 u4 = max(max(y1ve[0],y1ve[1]),max(y1ve[2],y1ve[3]));
                 d4 = min(min(y2ve[0],y2ve[1]),min(y2ve[2],y2ve[3]));
 
-                if (dastat&64) {
-                    if ((bad != 0) || (u4 >= d4)) {
-                        if (!(bad&1)) {
-                            DrawVerticalLine(vince[0],palookupoffse[0],y2ve[0]-y1ve[0],vplce[0],bufplce[0],ylookup[y1ve[0]]+p+0);
-                        }
-                        if (!(bad&2)) {
-                            DrawVerticalLine(vince[1],palookupoffse[1],y2ve[1]-y1ve[1],vplce[1],bufplce[1],ylookup[y1ve[1]]+p+1);
-                        }
-                        if (!(bad&4)) {
-                            DrawVerticalLine(vince[2],palookupoffse[2],y2ve[2]-y1ve[2],vplce[2],bufplce[2],ylookup[y1ve[2]]+p+2);
-                        }
-                        if (!(bad&8)) {
-                            DrawVerticalLine(vince[3],palookupoffse[3],y2ve[3]-y1ve[3],vplce[3],bufplce[3],ylookup[y1ve[3]]+p+3);
-                        }
-                        continue;
+                if ((bad != 0) || (u4 >= d4)) {
+                    if (!(bad&1)) {
+                        DrawVerticalLine(vince[0],palookupoffse[0],y2ve[0]-y1ve[0],vplce[0],bufplce[0],ylookup[y1ve[0]]+p+0);
                     }
+                    if (!(bad&2)) {
+                        DrawVerticalLine(vince[1],palookupoffse[1],y2ve[1]-y1ve[1],vplce[1],bufplce[1],ylookup[y1ve[1]]+p+1);
+                    }
+                    if (!(bad&4)) {
+                        DrawVerticalLine(vince[2],palookupoffse[2],y2ve[2]-y1ve[2],vplce[2],bufplce[2],ylookup[y1ve[2]]+p+2);
+                    }
+                    if (!(bad&8)) {
+                        DrawVerticalLine(vince[3],palookupoffse[3],y2ve[3]-y1ve[3],vplce[3],bufplce[3],ylookup[y1ve[3]]+p+3);
+                    }
+                    continue;
+                }
 
-                    if (u4 > y1ve[0]) {
-                        vplce[0] = DrawVerticalLine(vince[0],palookupoffse[0],u4-y1ve[0]-1,vplce[0],bufplce[0],ylookup[y1ve[0]]+p+0);
-                    }
-                    if (u4 > y1ve[1]) {
-                        vplce[1] = DrawVerticalLine(vince[1],palookupoffse[1],u4-y1ve[1]-1,vplce[1],bufplce[1],ylookup[y1ve[1]]+p+1);
-                    }
-                    if (u4 > y1ve[2]) {
-                        vplce[2] = DrawVerticalLine(vince[2],palookupoffse[2],u4-y1ve[2]-1,vplce[2],bufplce[2],ylookup[y1ve[2]]+p+2);
-                    }
-                    if (u4 > y1ve[3]) {
-                        vplce[3] = DrawVerticalLine(vince[3],palookupoffse[3],u4-y1ve[3]-1,vplce[3],bufplce[3],ylookup[y1ve[3]]+p+3);
-                    }
+                if (u4 > y1ve[0]) {
+                    vplce[0] = DrawVerticalLine(vince[0],palookupoffse[0],u4-y1ve[0]-1,vplce[0],bufplce[0],ylookup[y1ve[0]]+p+0);
+                }
+                if (u4 > y1ve[1]) {
+                    vplce[1] = DrawVerticalLine(vince[1],palookupoffse[1],u4-y1ve[1]-1,vplce[1],bufplce[1],ylookup[y1ve[1]]+p+1);
+                }
+                if (u4 > y1ve[2]) {
+                    vplce[2] = DrawVerticalLine(vince[2],palookupoffse[2],u4-y1ve[2]-1,vplce[2],bufplce[2],ylookup[y1ve[2]]+p+2);
+                }
+                if (u4 > y1ve[3]) {
+                    vplce[3] = DrawVerticalLine(vince[3],palookupoffse[3],u4-y1ve[3]-1,vplce[3],bufplce[3],ylookup[y1ve[3]]+p+3);
+                }
 
-                    if (d4 >= u4) {
-                        Draw4VerticalLines(d4-u4+1,ylookup[u4]+p, bufplce,vplce,vince);
-                    }
+                if (d4 >= u4) {
+                    Draw4VerticalLines(d4-u4+1,ylookup[u4]+p, bufplce,vplce,vince);
+                }
 
-                    i = p+ylookup[d4+1];
-                    if (y2ve[0] > d4) {
-                        DrawVerticalLine(vince[0],palookupoffse[0],y2ve[0]-d4-1,vplce[0],bufplce[0],i+0);
-                    }
-                    if (y2ve[1] > d4) {
-                        DrawVerticalLine(vince[1],palookupoffse[1],y2ve[1]-d4-1,vplce[1],bufplce[1],i+1);
-                    }
-                    if (y2ve[2] > d4) {
-                        DrawVerticalLine(vince[2],palookupoffse[2],y2ve[2]-d4-1,vplce[2],bufplce[2],i+2);
-                    }
-                    if (y2ve[3] > d4) {
-                        DrawVerticalLine(vince[3],palookupoffse[3],y2ve[3]-d4-1,vplce[3],bufplce[3],i+3);
-                    }
-                } else {
-                    if ((bad != 0) || (u4 >= d4)) {
-                        if (!(bad&1)) {
-                            DrawVerticalLine(vince[0],palookupoffse[0],y2ve[0]-y1ve[0],vplce[0],bufplce[0],ylookup[y1ve[0]]+p+0);
-                        }
-                        if (!(bad&2)) {
-                            DrawVerticalLine(vince[1],palookupoffse[1],y2ve[1]-y1ve[1],vplce[1],bufplce[1],ylookup[y1ve[1]]+p+1);
-                        }
-                        if (!(bad&4)) {
-                            DrawVerticalLine(vince[2],palookupoffse[2],y2ve[2]-y1ve[2],vplce[2],bufplce[2],ylookup[y1ve[2]]+p+2);
-                        }
-                        if (!(bad&8)) {
-                            DrawVerticalLine(vince[3],palookupoffse[3],y2ve[3]-y1ve[3],vplce[3],bufplce[3],ylookup[y1ve[3]]+p+3);
-                        }
-                        continue;
-                    }
-
-                    if (u4 > y1ve[0]) {
-                        vplce[0] = DrawVerticalLine(vince[0],palookupoffse[0],u4-y1ve[0]-1,vplce[0],bufplce[0],ylookup[y1ve[0]]+p+0);
-                    }
-                    if (u4 > y1ve[1]) {
-                        vplce[1] = DrawVerticalLine(vince[1],palookupoffse[1],u4-y1ve[1]-1,vplce[1],bufplce[1],ylookup[y1ve[1]]+p+1);
-                    }
-                    if (u4 > y1ve[2]) {
-                        vplce[2] = DrawVerticalLine(vince[2],palookupoffse[2],u4-y1ve[2]-1,vplce[2],bufplce[2],ylookup[y1ve[2]]+p+2);
-                    }
-                    if (u4 > y1ve[3]) {
-                        vplce[3] = DrawVerticalLine(vince[3],palookupoffse[3],u4-y1ve[3]-1,vplce[3],bufplce[3],ylookup[y1ve[3]]+p+3);
-                    }
-
-                    if (d4 >= u4) {
-                        Draw4VerticalLines(d4 - u4 + 1, ylookup[u4] + p, bufplce, vplce, vince);
-                    }
-
-                    i = p+ylookup[d4+1];
-                    if (y2ve[0] > d4) {
-                        DrawVerticalLine(vince[0],palookupoffse[0],y2ve[0]-d4-1,vplce[0],bufplce[0],i+0);
-                    }
-                    if (y2ve[1] > d4) {
-                        DrawVerticalLine(vince[1],palookupoffse[1],y2ve[1]-d4-1,vplce[1],bufplce[1],i+1);
-                    }
-                    if (y2ve[2] > d4) {
-                        DrawVerticalLine(vince[2],palookupoffse[2],y2ve[2]-d4-1,vplce[2],bufplce[2],i+2);
-                    }
-                    if (y2ve[3] > d4) {
-                        DrawVerticalLine(vince[3],palookupoffse[3],y2ve[3]-d4-1,vplce[3],bufplce[3],i+3);
-                    }
+                i = p+ylookup[d4+1];
+                if (y2ve[0] > d4) {
+                    DrawVerticalLine(vince[0],palookupoffse[0],y2ve[0]-d4-1,vplce[0],bufplce[0],i+0);
+                }
+                if (y2ve[1] > d4) {
+                    DrawVerticalLine(vince[1],palookupoffse[1],y2ve[1]-d4-1,vplce[1],bufplce[1],i+1);
+                }
+                if (y2ve[2] > d4) {
+                    DrawVerticalLine(vince[2],palookupoffse[2],y2ve[2]-d4-1,vplce[2],bufplce[2],i+2);
+                }
+                if (y2ve[3] > d4) {
+                    DrawVerticalLine(vince[3],palookupoffse[3],y2ve[3]-d4-1,vplce[3],bufplce[3],i+3);
                 }
 
                 faketimerhandler();
