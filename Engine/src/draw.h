@@ -40,7 +40,6 @@ extern "C" {
 
     void setBytesPerLine(int32_t);
 
-    int32_t prevlineasm1(int32_t,uint8_t *palette ,int32_t,int32_t,uint8_t *,uint8_t *);
     int32_t DrawVerticalLine(int32_t,uint8_t *,int32_t,int32_t,uint8_t *,uint8_t *);
 
     int32_t tvlineasm1(int32_t,uint8_t *,int32_t,int32_t,uint8_t *,uint8_t   *dest);

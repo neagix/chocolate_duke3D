@@ -1092,7 +1092,7 @@ static void wallscan(int32_t x1, int32_t x2,
         if ((bad != 0) || (u4 >= d4)) {
             for (int j=0; j<4; j++) {
                 if (!(bad & (1<<j))) {
-                    prevlineasm1(vince[j], palookupoffse[j], y2ve[j]-y1ve[j], vplce[j], bufplce[j], ylookup[y1ve[j]]+x+frameoffset+j);
+                    DrawVerticalLine(vince[j], palookupoffse[j], y2ve[j]-y1ve[j], vplce[j], bufplce[j], ylookup[y1ve[j]]+x+frameoffset+j);
                 }
             }
             continue;
@@ -1100,7 +1100,7 @@ static void wallscan(int32_t x1, int32_t x2,
 
         for (int j=0; j<4; j++) {
             if (u4 > y1ve[j]) {
-                vplce[j] = prevlineasm1(vince[j], palookupoffse[j], u4-y1ve[j]-1, vplce[j], bufplce[j], ylookup[y1ve[j]] + x + frameoffset + j);
+                vplce[j] = DrawVerticalLine(vince[j], palookupoffse[j], u4-y1ve[j]-1, vplce[j], bufplce[j], ylookup[y1ve[j]] + x + frameoffset + j);
             }
         }
 
@@ -1112,7 +1112,7 @@ static void wallscan(int32_t x1, int32_t x2,
 
         for (int j=0; j<4; j++) {
             if (y2ve[j] > d4) {
-                prevlineasm1(vince[j], palookupoffse[j], y2ve[j]-d4-1, vplce[j], bufplce[j], i+j);
+                DrawVerticalLine(vince[j], palookupoffse[j], y2ve[j]-d4-1, vplce[j], bufplce[j], i+j);
             }
         }
     }
@@ -3836,31 +3836,31 @@ static void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short pi
                 if (dastat&64) {
                     if ((bad != 0) || (u4 >= d4)) {
                         if (!(bad&1)) {
-                            prevlineasm1(vince[0],palookupoffse[0],y2ve[0]-y1ve[0],vplce[0],bufplce[0],ylookup[y1ve[0]]+p+0);
+                            DrawVerticalLine(vince[0],palookupoffse[0],y2ve[0]-y1ve[0],vplce[0],bufplce[0],ylookup[y1ve[0]]+p+0);
                         }
                         if (!(bad&2)) {
-                            prevlineasm1(vince[1],palookupoffse[1],y2ve[1]-y1ve[1],vplce[1],bufplce[1],ylookup[y1ve[1]]+p+1);
+                            DrawVerticalLine(vince[1],palookupoffse[1],y2ve[1]-y1ve[1],vplce[1],bufplce[1],ylookup[y1ve[1]]+p+1);
                         }
                         if (!(bad&4)) {
-                            prevlineasm1(vince[2],palookupoffse[2],y2ve[2]-y1ve[2],vplce[2],bufplce[2],ylookup[y1ve[2]]+p+2);
+                            DrawVerticalLine(vince[2],palookupoffse[2],y2ve[2]-y1ve[2],vplce[2],bufplce[2],ylookup[y1ve[2]]+p+2);
                         }
                         if (!(bad&8)) {
-                            prevlineasm1(vince[3],palookupoffse[3],y2ve[3]-y1ve[3],vplce[3],bufplce[3],ylookup[y1ve[3]]+p+3);
+                            DrawVerticalLine(vince[3],palookupoffse[3],y2ve[3]-y1ve[3],vplce[3],bufplce[3],ylookup[y1ve[3]]+p+3);
                         }
                         continue;
                     }
 
                     if (u4 > y1ve[0]) {
-                        vplce[0] = prevlineasm1(vince[0],palookupoffse[0],u4-y1ve[0]-1,vplce[0],bufplce[0],ylookup[y1ve[0]]+p+0);
+                        vplce[0] = DrawVerticalLine(vince[0],palookupoffse[0],u4-y1ve[0]-1,vplce[0],bufplce[0],ylookup[y1ve[0]]+p+0);
                     }
                     if (u4 > y1ve[1]) {
-                        vplce[1] = prevlineasm1(vince[1],palookupoffse[1],u4-y1ve[1]-1,vplce[1],bufplce[1],ylookup[y1ve[1]]+p+1);
+                        vplce[1] = DrawVerticalLine(vince[1],palookupoffse[1],u4-y1ve[1]-1,vplce[1],bufplce[1],ylookup[y1ve[1]]+p+1);
                     }
                     if (u4 > y1ve[2]) {
-                        vplce[2] = prevlineasm1(vince[2],palookupoffse[2],u4-y1ve[2]-1,vplce[2],bufplce[2],ylookup[y1ve[2]]+p+2);
+                        vplce[2] = DrawVerticalLine(vince[2],palookupoffse[2],u4-y1ve[2]-1,vplce[2],bufplce[2],ylookup[y1ve[2]]+p+2);
                     }
                     if (u4 > y1ve[3]) {
-                        vplce[3] = prevlineasm1(vince[3],palookupoffse[3],u4-y1ve[3]-1,vplce[3],bufplce[3],ylookup[y1ve[3]]+p+3);
+                        vplce[3] = DrawVerticalLine(vince[3],palookupoffse[3],u4-y1ve[3]-1,vplce[3],bufplce[3],ylookup[y1ve[3]]+p+3);
                     }
 
                     if (d4 >= u4) {
@@ -3869,16 +3869,16 @@ static void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short pi
 
                     i = p+ylookup[d4+1];
                     if (y2ve[0] > d4) {
-                        prevlineasm1(vince[0],palookupoffse[0],y2ve[0]-d4-1,vplce[0],bufplce[0],i+0);
+                        DrawVerticalLine(vince[0],palookupoffse[0],y2ve[0]-d4-1,vplce[0],bufplce[0],i+0);
                     }
                     if (y2ve[1] > d4) {
-                        prevlineasm1(vince[1],palookupoffse[1],y2ve[1]-d4-1,vplce[1],bufplce[1],i+1);
+                        DrawVerticalLine(vince[1],palookupoffse[1],y2ve[1]-d4-1,vplce[1],bufplce[1],i+1);
                     }
                     if (y2ve[2] > d4) {
-                        prevlineasm1(vince[2],palookupoffse[2],y2ve[2]-d4-1,vplce[2],bufplce[2],i+2);
+                        DrawVerticalLine(vince[2],palookupoffse[2],y2ve[2]-d4-1,vplce[2],bufplce[2],i+2);
                     }
                     if (y2ve[3] > d4) {
-                        prevlineasm1(vince[3],palookupoffse[3],y2ve[3]-d4-1,vplce[3],bufplce[3],i+3);
+                        DrawVerticalLine(vince[3],palookupoffse[3],y2ve[3]-d4-1,vplce[3],bufplce[3],i+3);
                     }
                 } else {
                     if ((bad != 0) || (u4 >= d4)) {
