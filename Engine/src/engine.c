@@ -965,16 +965,17 @@ static void wallscan(int32_t x1, int32_t x2,
 {
     int32_t i, x, xnice, ynice;
     uint8_t *fpalookup;
-    int32_t y1ve[4], y2ve[4], u4, d4, z, tileWidth, tsizy;
-    uint8_t  bad;
+    int32_t y1ve[4], y2ve[4], u4, d4, z, tileWidth, tileHeight;
+    uint8_t bad;
     int32_t bufplce[4], vplce[4], vince[4];
 
+
     tileWidth = tiles[globalpicnum].dim.width;
-    tsizy = tiles[globalpicnum].dim.height;
+    tileHeight = tiles[globalpicnum].dim.height;
 
     setgotpic(globalpicnum);
 
-    if ((tileWidth <= 0) || (tsizy <= 0)) {
+    if ((tileWidth <= 0) || (tileHeight <= 0)) {
         return;
     }
 
@@ -993,9 +994,9 @@ static void wallscan(int32_t x1, int32_t x2,
         tileWidth--;
     }
 
-    ynice = (pow2long[picsiz[globalpicnum]>>4] == tsizy);
+    ynice = (pow2long[picsiz[globalpicnum]>>4] == tileHeight);
     if (ynice) {
-        tsizy = (picsiz[globalpicnum]>>4);
+        tileHeight = (picsiz[globalpicnum]>>4);
     }
 
     fpalookup = palookup[globalpal];
@@ -1007,6 +1008,8 @@ static void wallscan(int32_t x1, int32_t x2,
     while ((umost[x] > dmost[x]) && (x <= x2)) {
         x++;
     }
+
+
 
     for (; (x<=x2)&&((x+frameoffset-(uint8_t *)NULL)&3); x++) {
         y1ve[0] = max(uwal[x],umost[x]);
@@ -1028,9 +1031,9 @@ static void wallscan(int32_t x1, int32_t x2,
         }
 
         if (ynice == 0) {
-            bufplce[0] *= tsizy;
+            bufplce[0] *= tileHeight;
         } else {
-            bufplce[0] <<= tsizy;
+            bufplce[0] <<= tileHeight;
         }
 
         vince[0] = swal[x]*globalyscale;
@@ -1058,11 +1061,13 @@ static void wallscan(int32_t x1, int32_t x2,
                     i &= tileWidth;
                 }
             }
+
             if (ynice == 0) {
-                i *= tsizy;
+                i *= tileHeight;
             } else {
-                i <<= tsizy;
+                i <<= tileHeight;
             }
+
             bufplce[z] = tiles[globalpicnum].data+i;
 
             vince[z] = swal[x+z]*globalyscale;
@@ -1134,15 +1139,15 @@ static void wallscan(int32_t x1, int32_t x2,
             }
         }
 
-        if (ynice == 0) bufplce[0]
-            *= tsizy;
-        else {
-            bufplce[0] <<= tsizy;
+        if (ynice == 0) {
+            bufplce[0] *= tileHeight;
+        } else {
+            bufplce[0] <<= tileHeight;
         }
 
         vince[0] = swal[x]*globalyscale;
         vplce[0] = zd + vince[0] * (y1ve[0] - engine_state->horiz + 1);
-
+        
         vlineasm1(vince[0],palookupoffse[0],y2ve[0]-y1ve[0]-1,vplce[0],bufplce[0]+tiles[globalpicnum].data,x+frameoffset+ylookup[y1ve[0]]);
     }
     faketimerhandler();
@@ -1157,34 +1162,35 @@ static void maskwallscan(int32_t x1, int32_t x2,
                          int32_t xpanning,
                          EngineState *engine_state)
 {
-    int32_t i, x, startx, xnice, ynice;
+    int32_t i, x, xnice, ynice;
     uint8_t *fpalookup;
-    int32_t y1ve[4], y2ve[4], u4, d4, dax, z, tileWidth, tileHeight;
-    uint8_t  *p;
-    uint8_t  bad;
-    int32_t bufplce_2[4], vplce[4], vince[4];
+    int32_t y1ve[4], y2ve[4], u4, d4, z, tileWidth, tileHeight;
+    uint8_t bad;
+    int32_t bufplce[4], vplce[4], vince[4];
+    uint8_t *p;
 
     tileWidth = tiles[globalpicnum].dim.width;
     tileHeight = tiles[globalpicnum].dim.height;
+
     setgotpic(globalpicnum);
 
     if ((tileWidth <= 0) || (tileHeight <= 0)) {
         return;
     }
+
     if ((uwal[x1] > ydimen) && (uwal[x2] > ydimen)) {
         return;
     }
+
     if ((dwal[x1] < 0) && (dwal[x2] < 0)) {
         return;
     }
 
     TILE_MakeAvailable(globalpicnum);
 
-    startx = x1;
-
     xnice = (pow2long[picsiz[globalpicnum]&15] == tileWidth);
     if (xnice) {
-        tileWidth = (tileWidth-1);
+        tileWidth--;
     }
 
     ynice = (pow2long[picsiz[globalpicnum]>>4] == tileHeight);
@@ -1196,7 +1202,8 @@ static void maskwallscan(int32_t x1, int32_t x2,
 
     setupmvlineasm(globalshiftval);
 
-    x = startx;
+    //Starting on the left column of the wall, check the occlusion arrays.
+    x = x1;
     while ((startumost[x+windowx1] > startdmost[x+windowx1]) && (x <= x2)) {
         x++;
     }
@@ -1212,36 +1219,40 @@ static void maskwallscan(int32_t x1, int32_t x2,
 
         palookupoffse[0] = fpalookup+(getpalookup((int32_t)mulscale16(swal[x],globvis),globalshade)<<8);
 
-        bufplce_2[0] = lwal[x] + xpanning;
-        if (bufplce_2[0] >= tileWidth) {
+        bufplce[0] = lwal[x] + xpanning;
+
+        if (bufplce[0] >= tileWidth) {
             if (xnice == 0) {
-                bufplce_2[0] %= tileWidth;
+                bufplce[0] %= tileWidth;
             } else {
-                bufplce_2[0] &= tileWidth;
+                bufplce[0] &= tileWidth;
             }
         }
+
         if (ynice == 0) {
-            bufplce_2[0] *= tileHeight;
+            bufplce[0] *= tileHeight;
         } else {
-            bufplce_2[0] <<= tileHeight;
+            bufplce[0] <<= tileHeight;
         }
 
         vince[0] = swal[x]*globalyscale;
         vplce[0] = zd + vince[0] * (y1ve[0] - engine_state->horiz + 1);
 
-        mvlineasm1(vince[0],palookupoffse[0],y2ve[0]-y1ve[0]-1,vplce[0],bufplce_2[0]+tiles[globalpicnum].data,p+ylookup[y1ve[0]]);
+        mvlineasm1(vince[0],palookupoffse[0],y2ve[0]-y1ve[0]-1,vplce[0],bufplce[0]+tiles[globalpicnum].data,p+ylookup[y1ve[0]]);
     }
+
     for (; x<=x2-3; x+=4,p+=4) {
         bad = 0;
-        for (z=3,dax=x+3; z>=0; z--,dax--) {
-            y1ve[z] = max(uwal[dax],startumost[dax+windowx1]-windowy1);
-            y2ve[z] = min(dwal[dax],startdmost[dax+windowx1]-windowy1)-1;
+        for (z=3; z>=0; z--) {
+            y1ve[z] = max(uwal[x+z],startumost[x+z+windowx1]-windowy1);
+            y2ve[z] = min(dwal[x+z],startdmost[x+z+windowx1]-windowy1)-1;
+
             if (y2ve[z] < y1ve[z]) {
                 bad += pow2char[z];
                 continue;
             }
 
-            i = lwal[dax] + xpanning;
+            i = lwal[x+z] + xpanning;
             if (i >= tileWidth) {
                 if (xnice == 0) {
                     i %= tileWidth;
@@ -1256,11 +1267,12 @@ static void maskwallscan(int32_t x1, int32_t x2,
                 i <<= tileHeight;
             }
 
-            bufplce_2[z] = tiles[globalpicnum].data+i;
+            bufplce[z] = tiles[globalpicnum].data+i;
 
-            vince[z] = swal[dax]*globalyscale;
+            vince[z] = swal[x+z]*globalyscale;
             vplce[z] = zd + vince[z] * (y1ve[z] - engine_state->horiz + 1);
         }
+
         if (bad == 15) {
             continue;
         }
@@ -1281,81 +1293,85 @@ static void maskwallscan(int32_t x1, int32_t x2,
 
         if ((bad > 0) || (u4 >= d4)) {
             if (!(bad&1)) {
-                mvlineasm1(vince[0],palookupoffse[0],y2ve[0]-y1ve[0],vplce[0],bufplce_2[0],ylookup[y1ve[0]]+p+0);
+                mvlineasm1(vince[0],palookupoffse[0],y2ve[0]-y1ve[0],vplce[0],bufplce[0],ylookup[y1ve[0]]+p+0);
             }
             if (!(bad&2)) {
-                mvlineasm1(vince[1],palookupoffse[1],y2ve[1]-y1ve[1],vplce[1],bufplce_2[1],ylookup[y1ve[1]]+p+1);
+                mvlineasm1(vince[1],palookupoffse[1],y2ve[1]-y1ve[1],vplce[1],bufplce[1],ylookup[y1ve[1]]+p+1);
             }
             if (!(bad&4)) {
-                mvlineasm1(vince[2],palookupoffse[2],y2ve[2]-y1ve[2],vplce[2],bufplce_2[2],ylookup[y1ve[2]]+p+2);
+                mvlineasm1(vince[2],palookupoffse[2],y2ve[2]-y1ve[2],vplce[2],bufplce[2],ylookup[y1ve[2]]+p+2);
             }
             if (!(bad&8)) {
-                mvlineasm1(vince[3],palookupoffse[3],y2ve[3]-y1ve[3],vplce[3],bufplce_2[3],ylookup[y1ve[3]]+p+3);
+                mvlineasm1(vince[3],palookupoffse[3],y2ve[3]-y1ve[3],vplce[3],bufplce[3],ylookup[y1ve[3]]+p+3);
             }
             continue;
         }
 
         if (u4 > y1ve[0]) {
-            vplce[0] = mvlineasm1(vince[0],palookupoffse[0],u4-y1ve[0]-1,vplce[0],bufplce_2[0],ylookup[y1ve[0]]+p+0);
+            vplce[0] = mvlineasm1(vince[0],palookupoffse[0],u4-y1ve[0]-1,vplce[0],bufplce[0],ylookup[y1ve[0]]+p+0);
         }
         if (u4 > y1ve[1]) {
-            vplce[1] = mvlineasm1(vince[1],palookupoffse[1],u4-y1ve[1]-1,vplce[1],bufplce_2[1],ylookup[y1ve[1]]+p+1);
+            vplce[1] = mvlineasm1(vince[1],palookupoffse[1],u4-y1ve[1]-1,vplce[1],bufplce[1],ylookup[y1ve[1]]+p+1);
         }
         if (u4 > y1ve[2]) {
-            vplce[2] = mvlineasm1(vince[2],palookupoffse[2],u4-y1ve[2]-1,vplce[2],bufplce_2[2],ylookup[y1ve[2]]+p+2);
+            vplce[2] = mvlineasm1(vince[2],palookupoffse[2],u4-y1ve[2]-1,vplce[2],bufplce[2],ylookup[y1ve[2]]+p+2);
         }
         if (u4 > y1ve[3]) {
-            vplce[3] = mvlineasm1(vince[3],palookupoffse[3],u4-y1ve[3]-1,vplce[3],bufplce_2[3],ylookup[y1ve[3]]+p+3);
+            vplce[3] = mvlineasm1(vince[3],palookupoffse[3],u4-y1ve[3]-1,vplce[3],bufplce[3],ylookup[y1ve[3]]+p+3);
         }
 
         if (d4 >= u4) {
-            mvlineasm4(d4-u4+1,ylookup[u4]+p,bufplce_2,vplce,vince);
+            mvlineasm4(d4-u4+1,ylookup[u4]+p,bufplce,vplce,vince);
         }
 
         i = p+ylookup[d4+1];
         if (y2ve[0] > d4) {
-            mvlineasm1(vince[0],palookupoffse[0],y2ve[0]-d4-1,vplce[0],bufplce_2[0],i+0);
+            mvlineasm1(vince[0],palookupoffse[0],y2ve[0]-d4-1,vplce[0],bufplce[0],i+0);
         }
         if (y2ve[1] > d4) {
-            mvlineasm1(vince[1],palookupoffse[1],y2ve[1]-d4-1,vplce[1],bufplce_2[1],i+1);
+            mvlineasm1(vince[1],palookupoffse[1],y2ve[1]-d4-1,vplce[1],bufplce[1],i+1);
         }
         if (y2ve[2] > d4) {
-            mvlineasm1(vince[2],palookupoffse[2],y2ve[2]-d4-1,vplce[2],bufplce_2[2],i+2);
+            mvlineasm1(vince[2],palookupoffse[2],y2ve[2]-d4-1,vplce[2],bufplce[2],i+2);
         }
         if (y2ve[3] > d4) {
-            mvlineasm1(vince[3],palookupoffse[3],y2ve[3]-d4-1,vplce[3],bufplce_2[3],i+3);
+            mvlineasm1(vince[3],palookupoffse[3],y2ve[3]-d4-1,vplce[3],bufplce[3],i+3);
         }
     }
+
     for (; x<=x2; x++,p++) {
         y1ve[0] = max(uwal[x],startumost[x+windowx1]-windowy1);
         y2ve[0] = min(dwal[x],startdmost[x+windowx1]-windowy1);
+
         if (y2ve[0] <= y1ve[0]) {
             continue;
         }
 
         palookupoffse[0] = fpalookup+(getpalookup((int32_t)mulscale16(swal[x],globvis),globalshade)<<8);
 
-        bufplce_2[0] = lwal[x] + xpanning;
-        if (bufplce_2[0] >= tileWidth) {
+        bufplce[0] = lwal[x] + xpanning;
+        if (bufplce[0] >= tileWidth) {
             if (xnice == 0) {
-                bufplce_2[0] %= tileWidth;
+                bufplce[0] %= tileWidth;
             } else {
-                bufplce_2[0] &= tileWidth;
+                bufplce[0] &= tileWidth;
             }
         }
+
         if (ynice == 0) {
-            bufplce_2[0] *= tileHeight;
+            bufplce[0] *= tileHeight;
         } else {
-            bufplce_2[0] <<= tileHeight;
+            bufplce[0] <<= tileHeight;
         }
 
         vince[0] = swal[x]*globalyscale;
         vplce[0] = zd + vince[0] * (y1ve[0] - engine_state->horiz + 1);
-
-        mvlineasm1(vince[0],palookupoffse[0],y2ve[0]-y1ve[0]-1,vplce[0],bufplce_2[0]+tiles[globalpicnum].data,p+ylookup[y1ve[0]]);
+        
+        mvlineasm1(vince[0],palookupoffse[0],y2ve[0]-y1ve[0]-1,vplce[0],bufplce[0]+tiles[globalpicnum].data,p+ylookup[y1ve[0]]);
     }
     faketimerhandler();
 }
+
 
 /* renders parallaxed skies/floors  --ryan. */
 static void parascan(int32_t dax1, int32_t dax2, int32_t sectnum,uint8_t  dastat, int32_t bunch, EngineState *engine_state)
@@ -2988,6 +3004,7 @@ static void transmaskvline2 (int32_t x, int32_t zd, int32_t xpanning, EngineStat
     faketimerhandler();
 }
 
+// transmaskwallscan is like maskwallscan, but it can also blend to the background
 static void transmaskwallscan(int32_t x1, int32_t x2, int32_t zd, int32_t xpanning, EngineState *engine_state)
 {
     int32_t x;
