@@ -963,10 +963,9 @@ static void wallscan(int32_t x1, int32_t x2,
                      int32_t xpanning,
                      EngineState *engine_state)
 {
-    int32_t i, x, xnice, ynice;
+    int32_t x, xnice, ynice;
     uint8_t *fpalookup;
-    int32_t y1ve[4], y2ve[4], u4, d4, z, tileWidth, tileHeight;
-    uint8_t bad;
+    int32_t y1ve[4], y2ve[4], tileWidth, tileHeight;
     int32_t bufplce[4], vplce[4], vince[4];
 
     tileWidth = tiles[globalpicnum].dim.width;
@@ -974,17 +973,9 @@ static void wallscan(int32_t x1, int32_t x2,
 
     setgotpic(globalpicnum);
 
-    if ((tileWidth <= 0) || (tileHeight <= 0)) {
-        return;
-    }
-
-    if ((uwal[x1] > ydimen) && (uwal[x2] > ydimen)) {
-        return;
-    }
-
-    if ((dwal[x1] < 0) && (dwal[x2] < 0)) {
-        return;
-    }
+    if ((tileWidth <= 0) || (tileHeight <= 0)) return;
+    if ((uwal[x1] > ydimen) && (uwal[x2] > ydimen)) return;
+    if ((dwal[x1] < 0) && (dwal[x2] < 0)) return;
 
     TILE_MakeAvailable(globalpicnum);
 
@@ -1008,126 +999,16 @@ static void wallscan(int32_t x1, int32_t x2,
         x++;
     }
 
-    for (; (x<=x2)&&((x+frameoffset-(uint8_t *)NULL)&3); x++) {
-        y1ve[0] = max(uwal[x],umost[x]);
-        y2ve[0] = min(dwal[x],dmost[x]);
-        if (y2ve[0] <= y1ve[0]) {
-            continue;
-        }
-
-        palookupoffse[0] = fpalookup+(getpalookup((int32_t)mulscale16(swal[x],globvis),globalshade)<<8);
-
-        bufplce[0] = lwal[x] + xpanning;
-
-        if (bufplce[0] >= tileWidth) {
-            if (xnice == 0) {
-                bufplce[0] %= tileWidth;
-            } else {
-                bufplce[0] &= tileWidth;
-            }
-        }
-
-        if (ynice == 0) {
-            bufplce[0] *= tileHeight;
-        } else {
-            bufplce[0] <<= tileHeight;
-        }
-
-        vince[0] = swal[x]*globalyscale;
-        vplce[0] = zd + vince[0] * (y1ve[0] - engine_state->horiz + 1);
-
-        DrawVerticalLine(vince[0],palookupoffse[0],y2ve[0]-y1ve[0]-1,vplce[0],bufplce[0]+tiles[globalpicnum].data,x+frameoffset+ylookup[y1ve[0]]);
-    }
-
-    for (; x<=x2-3; x+=4) {
-        bad = 0;
-        for (z=3; z>=0; z--) {
-            y1ve[z] = max(uwal[x+z],umost[x+z]);
-            y2ve[z] = min(dwal[x+z],dmost[x+z])-1;
-
-            if (y2ve[z] < y1ve[z]) {
-                bad += pow2char[z];
-                continue;
-            }
-
-            i = lwal[x+z] + xpanning;
-            if (i >= tileWidth) {
-                if (xnice == 0) {
-                    i %= tileWidth;
-                } else {
-                    i &= tileWidth;
-                }
-            }
-
-            if (ynice == 0) {
-                i *= tileHeight;
-            } else {
-                i <<= tileHeight;
-            }
-
-            bufplce[z] = tiles[globalpicnum].data+i;
-
-            vince[z] = swal[x+z]*globalyscale;
-            vplce[z] = zd + vince[z] * (y1ve[z] - engine_state->horiz + 1);
-        }
-
-        if (bad == 15) {
-            continue;
-        }
-
-        palookupoffse[0] = fpalookup+(getpalookup((int32_t)mulscale16(swal[x],globvis),globalshade)<<8);
-        palookupoffse[3] = fpalookup+(getpalookup((int32_t)mulscale16(swal[x+3],globvis),globalshade)<<8);
-
-        if ((palookupoffse[0] == palookupoffse[3]) && ((bad&0x9) == 0)) {
-            palookupoffse[1] = palookupoffse[0];
-            palookupoffse[2] = palookupoffse[0];
-        } else {
-            palookupoffse[1] = fpalookup+(getpalookup((int32_t)mulscale16(swal[x+1],globvis),globalshade)<<8);
-            palookupoffse[2] = fpalookup+(getpalookup((int32_t)mulscale16(swal[x+2],globvis),globalshade)<<8);
-        }
-
-        u4 = max(max(y1ve[0],y1ve[1]),max(y1ve[2],y1ve[3]));
-        d4 = min(min(y2ve[0],y2ve[1]),min(y2ve[2],y2ve[3]));
-
-        if ((bad != 0) || (u4 >= d4)) {
-            for (int j=0; j<4; j++) {
-                if (!(bad & (1<<j))) {
-                    DrawVerticalLine(vince[j], palookupoffse[j], y2ve[j]-y1ve[j], vplce[j], bufplce[j], ylookup[y1ve[j]]+x+frameoffset+j);
-                }
-            }
-            continue;
-        }
-
-        for (int j=0; j<4; j++) {
-            if (u4 > y1ve[j]) {
-                vplce[j] = DrawVerticalLine(vince[j], palookupoffse[j], u4-y1ve[j]-1, vplce[j], bufplce[j], ylookup[y1ve[j]] + x + frameoffset + j);
-            }
-        }
-
-        if (d4 >= u4) {
-            Draw4VerticalLines(d4-u4+1,ylookup[u4]+x+frameoffset,bufplce,vplce,vince);
-        }
-
-        i = x+frameoffset+ylookup[d4+1];
-
-        for (int j=0; j<4; j++) {
-            if (y2ve[j] > d4) {
-                DrawVerticalLine(vince[j], palookupoffse[j], y2ve[j]-d4-1, vplce[j], bufplce[j], i+j);
-            }
-        }
-    }
-
     for (; x<=x2; x++) {
         y1ve[0] = max(uwal[x],umost[x]);
         y2ve[0] = min(dwal[x],dmost[x]);
 
-        if (y2ve[0] <= y1ve[0]) {
-            continue;
-        }
+        if (y2ve[0] <= y1ve[0]) continue;
 
         palookupoffse[0] = fpalookup+(getpalookup((int32_t)mulscale16(swal[x],globvis),globalshade)<<8);
 
         bufplce[0] = lwal[x] + xpanning;
+        
         if (bufplce[0] >= tileWidth) {
             if (xnice == 0) {
                 bufplce[0] %= tileWidth;
@@ -1159,10 +1040,9 @@ static void maskwallscan(int32_t x1, int32_t x2,
                          int32_t xpanning,
                          EngineState *engine_state)
 {
-    int32_t i, x, xnice, ynice;
+    int32_t x, xnice, ynice;
     uint8_t *fpalookup;
-    int32_t y1ve[4], y2ve[4], u4, d4, z, tileWidth, tileHeight;
-    uint8_t bad;
+    int32_t y1ve[4], y2ve[4], tileWidth, tileHeight;
     int32_t bufplce[4], vplce[4], vince[4];
 
     tileWidth = tiles[globalpicnum].dim.width;
@@ -1170,17 +1050,9 @@ static void maskwallscan(int32_t x1, int32_t x2,
 
     setgotpic(globalpicnum);
 
-    if ((tileWidth <= 0) || (tileHeight <= 0)) {
-        return;
-    }
-
-    if ((uwal[x1] > ydimen) && (uwal[x2] > ydimen)) {
-        return;
-    }
-
-    if ((dwal[x1] < 0) && (dwal[x2] < 0)) {
-        return;
-    }
+    if ((tileWidth <= 0) || (tileHeight <= 0)) return;
+    if ((uwal[x1] > ydimen) && (uwal[x2] > ydimen)) return;
+    if ((dwal[x1] < 0) && (dwal[x2] < 0)) return;
 
     TILE_MakeAvailable(globalpicnum);
 
@@ -1202,115 +1074,6 @@ static void maskwallscan(int32_t x1, int32_t x2,
     x = x1;
     while ((startumost[x+windowx1] > startdmost[x+windowx1]) && (x <= x2)) {
         x++;
-    }
-
-    for (; (x<=x2)&&((x+frameoffset-(uint8_t *)NULL)&3); x++) {
-        y1ve[0] = max(uwal[x],startumost[x+windowx1]-windowy1);
-        y2ve[0] = min(dwal[x],startdmost[x+windowx1]-windowy1);
-        if (y2ve[0] <= y1ve[0]) {
-            continue;
-        }
-
-        palookupoffse[0] = fpalookup+(getpalookup((int32_t)mulscale16(swal[x],globvis),globalshade)<<8);
-
-        bufplce[0] = lwal[x] + xpanning;
-
-        if (bufplce[0] >= tileWidth) {
-            if (xnice == 0) {
-                bufplce[0] %= tileWidth;
-            } else {
-                bufplce[0] &= tileWidth;
-            }
-        }
-
-        if (ynice == 0) {
-            bufplce[0] *= tileHeight;
-        } else {
-            bufplce[0] <<= tileHeight;
-        }
-
-        vince[0] = swal[x]*globalyscale;
-        vplce[0] = zd + vince[0] * (y1ve[0] - engine_state->horiz + 1);
-
-        DrawVerticalLine(vince[0],palookupoffse[0],y2ve[0]-y1ve[0]-1,vplce[0],bufplce[0]+tiles[globalpicnum].data,x+frameoffset+ylookup[y1ve[0]]);
-    }
-
-    for (; x<=x2-3; x+=4) {
-        bad = 0;
-        for (z=3; z>=0; z--) {
-            y1ve[z] = max(uwal[x+z],startumost[x+z+windowx1]-windowy1);
-            y2ve[z] = min(dwal[x+z],startdmost[x+z+windowx1]-windowy1)-1;
-
-            if (y2ve[z] < y1ve[z]) {
-                bad += pow2char[z];
-                continue;
-            }
-
-            i = lwal[x+z] + xpanning;
-            if (i >= tileWidth) {
-                if (xnice == 0) {
-                    i %= tileWidth;
-                } else {
-                    i &= tileWidth;
-                }
-            }
-
-            if (ynice == 0) {
-                i *= tileHeight;
-            } else {
-                i <<= tileHeight;
-            }
-
-            bufplce[z] = tiles[globalpicnum].data+i;
-
-            vince[z] = swal[x+z]*globalyscale;
-            vplce[z] = zd + vince[z] * (y1ve[z] - engine_state->horiz + 1);
-        }
-
-        if (bad == 15) {
-            continue;
-        }
-
-        palookupoffse[0] = fpalookup+(getpalookup((int32_t)mulscale16(swal[x],globvis),globalshade)<<8);
-        palookupoffse[3] = fpalookup+(getpalookup((int32_t)mulscale16(swal[x+3],globvis),globalshade)<<8);
-
-        if ((palookupoffse[0] == palookupoffse[3]) && ((bad&0x9) == 0)) {
-            palookupoffse[1] = palookupoffse[0];
-            palookupoffse[2] = palookupoffse[0];
-        } else {
-            palookupoffse[1] = fpalookup+(getpalookup((int32_t)mulscale16(swal[x+1],globvis),globalshade)<<8);
-            palookupoffse[2] = fpalookup+(getpalookup((int32_t)mulscale16(swal[x+2],globvis),globalshade)<<8);
-        }
-
-        u4 = max(max(y1ve[0],y1ve[1]),max(y1ve[2],y1ve[3]));
-        d4 = min(min(y2ve[0],y2ve[1]),min(y2ve[2],y2ve[3]));
-
-        if ((bad != 0) || (u4 >= d4)) {
-            for (int j=0; j<4; j++) {
-                if (!(bad & (1<<j))) {
-                    DrawVerticalLine(vince[j], palookupoffse[j], y2ve[j]-y1ve[j], vplce[j], bufplce[j], ylookup[y1ve[j]]+x+frameoffset+j);
-                }
-            }
-            continue;
-        }
-
-        for (int j=0; j<4; j++) {
-            if (u4 > y1ve[j]) {
-                vplce[j] = DrawVerticalLine(vince[j], palookupoffse[j], u4-y1ve[j]-1, vplce[j], bufplce[j], ylookup[y1ve[j]] + x + frameoffset + j);
-            }
-        }
-
-        if (d4 >= u4) {
-            Draw4VerticalLines(d4 - u4 + 1, ylookup[u4] + x + frameoffset, bufplce, vplce, vince);
-        }
-
-        i = x+frameoffset+ylookup[d4+1];
-
-        for (int j=0; j<4; j++) {
-            if (y2ve[j] > d4) {
-                DrawVerticalLine(vince[j], palookupoffse[j], y2ve[j]-d4-1, vplce[j], bufplce[j], i+j);
-            }
-        }
     }
 
     for (; x<=x2; x++) {
