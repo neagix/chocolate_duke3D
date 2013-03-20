@@ -324,7 +324,7 @@ static void scansector (short sectnum, short *numscans, short *numbunches, Engin
             y2 = wal2->y - engine_state->posy;
 
             // If this is a portal...
-            if ((nextsectnum >= 0) && ((wal->cstat&32) == 0))
+            if ((nextsectnum >= 0) && !wal->flags.one_way)
                 //If this portal has not been visited yet.
                 if ((visitedSectors[nextsectnum>>3]&pow2char[nextsectnum&7]) == 0) {
                     //Cross product -> Z component
@@ -579,7 +579,7 @@ static void prepwall(int32_t z, walltype *wal)
         lwall[pvWalls[z].screenSpaceCoo[1][VEC_COL]] = walxrepeat-1;
     }
 
-    if (wal->cstat&8) {
+    if (wal->flags.x_flip) {
         walxrepeat--;
         for (x=pvWalls[z].screenSpaceCoo[0][VEC_COL]; x<=pvWalls[z].screenSpaceCoo[1][VEC_COL]; x++) {
             lwall[x] = walxrepeat-lwall[x];
@@ -1182,7 +1182,7 @@ static void parascan(int32_t dax1, int32_t dax2, int32_t sectnum,uint8_t  dastat
             j = sector[nextsectnum].floor.flags;
         }
 
-        if ((nextsectnum < 0) || (wall[wallnum].cstat&32) || !j.parallaxing) {
+        if ((nextsectnum < 0) || (wall[wallnum].flags.one_way) || !j.parallaxing) {
             if (x == -1) {
                 x = pvWalls[z].screenSpaceCoo[0][VEC_COL];
             }
@@ -1197,6 +1197,7 @@ static void parascan(int32_t dax1, int32_t dax2, int32_t sectnum,uint8_t  dastat
                     lplc[a] = ((((int32_t)radarang2[a] + engine_state->ang) & 2047)>>k);
                 }
             }
+            
             if (parallaxtype == 2) {
                 n = mulscale16(xdimscale,viewingrange);
                 for (a=pvWalls[z].screenSpaceCoo[0][VEC_COL]; a<=pvWalls[z].screenSpaceCoo[1][VEC_COL]; a++) {
@@ -1856,7 +1857,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
             getzsofslope((short)nextsectnum,wall[wal->point2].x,wall[wal->point2].y,&cz[3],&fz[3]);
             getzsofslope((short)nextsectnum,engine_state->posx,engine_state->posy,&cz[4],&fz[4]);
 
-            if ((wal->cstat&48) == 16) {
+            if (wal->flags.masking && !wal->flags.one_way) {
                 engine_state->maskwall[engine_state->maskwallcnt++] = z;
             }
 
@@ -1886,7 +1887,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                             searchit = 1;
                         }
 
-                    globalorientation = *(SectorFlags *)&wal->cstat;
+                    globalorientation = *(SectorFlags *)&wal->flags;
                     globalpicnum = wal->picnum;
                     if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
                         globalpicnum = 0;
@@ -1985,17 +1986,17 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                         if (searchy >= uwall[searchx]) { /* wall */
                             searchsector = sectnum;
                             searchwall = wallnum;
-                            if ((wal->cstat&2) > 0) {
+                            if (wal->flags.bottom_texture_swap) {
                                 searchwall = wal->nextwall;
                             }
                             searchstat = 0;
                             searchit = 1;
                         }
 
-                    if ((wal->cstat&2) > 0) {
+                    if (wal->flags.bottom_texture_swap) {
                         wallnum = wal->nextwall;
                         wal = &wall[wallnum];
-                        globalorientation = *(SectorFlags *)&wal->cstat;
+                        globalorientation = *(SectorFlags *)&wal->flags;
                         globalpicnum = wal->picnum;
                         if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
                             globalpicnum = 0;
@@ -2012,7 +2013,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                         wallnum = pvWalls[z].worldWallId;
                         wal = &wall[wallnum];
                     } else {
-                        globalorientation = *(SectorFlags *)&wal->cstat;
+                        globalorientation = *(SectorFlags *)&wal->flags;
                         globalpicnum = wal->picnum;
 
                         if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
@@ -2097,7 +2098,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
             if (*numhits < 0) {
                 return;
             }
-            if ((!(wal->cstat&32)) && ((visitedSectors[nextsectnum>>3]&pow2char[nextsectnum&7]) == 0)) {
+            if (!wal->flags.one_way && ((visitedSectors[nextsectnum>>3]&pow2char[nextsectnum&7]) == 0)) {
                 if (umost[x2] < dmost[x2]) {
                     scansector((short) nextsectnum, numscans, numbunches, engine_state);
                 } else {
@@ -2121,8 +2122,8 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                 }
             }
         }
-        if ((nextsectnum < 0) || (wal->cstat&32)) { /* White/1-way wall */
-            globalorientation = *(SectorFlags *)&wal->cstat;
+        if ((nextsectnum < 0) || wal->flags.one_way) { /* White/1-way wall */
+            globalorientation = *(SectorFlags *)&wal->flags;
             if (nextsectnum < 0) {
                 globalpicnum = wal->picnum;
             } else {
@@ -2731,8 +2732,8 @@ int loadboard(char  *filename, int32_t *daposx, int32_t *daposy,
         kread16(fil,&sect->wallnum);
         kread32(fil,&sect->ceiling.z);
         kread32(fil,&sect->floor.z);
-        kread16(fil,(uint16_t *)&sect->ceiling.flags);
-        kread16(fil,(uint16_t *)&sect->floor.flags);
+        kread16(fil,(int16_t *)&sect->ceiling.flags);
+        kread16(fil,(int16_t *)&sect->floor.flags);
         kread16(fil,&sect->ceiling.picnum);
         kread16(fil,&sect->ceiling.heinum);
         kread8(fil,(uint8_t *)&sect->ceiling.shade);
@@ -2761,7 +2762,7 @@ int loadboard(char  *filename, int32_t *daposx, int32_t *daposy,
         kread16(fil,&w->point2);
         kread16(fil,&w->nextwall);
         kread16(fil,&w->nextsector);
-        kread16(fil,&w->cstat);
+        kread16(fil,&w->flags);
         kread16(fil,&w->picnum);
         kread16(fil,&w->overpicnum);
         kread8(fil,(uint8_t *)&w->shade);
@@ -2904,7 +2905,7 @@ int saveboard(char  *filename, int32_t *daposx, int32_t *daposy,
         write16(fil,w->point2);
         write16(fil,w->nextwall);
         write16(fil,w->nextsector);
-        write16(fil,w->cstat);
+        write16(fil,*(short *)&w->flags);
         write16(fil,w->picnum);
         write16(fil,w->overpicnum);
         write8(fil,w->shade);
@@ -4122,7 +4123,7 @@ static void drawmaskwall(EngineState *engine_state)
 
     prepwall(z,wal);
 
-    globalorientation = *(SectorFlags *)&wal->cstat;
+    globalorientation = *(SectorFlags *)&wal->flags;
     globalpicnum = wal->overpicnum;
     if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
         globalpicnum = 0;
@@ -5769,7 +5770,7 @@ int cansee(int32_t x1, int32_t y1, int32_t z1, short sect1,
             }
 
             nexts = wal->nextsector;
-            if ((nexts < 0) || (wal->cstat&32)) {
+            if ((nexts < 0) || wal->flags.one_way) {
                 return(0);
             }
 
@@ -6038,7 +6039,7 @@ int hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum,
             }
 
             nextsector = wal->nextsector;
-            if ((nextsector < 0) || (wal->cstat&dawalclipmask)) {
+            if ((nextsector < 0) || ((*(int32_t *)&wal->flags) & dawalclipmask)) {
                 *hitsect = dasector;
                 *hitwall = z;
                 *hitsprite = -1;
@@ -6659,7 +6660,7 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
             if (dax >= day) continue;
 
             clipyou = 0;
-            if ((wal->nextsector < 0) || (wal->cstat&dawalclipmask)) {
+            if ((wal->nextsector < 0) || ((*(int32_t *)&wal->flags) & dawalclipmask)) {
                 clipyou = 1;
             } else {
                 if (rintersect(*x,*y,0,gx,gy,0,x1,y1,x2,y2,&dax,&day,&daz) == 0) {
@@ -7011,7 +7012,7 @@ int pushmove(int32_t *x, int32_t *y, int32_t *z, short *sectnum,
                     if (wal->nextsector < 0) {
                         j = 1;
                     }
-                    if (wal->cstat&dawalclipmask) {
+                    if ((*(int32_t *)&wal->flags) & dawalclipmask) {
                         j = 1;
                     }
                     if (j == 0) {
@@ -7299,7 +7300,7 @@ void getzrange(int32_t x, int32_t y, int32_t z, short sectnum,
                 }
                 if (dax >= day) continue;
 
-                if (wal->cstat&dawalclipmask) continue;
+                if ((*(int32_t *)&wal->flags) & dawalclipmask) continue;
                 sec = &sector[k];
 
                 if (!sec->ceiling.flags.parallaxing && (z <= sec->ceiling.z+(3<<8))) continue;

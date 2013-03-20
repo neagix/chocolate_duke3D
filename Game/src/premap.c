@@ -902,7 +902,7 @@ void prelevel(uint8_t  g)
         walltype *wal;
         wal = &wall[i];
 
-        if (wal->overpicnum == MIRROR && (wal->cstat&32) != 0) {
+        if (wal->overpicnum == MIRROR && wal->flags.one_way) {
             j = wal->nextsector;
 
             if (mirrorcnt > 63) {
@@ -928,7 +928,7 @@ void prelevel(uint8_t  g)
         switch (wal->overpicnum) {
             case FANSHADOW:
             case FANSPRITE:
-                wall->cstat |= 65;
+                *(uint16_t *)&wall->flags |= 65;
                 animwall[numanimwalls].wallnum = i;
                 numanimwalls++;
                 break;
@@ -941,9 +941,9 @@ void prelevel(uint8_t  g)
             case W_FORCEFIELD+1:
             case W_FORCEFIELD+2:
                 if (wal->shade > 31) {
-                    wal->cstat = 0;
+                    *(uint16_t *)&wal->flags = 0;
                 } else {
-                    wal->cstat |= 85+256;
+                    *(uint16_t *)&wal->flags |= 85+256;
                 }
 
 

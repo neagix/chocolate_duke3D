@@ -131,10 +131,24 @@ typedef struct _Sector Sector;
  *   bits 10-15: reserved
  */
 
+typedef struct {
+    unsigned blocking                 :1;
+    unsigned bottom_texture_swap      :1;
+    unsigned align_bottom             :1;
+    unsigned x_flip                   :1;
+    unsigned masking                  :1;
+    unsigned one_way                  :1;
+    unsigned hitscan                  :1;
+    unsigned y_flip                   :1;
+    unsigned transluscence_reversing  :1;
+    unsigned reserved                 :7;
+} WallFlags;
+
 /* 32 bytes */
 typedef struct {
     int32_t x, y;
-    short point2, nextwall, nextsector, cstat;
+    short point2, nextwall, nextsector;
+    WallFlags flags;
     short picnum, overpicnum;
     int8_t shade;
     uint8_t  pal, xrepeat, yrepeat, xpanning, ypanning;

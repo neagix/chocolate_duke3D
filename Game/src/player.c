@@ -173,7 +173,7 @@ int32_t hitasprite(short i,short *hitsp)
             fixedPointSin(SA),
             0,&sect,&hw,hitsp,&sx,&sy,&sz,CLIPMASK1);
 
-    if (hw >= 0 && (wall[hw].cstat&16) && badguy(&sprite[i]) ) {
+    if (hw >= 0 && wall[hw].flags.masking && badguy(&sprite[i]) ) {
         return((1<<30));
     }
 
@@ -399,7 +399,7 @@ void shoot(short i,short atwith)
                                sector[wall[hitwall].nextsector].lotag == 0 &&
                                (sector[hitsect].floor.z-sector[wall[hitwall].nextsector].floor.z) > (16<<8) ) ||
                              ( wall[hitwall].nextsector == -1 && sector[hitsect].lotag == 0 ) )
-                            if ( (wall[hitwall].cstat&16) == 0) {
+                            if ( !wall[hitwall].flags.masking) {
                                 if (wall[hitwall].nextsector >= 0) {
                                     k = headspritesect[wall[hitwall].nextsector];
                                     while (k >= 0) {
@@ -460,7 +460,7 @@ void shoot(short i,short atwith)
                     }
 
                     else if ( hitwall >= 0 ) {
-                        if ( wall[hitwall].cstat&2 )
+                        if ( wall[hitwall].flags.bottom_texture_swap )
                             if (wall[hitwall].nextsector >= 0)
                                 if (hitz >= (sector[wall[hitwall].nextsector].floor.z) ) {
                                     hitwall = wall[hitwall].nextwall;
@@ -628,7 +628,7 @@ void shoot(short i,short atwith)
                         if ( wall[hitwall].overpicnum != BIGFORCE )
                             if ( (wall[hitwall].nextsector >= 0 && sector[wall[hitwall].nextsector].lotag == 0 ) ||
                                  ( wall[hitwall].nextsector == -1 && sector[hitsect].lotag == 0 ) )
-                                if ( (wall[hitwall].cstat&16) == 0) {
+                                if ( !wall[hitwall].flags.masking) {
                                     if (wall[hitwall].nextsector >= 0) {
                                         l = headspritesect[wall[hitwall].nextsector];
                                         while (l >= 0) {
@@ -656,7 +656,7 @@ void shoot(short i,short atwith)
 
 SKIPBULLETHOLE:
 
-                    if ( wall[hitwall].cstat&2 )
+                    if ( wall[hitwall].flags.bottom_texture_swap )
                         if (wall[hitwall].nextsector >= 0)
                             if (hitz >= (sector[wall[hitwall].nextsector].floor.z) ) {
                                 hitwall = wall[hitwall].nextwall;
@@ -3559,7 +3559,7 @@ SHOOTINCODE:
                             j = nextspritesect[j];
                         }
 
-                        if (j == -1 && hw >= 0 && (wall[hw].cstat&16) == 0 )
+                        if (j == -1 && hw >= 0 && wall[hw].flags.masking )
                             if ( ( wall[hw].nextsector >= 0 && sector[wall[hw].nextsector].lotag <= 2 ) || ( wall[hw].nextsector == -1 && sector[sect].lotag <= 2 ) )
                                 if ( ( (sx-p->posx)*(sx-p->posx) + (sy-p->posy)*(sy-p->posy) ) < (290*290) ) {
                                     p->posz = p->oposz;

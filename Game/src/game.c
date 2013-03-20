@@ -3073,10 +3073,10 @@ void displayrest(int32_t smoothratio, EngineState *engine_state)
         if (i < 0) {
             continue;
         }
-        if (wal->cstat&0x0071) {
+        if (*(uint16_t *)&wal->flags&0x0071) {
             continue;
         }
-        if (wall[wal->nextwall].cstat&0x0071) {
+        if (*(uint16_t *)&wall[wal->nextwall].flags&0x0071) {
             continue;
         }
         if (sector[i].lotag == 32767) {
@@ -5431,7 +5431,7 @@ short spawn( short j, short pn )
                         if (!(wall[s].hitag&1)) {
                             wall[s].shade=sp->shade;
                         }
-                        if ( (wall[s].cstat&2) && wall[s].nextwall >= 0) {
+                        if ( (wall[s].flags.bottom_texture_swap) && wall[s].nextwall >= 0) {
                             wall[wall[s].nextwall].shade = sp->shade;
                         }
                     }

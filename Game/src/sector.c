@@ -452,7 +452,7 @@ void animatewalls(void)
 
         }
 
-        if (wall[i].cstat&16)
+        if (wall[i].flags.masking)
             switch (wall[i].overpicnum) {
                 case W_FORCEFIELD:
                 case W_FORCEFIELD+1:
@@ -460,7 +460,7 @@ void animatewalls(void)
 
                     t = animwall[p].tag;
 
-                    if (wall[i].cstat&254) {
+                    if ((*(uint16_t *)&wall[i].flags)&254) {
                         wall[i].xpanning -= t>>10; // fixedPointSin((t+512))>>12;
                         wall[i].ypanning -= t>>10; // fixedPointSin(t)>>12;
 
@@ -1114,15 +1114,15 @@ void operateforcefields(short s, short low)
 
                     animwall[p].tag = 0;
 
-                    if ( wall[i].cstat ) {
-                        wall[i].cstat   = 0;
+                    if ( *(uint16_t *)&wall[i].flags ) {
+                        *(uint16_t *)&wall[i].flags   = 0;
 
                         if ( s >= 0 && sprite[s].picnum == SECTOREFFECTOR &&
                              sprite[s].lotag == 30) {
                             wall[i].lotag = 0;
                         }
                     } else {
-                        wall[i].cstat = 85;
+                        *(uint16_t *)&wall[i].flags = 85;
                     }
                     break;
             }
@@ -1577,14 +1577,14 @@ void checkhitwall(short spr,short dawallnum,int32_t x,int32_t y,int32_t z,short 
             case OOZFILTER:
             case EXPLODINGBARREL:
                 lotsofglass(spr,dawallnum,70);
-                wal->cstat &= ~16;
+                *(uint16_t *)&wal->flags &= ~16;
                 wal->overpicnum = MIRRORBROKE;
                 spritesound(GLASS_HEAVYBREAK,spr);
                 return;
         }
     }
 
-    if ( ( (wal->cstat&16) || wal->overpicnum == BIGFORCE ) && wal->nextsector >= 0 )
+    if ( ( (wal->flags.masking) || wal->overpicnum == BIGFORCE ) && wal->nextsector >= 0 )
         if ( sector[wal->nextsector].floor.z > z )
             if ( sector[wal->nextsector].floor.z - sector[wal->nextsector].ceiling.z )
                 switch (wal->overpicnum) {
@@ -1618,10 +1618,10 @@ void checkhitwall(short spr,short dawallnum,int32_t x,int32_t y,int32_t z,short 
 
                     case FANSPRITE:
                         wal->overpicnum = FANSPRITEBROKE;
-                        wal->cstat &= 65535-65;
+                        *(uint16_t *)&wal->flags &= 65535-65;
                         if (wal->nextwall >= 0) {
                             wall[wal->nextwall].overpicnum = FANSPRITEBROKE;
-                            wall[wal->nextwall].cstat &= 65535-65;
+                            *(uint16_t *)&wall[wal->nextwall].flags &= 65535-65;
                         }
                         spritesound(VENT_BUST,spr);
                         spritesound(GLASS_BREAKING,spr);
@@ -1634,10 +1634,10 @@ void checkhitwall(short spr,short dawallnum,int32_t x,int32_t y,int32_t z,short 
                         }
                         wal->overpicnum=GLASS2;
                         lotsofglass(spr,dawallnum,10);
-                        wal->cstat = 0;
+                        *(uint16_t *)&wal->flags = 0;
 
                         if (wal->nextwall >= 0) {
-                            wall[wal->nextwall].cstat = 0;
+                            *(uint16_t *)&wall[wal->nextwall].flags = 0;
                         }
 
                         i = EGS(sn,x,y,z,SECTOREFFECTOR,0,0,0,ps[0].ang,0,0,spr,3);
@@ -1652,9 +1652,9 @@ void checkhitwall(short spr,short dawallnum,int32_t x,int32_t y,int32_t z,short 
                             return;
                         }
                         lotsofcolourglass(spr,dawallnum,80);
-                        wal->cstat = 0;
+                        *(uint16_t *)&wal->flags = 0;
                         if (wal->nextwall >= 0) {
-                            wall[wal->nextwall].cstat = 0;
+                            *(uint16_t *)&wall[wal->nextwall].flags = 0;
                         }
                         spritesound(VENT_BUST,spr);
                         spritesound(GLASS_BREAKING,spr);
@@ -1847,7 +1847,7 @@ void checkplayerhurt(struct player_struct *p,short j)
 
     if ( p->hurt_delay > 0 ) {
         p->hurt_delay--;
-    } else if ( wall[j].cstat&85 ) switch (wall[j].overpicnum) {
+    } else if ( (*(uint16_t *)&wall[j].flags)&85 ) switch (wall[j].overpicnum) {
             case W_FORCEFIELD:
             case W_FORCEFIELD+1:
             case W_FORCEFIELD+2:
@@ -3030,7 +3030,7 @@ void checksectors(short snum)
                 return;
             }
 
-        if (hitscanwall >= 0 && (wall[hitscanwall].cstat&16) )
+        if (hitscanwall >= 0 && wall[hitscanwall].flags.masking )
             switch (wall[hitscanwall].overpicnum) {
                 default:
                     if (wall[hitscanwall].lotag) {

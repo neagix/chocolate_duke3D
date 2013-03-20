@@ -1141,7 +1141,7 @@ void movecyclers(void)
                 if ( wal->hitag != 1 ) {
                     wal->shade = j;
 
-                    if ( (wal->cstat&2) && wal->nextwall >= 0) {
+                    if ( wal->flags.bottom_texture_swap && wal->nextwall >= 0) {
                         wall[wal->nextwall].shade = j;
                     }
 
@@ -5466,7 +5466,7 @@ void moveeffectors(void)   //STATNUM 3
                 for (x=sc->wallnum; x > 0; x--,wal++) {
                     if ( wal->hitag != 1 ) {
                         wal->shade = t[0];
-                        if ((wal->cstat&2) && wal->nextwall >= 0) {
+                        if (wal->flags.bottom_texture_swap && wal->nextwall >= 0) {
                             wall[wal->nextwall].shade = wal->shade;
                         }
                     }
@@ -5506,7 +5506,7 @@ void moveeffectors(void)   //STATNUM 3
 
                     if ( wal->hitag != 1 ) {
                         wal->shade = t[0];
-                        if ((wal->cstat&2) && wal->nextwall >= 0) {
+                        if (wal->flags.bottom_texture_swap && wal->nextwall >= 0) {
                             wall[wal->nextwall].shade = wal->shade;
                         }
                     }
@@ -6153,11 +6153,20 @@ void moveeffectors(void)   //STATNUM 3
                         q = x+sc->wallnum;
                         for (j=x; j<q; j++)
                             if (wall[j].overpicnum == BIGFORCE) {
-                                wall[j].cstat &= (128+32+8+4+2);
+                                
+                                wall[j].flags.blocking = 0;
+                                wall[j].flags.masking = 0;
+                                wall[j].flags.hitscan = 0;
+                                wall[j].flags.transluscence_reversing = 0;
+                                
                                 wall[j].overpicnum = 0;
                                 if (wall[j].nextwall >= 0) {
                                     wall[wall[j].nextwall].overpicnum = 0;
-                                    wall[wall[j].nextwall].cstat &= (128+32+8+4+2);
+
+                                    wall[wall[j].nextwall].flags.blocking = 0;
+                                    wall[wall[j].nextwall].flags.masking = 0;
+                                    wall[wall[j].nextwall].flags.hitscan = 0;
+                                    wall[wall[j].nextwall].flags.transluscence_reversing = 0;
                                 }
                             }
                     }
@@ -6838,12 +6847,12 @@ void moveeffectors(void)   //STATNUM 3
 
                 wal = &wall[t[2]];
 
-                if (wal->cstat|32) {
-                    wal->cstat &= (255-32);
-                    wal->cstat |= 16;
+                if ((*(uint16_t *)&wal->flags)|32) {
+                    (*(uint16_t *)&wal->flags) &= (255-32);
+                    (*(uint16_t *)&wal->flags) |= 16;
                     if (wal->nextwall >= 0) {
-                        wall[wal->nextwall].cstat &= (255-32);
-                        wall[wal->nextwall].cstat |= 16;
+                        (*(uint16_t *)&wall[wal->nextwall].flags) &= (255-32);
+                        (*(uint16_t *)&wall[wal->nextwall].flags) |= 16;
                     }
                 } else {
                     break;
@@ -6857,9 +6866,9 @@ void moveeffectors(void)   //STATNUM 3
                 if (t[0] < t[1]) {
                     t[0]++;
                 } else {
-                    wal->cstat &= (128+32+8+4+2);
+                    (*(uint16_t *)&wal->flags) &= (128+32+8+4+2);
                     if (wal->nextwall >= 0) {
-                        wall[wal->nextwall].cstat &= (128+32+8+4+2);
+                        (*(uint16_t *)&wall[wal->nextwall].flags) &= (128+32+8+4+2);
                     }
                     KILLIT(i);
                 }

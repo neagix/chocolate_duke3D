@@ -4228,12 +4228,12 @@ void drawoverheadmap(int32_t cposx, int32_t cposy, int32_t czoom, short cang)
 
             if (sector[wal->nextsector].ceiling.z == z1)
                 if (sector[wal->nextsector].floor.z == z2)
-                    if (((wal->cstat|wall[wal->nextwall].cstat)&(16+32)) == 0) {
+                    if ((((*(uint16_t *)&wal->flags)|(*(uint16_t *)&wall[wal->nextwall].flags))&(16+32)) == 0) {
                         continue;
                     }
 
             col = 139; //red
-            if ((wal->cstat|wall[wal->nextwall].cstat)&1) {
+            if (((*(uint16_t *)&wal->flags)|(*(uint16_t *)&wall[wal->nextwall].flags))&1) {
                 col = 234;    //magenta
             }
 
