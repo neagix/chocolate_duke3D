@@ -174,7 +174,8 @@ uint8_t  *palookupoffse[4];
 
 int32_t globalshade;
 int16_t globalpicnum, globalshiftval;
-int32_t globalyscale, globalorientation;
+int32_t globalyscale;
+SectorFlags globalorientation;
 uint8_t *globalbufplc;
 
 //FCS:
@@ -636,7 +637,7 @@ static void slowhline (int32_t xr, int32_t yp,
     a2 = g_y2 * r;
     a3 = (int32_t)globalpalwritten + (getpalookup(mulscale16(r,globvis),globalshade)<<8);
 
-    if (!(globalorientation&256)) {
+    if (!(globalorientation.type == SECTOR_REVERSE_TRANSLUSCENT || globalorientation.type == SECTOR_TRANSLUSCENT)) {
         mhline(globalbufplc,
                g_y1 * r + xpanning - a1 * (xr - xl),
                (xr-xl) << 16,
@@ -715,9 +716,9 @@ static void FloorCeilingScan (int32_t x1, int32_t x2, InnerSector floor_or_ceili
         globvis = mulscale4(globvis,(int32_t)((uint8_t )(floor_or_ceiling.sector->visibility+16)));
     }
     
-    globalorientation = (int32_t)floor_or_ceiling.stat;
+    globalorientation = floor_or_ceiling.flags;
     
-    if ((globalorientation&64) == 0) {
+    if (!globalorientation.align_texture_to_first_wall) {
         g_x1 = fixedPointSin(engine_state->ang);
         g_x2 = fixedPointSin(engine_state->ang);
         g_y1 = fixedPointCos(engine_state->ang);
@@ -755,12 +756,12 @@ static void FloorCeilingScan (int32_t x1, int32_t x2, InnerSector floor_or_ceili
     g_y1 = mulscale16(g_y1,viewingrangerecip);
     xshift = (8-(picsiz[globalpicnum]&15));
     yshift = (8-(picsiz[globalpicnum]>>4));
-    if (globalorientation&8) {
+    if (globalorientation.double_smooshiness) {
         xshift++;
         yshift++;
     }
     
-    if ((globalorientation&0x4) > 0) {
+    if (globalorientation.swap_xy) {
         i = xpanning;
         xpanning = ypanning;
         ypanning = i;
@@ -772,13 +773,13 @@ static void FloorCeilingScan (int32_t x1, int32_t x2, InnerSector floor_or_ceili
         g_y2 = i;
     }
     
-    if ((globalorientation&0x10) > 0) {
+    if (globalorientation.x_flip) {
         g_x1 = -g_x1;
         g_y1 = -g_y1;
         xpanning = -xpanning;
     }
     
-    if ((globalorientation&0x20) > 0) {
+    if (globalorientation.y_flip) {
         g_x2 = -g_x2;
         g_y2 = -g_y2;
         ypanning = -ypanning;
@@ -805,8 +806,8 @@ static void FloorCeilingScan (int32_t x1, int32_t x2, InnerSector floor_or_ceili
     g_y1 = mulscale16(g_y1, zd);
     g_y2 = mulscale16(g_y2, zd);
     globvis = klabs(mulscale10(globvis, zd));
-    
-    if (!(globalorientation&0x180)) {
+
+    if (globalorientation.type == SECTOR_NORMAL) {
         y1 = is_floor ? max(dplc[x1], umost[x1]) : umost[x1];
         y2 = y1;
         for (x=x1; x<=x2; x++) {
@@ -855,15 +856,15 @@ static void FloorCeilingScan (int32_t x1, int32_t x2, InnerSector floor_or_ceili
         return;
     }
     
-    switch (globalorientation&0x180) {
-        case 128:
+    switch (globalorientation.type) {
+        case SECTOR_MASKED:
             msethlineshift(picsiz[globalpicnum]&15,picsiz[globalpicnum]>>4);
             break;
-        case 256:
+        case SECTOR_TRANSLUSCENT:
             settrans(TRANS_NORMAL);
             tsethlineshift(picsiz[globalpicnum]&15,picsiz[globalpicnum]>>4);
             break;
-        case 384:
+        case SECTOR_REVERSE_TRANSLUSCENT:
             settrans(TRANS_REVERSE);
             tsethlineshift(picsiz[globalpicnum]&15,picsiz[globalpicnum]>>4);
             break;
@@ -963,10 +964,10 @@ static void wallscan(int32_t x1, int32_t x2,
                      int32_t xpanning,
                      EngineState *engine_state)
 {
-    int32_t x, xnice, ynice;
-    uint8_t *fpalookup;
-    int32_t y1ve[4], y2ve[4], tileWidth, tileHeight;
     int32_t bufplce[4], vplce[4], vince[4];
+    int32_t x, xnice, ynice;
+    int32_t y1ve[4], y2ve[4], tileWidth, tileHeight;
+    uint8_t *fpalookup;
 
     tileWidth = tiles[globalpicnum].dim.width;
     tileHeight = tiles[globalpicnum].dim.height;
@@ -1114,7 +1115,8 @@ static void maskwallscan(int32_t x1, int32_t x2,
 static void parascan(int32_t dax1, int32_t dax2, int32_t sectnum,uint8_t  dastat, int32_t bunch, EngineState *engine_state)
 {
     Sector *sec;
-    int32_t j, k, l, m, n, x, z, wallnum, nextsectnum, horizbak, zd;
+    int32_t a, k, l, m, n, x, z, wallnum, nextsectnum, horizbak, zd;
+    SectorFlags j;
     int32_t xpanning, ypanning;
     short *topptr, *botptr;
 
@@ -1175,30 +1177,30 @@ static void parascan(int32_t dax1, int32_t dax2, int32_t sectnum,uint8_t  dastat
         nextsectnum = wall[wallnum].nextsector;
 
         if (dastat == 0) {
-            j = sector[nextsectnum].ceiling.stat;
+            j = sector[nextsectnum].ceiling.flags;
         } else {
-            j = sector[nextsectnum].floor.stat;
+            j = sector[nextsectnum].floor.flags;
         }
 
-        if ((nextsectnum < 0) || (wall[wallnum].cstat&32) || ((j&1) == 0)) {
+        if ((nextsectnum < 0) || (wall[wallnum].cstat&32) || !j.parallaxing) {
             if (x == -1) {
                 x = pvWalls[z].screenSpaceCoo[0][VEC_COL];
             }
 
             if (parallaxtype == 0) {
                 n = mulscale16(xdimenrecip,viewingrange);
-                for (j=pvWalls[z].screenSpaceCoo[0][VEC_COL]; j<=pvWalls[z].screenSpaceCoo[1][VEC_COL]; j++) {
-                    lplc[j] = (((mulscale23(j-halfxdimen, n) + engine_state->ang) & 2047)>>k);
+                for (a=pvWalls[z].screenSpaceCoo[0][VEC_COL]; a<=pvWalls[z].screenSpaceCoo[1][VEC_COL]; a++) {
+                    lplc[a] = (((mulscale23(a-halfxdimen, n) + engine_state->ang) & 2047)>>k);
                 }
             } else {
-                for (j=pvWalls[z].screenSpaceCoo[0][VEC_COL]; j<=pvWalls[z].screenSpaceCoo[1][VEC_COL]; j++) {
-                    lplc[j] = ((((int32_t)radarang2[j] + engine_state->ang) & 2047)>>k);
+                for (a=pvWalls[z].screenSpaceCoo[0][VEC_COL]; a<=pvWalls[z].screenSpaceCoo[1][VEC_COL]; a++) {
+                    lplc[a] = ((((int32_t)radarang2[a] + engine_state->ang) & 2047)>>k);
                 }
             }
             if (parallaxtype == 2) {
                 n = mulscale16(xdimscale,viewingrange);
-                for (j=pvWalls[z].screenSpaceCoo[0][VEC_COL]; j<=pvWalls[z].screenSpaceCoo[1][VEC_COL]; j++) {
-                    swplc[j] = mulscale14(fixedPointSin(((int32_t)radarang2[j]+512)),n);
+                for (a=pvWalls[z].screenSpaceCoo[0][VEC_COL]; a<=pvWalls[z].screenSpaceCoo[1][VEC_COL]; a++) {
+                    swplc[a] = mulscale14(fixedPointSin(((int32_t)radarang2[a]+512)),n);
                 }
             } else {
                 clearbuf(&swplc[pvWalls[z].screenSpaceCoo[0][VEC_COL]],pvWalls[z].screenSpaceCoo[1][VEC_COL]-pvWalls[z].screenSpaceCoo[0][VEC_COL]+1,mulscale16(xdimscale,viewingrange));
@@ -1216,18 +1218,18 @@ static void parascan(int32_t dax1, int32_t dax2, int32_t sectnum,uint8_t  dastat
                          xpanning,
                          engine_state);
             } else {
-                j = x;
+                a = x;
                 while (x < pvWalls[z].screenSpaceCoo[0][VEC_COL]) {
                     n = l+pskyoff[lplc[x]>>m];
                     if (n != globalpicnum) {
-                        wallscan(j, x-1, topptr ,botptr, swplc, lplc, zd, xpanning, engine_state);
-                        j = x;
+                        wallscan(a, x-1, topptr ,botptr, swplc, lplc, zd, xpanning, engine_state);
+                        a = x;
                         globalpicnum = n;
                     }
                     x++;
                 }
-                if (j < x) {
-                    wallscan(j, x-1, topptr, botptr, swplc, lplc, zd, xpanning, engine_state);
+                if (a < x) {
+                    wallscan(a, x-1, topptr, botptr, swplc, lplc, zd, xpanning, engine_state);
                 }
             }
 
@@ -1249,18 +1251,18 @@ static void parascan(int32_t dax1, int32_t dax2, int32_t sectnum,uint8_t  dastat
                      xpanning,
                      engine_state);
         } else {
-            j = x;
+            a = x;
             while (x <= pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL]) {
                 n = l+pskyoff[lplc[x]>>m];
                 if (n != globalpicnum) {
-                    wallscan(j, x-1, topptr, botptr, swplc, lplc, zd, xpanning, engine_state);
-                    j = x;
+                    wallscan(a, x-1, topptr, botptr, swplc, lplc, zd, xpanning, engine_state);
+                    a = x;
                     globalpicnum = n;
                 }
                 x++;
             }
-            if (j <= x) {
-                wallscan(j, x, topptr, botptr, swplc, lplc, zd, xpanning, engine_state);
+            if (a <= x) {
+                wallscan(a, x, topptr, botptr, swplc, lplc, zd, xpanning, engine_state);
             }
         }
         globalpicnum = l;
@@ -1286,7 +1288,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
         if (engine_state->posz <= GetZOfSlope(sector[sectnum].ceiling, engine_state->posx, engine_state->posy)) {
             return;    /* Back-face culling */
         }
-        globalorientation = sec->ceiling.stat;
+        globalorientation = sec->ceiling.flags;
         globalpicnum = sec->ceiling.picnum;
         globalshade = sec->ceiling.shade;
         globalpal = sec->ceiling.pal;
@@ -1296,7 +1298,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
         if (engine_state->posz >= GetZOfSlope(sector[sectnum].floor, engine_state->posx, engine_state->posy)) {
             return;    /* Back-face culling */
         }
-        globalorientation = sec->floor.stat;
+        globalorientation = sec->floor.flags;
         globalpicnum = sec->floor.picnum;
         globalshade = sec->floor.shade;
         globalpal = sec->floor.pal;
@@ -1336,7 +1338,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
     g_zx = -dmulscale17(wx, g_y2, -wy, g_x2) + mulscale10(1 - engine_state->horiz, zd);
     lz = -dmulscale25(wx, ly, -wy, lx);
 
-    if (globalorientation&64) { /* Relative alignment */
+    if (globalorientation.align_texture_to_first_wall) { /* Relative alignment */
         dx = mulscale14(wall[wal->point2].x-wal->x,dasqr);
         dy = mulscale14(wall[wal->point2].y-wal->y,dasqr);
 
@@ -1357,7 +1359,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
         g_x2 = dmulscale16(x,dx,y,dy);
         g_y2 = mulscale12(dmulscale16(-y,dx,x,dy),i);
     }
-    if (globalorientation&0x4) {
+    if (globalorientation.swap_xy) {
         i = lx;
         lx = -ly;
         ly = -i;
@@ -1368,12 +1370,12 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
         g_x2 = -g_y2;
         g_y2 = -i;
     }
-    if (globalorientation&0x10) {
+    if (globalorientation.x_flip) {
         g_x1 = -g_x1;
         g_x2 = -g_x2;
         lx = -lx;
     }
-    if (globalorientation&0x20) {
+    if (globalorientation.y_flip) {
         g_y1 = -g_y1;
         g_y2 = -g_y2;
         ly = -ly;
@@ -1387,7 +1389,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
 
     i = 8-(picsiz[globalpicnum]&15);
     j = 8-(picsiz[globalpicnum]>>4);
-    if (globalorientation&8) {
+    if (globalorientation.double_smooshiness) {
         i++;
         j++;
     }
@@ -1583,12 +1585,12 @@ static int wallmost(short *mostbuf, int32_t w, int32_t sectnum, uint8_t  dastat,
 
     if (dastat == 0) {
         z = sector[sectnum].ceiling.z - engine_state->posz;
-        if ((sector[sectnum].ceiling.stat&2) == 0) {
+        if (!sector[sectnum].ceiling.flags.groudraw) {
             return(owallmost(mostbuf, w, z, engine_state));
         }
     } else {
         z = sector[sectnum].floor.z - engine_state->posz;
-        if ((sector[sectnum].floor.stat&2) == 0) {
+        if (!sector[sectnum].floor.flags.groudraw) {
             return(owallmost(mostbuf, w, z, engine_state));
         }
     }
@@ -1777,9 +1779,9 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
 
     /* draw ceilings */
     if ((andwstat1&3) != 3) {
-        if ((sec->ceiling.stat & 3) == 2) {
+        if (sec->ceiling.flags.groudraw && !sec->ceiling.flags.parallaxing) {
             grouscan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],sectnum,0,engine_state);
-        } else if ((sec->ceiling.stat&1) == 0) {
+        } else if (!sec->ceiling.flags.parallaxing) {
             CeilingScan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],
                         pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],
                         sectnum,
@@ -1791,9 +1793,9 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
 
     /* draw floors */
     if ((andwstat2&12) != 12) {
-        if ((sec->floor.stat & 3) == 2) {
+        if (sec->floor.flags.groudraw && !sec->floor.flags.parallaxing) {
             grouscan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],sectnum,1,engine_state);
-        } else if ((sec->floor.stat&1) == 0) {
+        } else if (!sec->floor.flags.parallaxing) {
             FloorScan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],
                       pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],
                       sectnum,
@@ -1858,7 +1860,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                 engine_state->maskwall[engine_state->maskwallcnt++] = z;
             }
 
-            if (((sec->ceiling.stat&1) == 0) || ((nextsec->ceiling.stat&1) == 0)) {
+            if (!sec->ceiling.flags.parallaxing || !nextsec->ceiling.flags.parallaxing) {
                 if ((cz[2] <= cz[0]) && (cz[3] <= cz[1])) {
                     if (globparaceilclip)
                         for (x=x1; x<=x2; x++)
@@ -1884,7 +1886,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                             searchit = 1;
                         }
 
-                    globalorientation = (int32_t)wal->cstat;
+                    globalorientation = *(SectorFlags *)&wal->cstat;
                     globalpicnum = wal->picnum;
                     if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
                         globalpicnum = 0;
@@ -1909,13 +1911,13 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                     }
                     globalpal = (int32_t)wal->pal;
                     globalyscale = (wal->yrepeat<<(globalshiftval-19));
-                    if ((globalorientation&4) == 0) {
+                    if (!globalorientation.swap_xy) {
                         zd = (((engine_state->posz-nextsec->ceiling.z)*globalyscale)<<8);
                     } else {
                         zd = (((engine_state->posz-sec->ceiling.z)*globalyscale)<<8);
                     }
                     zd += (ypanning<<24);
-                    if (globalorientation&256) {
+                    if (globalorientation.type == SECTOR_REVERSE_TRANSLUSCENT || globalorientation.type == SECTOR_TRANSLUSCENT) {
                         globalyscale = -globalyscale, zd = -zd;
                     }
 
@@ -1961,7 +1963,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                     }
                 }
             }
-            if (((sec->floor.stat&1) == 0) || ((nextsec->floor.stat&1) == 0)) {
+            if (!sec->floor.flags.parallaxing || !nextsec->floor.flags.parallaxing) {
                 if ((fz[2] >= fz[0]) && (fz[3] >= fz[1])) {
                     if (globparaflorclip)
                         for (x=x1; x<=x2; x++)
@@ -1993,7 +1995,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                     if ((wal->cstat&2) > 0) {
                         wallnum = wal->nextwall;
                         wal = &wall[wallnum];
-                        globalorientation = (int32_t)wal->cstat;
+                        globalorientation = *(SectorFlags *)&wal->cstat;
                         globalpicnum = wal->picnum;
                         if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
                             globalpicnum = 0;
@@ -2010,7 +2012,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                         wallnum = pvWalls[z].worldWallId;
                         wal = &wall[wallnum];
                     } else {
-                        globalorientation = (int32_t)wal->cstat;
+                        globalorientation = *(SectorFlags *)&wal->cstat;
                         globalpicnum = wal->picnum;
 
                         if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
@@ -2039,14 +2041,14 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                     globalshiftval = 32-globalshiftval;
                     globalyscale = (wal->yrepeat<<(globalshiftval-19));
 
-                    if ((globalorientation&4) == 0) {
+                    if (!globalorientation.swap_xy) {
                         zd = (((engine_state->posz-nextsec->floor.z)*globalyscale)<<8);
                     } else {
                         zd = (((engine_state->posz-sec->ceiling.z)*globalyscale)<<8);
                     }
 
                     zd += (ypanning<<24);
-                    if (globalorientation&256) {
+                    if (globalorientation.type == SECTOR_REVERSE_TRANSLUSCENT || globalorientation.type == SECTOR_TRANSLUSCENT) {
                         globalyscale = -globalyscale, zd = -zd;
                     }
 
@@ -2120,7 +2122,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
             }
         }
         if ((nextsectnum < 0) || (wal->cstat&32)) { /* White/1-way wall */
-            globalorientation = (int32_t)wal->cstat;
+            globalorientation = *(SectorFlags *)&wal->cstat;
             if (nextsectnum < 0) {
                 globalpicnum = wal->picnum;
             } else {
@@ -2153,13 +2155,13 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
             globalshiftval = 32-globalshiftval;
             globalyscale = (wal->yrepeat<<(globalshiftval-19));
             if (nextsectnum >= 0) {
-                if ((globalorientation&4) == 0) {
+                if (!globalorientation.swap_xy) {
                     zd = engine_state->posz - nextsec->ceiling.z;
                 } else {
                     zd = engine_state->posz - sec->ceiling.z;
                 }
             } else {
-                if ((globalorientation&4) == 0) {
+                if (!globalorientation.swap_xy) {
                     zd = engine_state->posz - sec->ceiling.z;
                 } else {
                     zd = engine_state->posz - sec->floor.z;
@@ -2167,7 +2169,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
             }
             zd = ((zd * globalyscale) << 8) + (ypanning << 24);
 
-            if (globalorientation & 256) {
+            if (globalorientation.type == SECTOR_REVERSE_TRANSLUSCENT || globalorientation.type == SECTOR_TRANSLUSCENT) {
                 globalyscale = -globalyscale;
                 zd = -zd;
             }
@@ -2729,8 +2731,8 @@ int loadboard(char  *filename, int32_t *daposx, int32_t *daposy,
         kread16(fil,&sect->wallnum);
         kread32(fil,&sect->ceiling.z);
         kread32(fil,&sect->floor.z);
-        kread16(fil,&sect->ceiling.stat);
-        kread16(fil,&sect->floor.stat);
+        kread16(fil,(uint16_t *)&sect->ceiling.flags);
+        kread16(fil,(uint16_t *)&sect->floor.flags);
         kread16(fil,&sect->ceiling.picnum);
         kread16(fil,&sect->ceiling.heinum);
         kread8(fil,(uint8_t *)&sect->ceiling.shade);
@@ -2874,8 +2876,8 @@ int saveboard(char  *filename, int32_t *daposx, int32_t *daposy,
         write16(fil,sect->wallnum);
         write32(fil,sect->ceiling.z);
         write32(fil,sect->floor.z);
-        write16(fil,sect->ceiling.stat);
-        write16(fil,sect->floor.stat);
+        write16(fil,*(uint16_t *)&sect->ceiling.flags);
+        write16(fil,*(uint16_t *)&sect->floor.flags);
         write16(fil,sect->ceiling.picnum);
         write16(fil,sect->ceiling.heinum);
         write8(fil,sect->ceiling.shade);
@@ -4120,7 +4122,7 @@ static void drawmaskwall(EngineState *engine_state)
 
     prepwall(z,wal);
 
-    globalorientation = (int32_t)wal->cstat;
+    globalorientation = *(SectorFlags *)&wal->cstat;
     globalpicnum = wal->overpicnum;
     if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
         globalpicnum = 0;
@@ -4145,14 +4147,15 @@ static void drawmaskwall(EngineState *engine_state)
 
     globalshiftval = 32-globalshiftval;
     globalyscale = (wal->yrepeat<<(globalshiftval-19));
-    if ((globalorientation&4) == 0) {
+    if (!globalorientation.swap_xy) {
         zd = (((engine_state->posz-z1)*globalyscale)<<8);
     } else {
         zd = (((engine_state->posz-z2)*globalyscale)<<8);
     }
     zd += (ypanning<<24);
-    if (globalorientation&256) {
-        globalyscale = -globalyscale, zd = -zd;
+    if (globalorientation.type == SECTOR_REVERSE_TRANSLUSCENT || globalorientation.type == SECTOR_TRANSLUSCENT) {
+        globalyscale = -globalyscale;
+        zd = -zd;
     }
 
     for (i=smostwallcnt-1; i>=0; i--) {
@@ -4202,7 +4205,7 @@ static void drawmaskwall(EngineState *engine_state)
             searchit = 1;
         }
 
-    if ((globalorientation&128) == 0) {
+    if (!(globalorientation.type == SECTOR_MASKED || globalorientation.type == SECTOR_REVERSE_TRANSLUSCENT)) {
         maskwallscan(pvWalls[z].screenSpaceCoo[0][VEC_COL],
                      pvWalls[z].screenSpaceCoo[1][VEC_COL],
                      uwall, dwall, swall, lwall,
@@ -4210,8 +4213,8 @@ static void drawmaskwall(EngineState *engine_state)
                      xpanning,
                      engine_state);
     } else {
-        if (globalorientation&128) {
-            if (globalorientation&512) {
+        if (globalorientation.type == SECTOR_MASKED || globalorientation.type == SECTOR_REVERSE_TRANSLUSCENT) {
+            if (globalorientation.reserved_1) {
                 settrans(TRANS_REVERSE);
             } else {
                 settrans(TRANS_NORMAL);
@@ -4254,7 +4257,7 @@ static void ceilspritehline (int32_t x2, int32_t y, int32_t zd,
     a2 = mulscale14(g_y2,v);
     a3 = (int32_t)FP_OFF(palookup[globalpal]) + (getpalookup((int32_t)mulscale28(klabs(v),globvis),globalshade)<<8);
 
-    if ((globalorientation&2) == 0) {
+    if (!globalorientation.groudraw) {
         mhline(globalbufplc,bx,(x2-x1)<<16,0L,by,ylookup[y]+x1+frameoffset,a1,a2,a3);
     } else {
         thline(globalbufplc,bx,(x2-x1)<<16,0L,by,ylookup[y]+x1+frameoffset,a1,a2,a3);
@@ -4431,13 +4434,13 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
             return;
         }
 
-        if ((sec->ceiling.stat&3) == 0) {
+        if (!sec->ceiling.flags.groudraw && !sec->ceiling.flags.parallaxing) {
             startum = engine_state->horiz+mulscale24(siz,sec->ceiling.z - engine_state->posz)-1;
         } else {
             startum = 0;
         }
 
-        if ((sec->floor.stat&3) == 0) {
+        if (!sec->floor.flags.groudraw && !sec->floor.flags.parallaxing) {
             startdm = engine_state->horiz+mulscale24(siz,sec->floor.z - engine_state->posz)+1;
         } else {
             startdm = 0x7fffffff;
@@ -4553,7 +4556,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         }
         z1 = z2 - ((spriteDim.height*tspr->yrepeat)<<2);
 
-        globalorientation = 0;
+        *(uint16_t *)&globalorientation = 0;
         globalpicnum = tilenum;
         if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
             globalpicnum = 0;
@@ -4742,7 +4745,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         }
         z1 = z2 - ((spriteDim.height*tspr->yrepeat)<<2);
 
-        globalorientation = 0;
+        *(uint16_t *)&globalorientation = 0;
         globalpicnum = tilenum;
         if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
             globalpicnum = 0;
@@ -4765,10 +4768,10 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
             zd = (((engine_state->posz-z2)*globalyscale)<<8);
         }
 
-        if (((sec->ceiling.stat&1) == 0) && (z1 < sec->ceiling.z)) {
+        if (!sec->ceiling.flags.parallaxing && (z1 < sec->ceiling.z)) {
             z1 = sec->ceiling.z;
         }
-        if (((sec->floor.stat&1) == 0) && (z2 > sec->floor.z)) {
+        if (!sec->floor.flags.parallaxing && (z2 > sec->floor.z)) {
             z2 = sec->floor.z;
         }
 
@@ -5246,7 +5249,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
                 searchit = 1;
             }
 
-        globalorientation = cstat;
+        globalorientation = *(SectorFlags *)&cstat;
         globalpicnum = tilenum;
         if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
             globalpicnum = 0;
@@ -5929,7 +5932,7 @@ int hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum,
         sec = &sector[dasector];
 
         x1 = 0x7fffffff;
-        if (sec->ceiling.stat&2) {
+        if (sec->ceiling.flags.groudraw) {
             wal = &wall[sec->wallptr];
             wal2 = &wall[wal->point2];
             dax = wal2->x-wal->x;
@@ -5972,7 +5975,7 @@ int hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum,
             }
 
         x1 = 0x7fffffff;
-        if (sec->floor.stat&2) {
+        if (sec->floor.flags.groudraw) {
             wal = &wall[sec->wallptr];
             wal2 = &wall[wal->point2];
             dax = wal2->x-wal->x;
@@ -6667,7 +6670,7 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
 
                 sec2 = &sector[wal->nextsector];
                 if (daz2 < daz-(1<<8))
-                    if ((sec2->floor.stat&1) == 0)
+                    if (!sec2->floor.flags.parallaxing)
                         if ((*z) >= daz2-(flordist-1)) {
                             clipyou = 1;
                         }
@@ -6675,7 +6678,7 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
                     daz = GetZOfSlope(sector[dasect].ceiling, dax, day);
                     daz2 = GetZOfSlope(sector[wal->nextsector].ceiling, dax, day);
                     if (daz2 > daz+(1<<8))
-                        if ((sec2->ceiling.stat&1) == 0)
+                        if (!sec2->ceiling.flags.parallaxing)
                             if ((*z) <= daz2+(ceildist-1)) {
                                 clipyou = 1;
                             }
@@ -6936,7 +6939,7 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
     templong1 = 0x7fffffff;
     for (j=numsectors-1; j>=0; j--)
         if (inside(*x,*y,j) == 1) {
-            if (sector[j].ceiling.stat&2) {
+            if (sector[j].ceiling.flags.groudraw) {
                 templong2 = (GetZOfSlope(sector[j].ceiling, *x, *y) - (*z));
             } else {
                 templong2 = (sector[j].ceiling.z-(*z));
@@ -6948,7 +6951,7 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
                     templong1 = templong2;
                 }
             } else {
-                if (sector[j].floor.stat&2) {
+                if (sector[j].floor.flags.groudraw) {
                     templong2 = ((*z)-GetZOfSlope(sector[j].floor, *x, *y));
                 } else {
                     templong2 = ((*z)-sector[j].floor.z);
@@ -7035,14 +7038,14 @@ int pushmove(int32_t *x, int32_t *y, int32_t *z, short *sectnum,
 
                         daz = GetZOfSlope(sector[clipsectorlist[clipsectcnt]].floor, dax, day);
                         daz2 = GetZOfSlope(sector[wal->nextsector].floor, dax, day);
-                        if ((daz2 < daz-(1<<8)) && ((sec2->floor.stat&1) == 0))
+                        if ((daz2 < daz-(1<<8)) && !sec2->floor.flags.parallaxing)
                             if (*z >= daz2-(flordist-1)) {
                                 j = 1;
                             }
 
                         daz = GetZOfSlope(sector[clipsectorlist[clipsectcnt]].ceiling, dax, day);
                         daz2 = GetZOfSlope(sector[wal->nextsector].ceiling, dax, day);
-                        if ((daz2 > daz+(1<<8)) && ((sec2->ceiling.stat&1) == 0))
+                        if ((daz2 > daz+(1<<8)) && !sec2->ceiling.flags.parallaxing)
                             if (*z <= daz2+(ceildist-1)) {
                                 j = 1;
                             }
@@ -7299,8 +7302,8 @@ void getzrange(int32_t x, int32_t y, int32_t z, short sectnum,
                 if (wal->cstat&dawalclipmask) continue;
                 sec = &sector[k];
 
-                if (((sec->ceiling.stat&1) == 0) && (z <= sec->ceiling.z+(3<<8))) continue;
-                if (((sec->floor.stat&1) == 0) && (z >= sec->floor.z-(3<<8))) continue;
+                if (!sec->ceiling.flags.parallaxing && (z <= sec->ceiling.z+(3<<8))) continue;
+                if (!sec->floor.flags.parallaxing && (z >= sec->floor.z-(3<<8))) continue;
 
                 for (i=clipsectnum-1; i>=0; i--) {
                     if (clipsectorlist[i] == k) break;
@@ -8321,7 +8324,7 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang, EngineState
             TILE_MakeAvailable(globalpicnum);
 
             globalbufplc = tiles[globalpicnum].data;
-            if ((sector[spr->sectnum].ceiling.stat&1) > 0) {
+            if (sector[spr->sectnum].ceiling.flags.parallaxing) {
                 globalshade = ((int32_t)sector[spr->sectnum].ceiling.shade);
             } else {
                 globalshade = ((int32_t)sector[spr->sectnum].floor.shade);
@@ -8556,7 +8559,7 @@ int32_t GetZOfSlope(InnerSector floor_or_ceiling, int32_t x, int32_t y)
     walltype *wal;
 
     // If the sector is flat, just return the Z coordinate
-    if (!(floor_or_ceiling.stat & 2)) {
+    if (!floor_or_ceiling.flags.groudraw) {
         return floor_or_ceiling.z;
     }
     
@@ -8609,9 +8612,9 @@ void alignceilslope(short dasect, int32_t x, int32_t y, int32_t z)
                                          fixedPointSqrt(dax*dax+day*day),i);
 
     if (sector[dasect].ceiling.heinum == 0) {
-        sector[dasect].ceiling.stat &= ~2;
+        sector[dasect].ceiling.flags.groudraw = 0;
     } else {
-        sector[dasect].ceiling.stat |= 2;
+        sector[dasect].ceiling.flags.groudraw = 1;
     }
 }
 
@@ -8633,9 +8636,9 @@ void alignflorslope(short dasect, int32_t x, int32_t y, int32_t z)
                                        fixedPointSqrt(dax*dax+day*day),i);
 
     if (sector[dasect].floor.heinum == 0) {
-        sector[dasect].floor.stat &= ~2;
+        sector[dasect].floor.flags.groudraw = 0;
     } else {
-        sector[dasect].floor.stat |= 2;
+        sector[dasect].floor.flags.groudraw = 1;
     }
 }
 

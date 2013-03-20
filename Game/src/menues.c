@@ -344,7 +344,7 @@ int loadplayer(int8_t spot)
         sector[i].ceiling.pal      = sector_on_grp[i].ceilingpal;
         sector[i].ceiling.xpanning = sector_on_grp[i].ceilingxpanning;
         sector[i].ceiling.ypanning = sector_on_grp[i].ceilingypanning;
-        sector[i].ceiling.stat     = sector_on_grp[i].ceilingstat;
+        sector[i].ceiling.flags    = *(SectorFlags *)&sector_on_grp[i].ceilingstat;
         sector[i].ceiling.sector   = &sector[i];
         
         sector[i].floor.z        = sector_on_grp[i].floorz;
@@ -354,7 +354,7 @@ int loadplayer(int8_t spot)
         sector[i].floor.pal      = sector_on_grp[i].floorpal;
         sector[i].floor.xpanning = sector_on_grp[i].floorxpanning;
         sector[i].floor.ypanning = sector_on_grp[i].floorypanning;
-        sector[i].floor.stat     = sector_on_grp[i].floorstat;
+        sector[i].floor.flags    = *(SectorFlags *)&sector_on_grp[i].floorstat;
         sector[i].floor.sector   = &sector[i];
     }
     

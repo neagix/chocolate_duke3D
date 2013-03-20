@@ -5319,12 +5319,12 @@ short spawn( short j, short pn )
                         sector[sect].ceiling.z = sector[sect].floor.z = sp->z;
                     }
 
-                    if ( sector[sect].ceiling.stat&1 ) {
-                        sector[sect].ceiling.stat ^= 1;
+                    if ( sector[sect].ceiling.flags.parallaxing ) {
+                        sector[sect].ceiling.flags.parallaxing = 0;
                         T4 = 1;
 
                         if (!sp->owner && sp->ang==512) {
-                            sector[sect].ceiling.stat ^= 1;
+                            sector[sect].ceiling.flags.parallaxing = 0;
                             T4 = 0;
                         }
 
@@ -5337,7 +5337,7 @@ short spawn( short j, short pn )
                             for (j=startwall; j<endwall; j++) {
                                 x = wall[j].nextsector;
                                 if (x >= 0)
-                                    if ( !(sector[x].ceiling.stat&1) ) {
+                                    if ( !sector[x].ceiling.flags.parallaxing ) {
                                         sector[sect].ceiling.picnum =
                                             sector[x].ceiling.picnum;
                                         sector[sect].ceiling.shade =
@@ -5844,7 +5844,7 @@ void animatesprites(int32_t x, int32_t y, short a, int32_t smoothratio, EngineSt
                 }
         }
 
-        if (sector[t->sectnum].ceiling.stat&1) {
+        if (sector[t->sectnum].ceiling.flags.parallaxing) {
             l = sector[t->sectnum].ceiling.shade;
         } else {
             l = sector[t->sectnum].floor.shade;
@@ -9402,7 +9402,7 @@ void fakedomovethings(void)
         psectlotag = 0;
     }
 
-    if ( p->aim_mode == 0 && myonground && psectlotag != 2 && (sector[psect].floor.stat&2) ) {
+    if ( p->aim_mode == 0 && myonground && psectlotag != 2 && sector[psect].floor.flags.groudraw ) {
         x = myx+(fixedPointCos(myang)>>5);
         y = myy+(fixedPointSin(myang)>>5);
         tempsect = psect;
@@ -9567,7 +9567,7 @@ void fakedomovethings(void)
             }
         }
         if (myz < (fz-(i<<8)) && (floorspace(psect)|ceilingspace(psect)) == 0 ) { //falling
-            if ( (sb_snum&3) == 0 && myonground && (sector[psect].floor.stat&2) && myz >= (fz-(i<<8)-(16<<8) ) ) {
+            if ( (sb_snum&3) == 0 && myonground && sector[psect].floor.flags.groudraw && myz >= (fz-(i<<8)-(16<<8) ) ) {
                 myz = fz-(i<<8);
             } else {
                 myonground = 0;

@@ -96,7 +96,7 @@ void restoreinterpolations()  //Stick at end of drawscreen
 
 int32_t ceilingspace(int16_t sectnum)
 {
-    if ( (sector[sectnum].ceiling.stat&1) && sector[sectnum].ceiling.pal == 0 ) {
+    if ( sector[sectnum].ceiling.flags.parallaxing && sector[sectnum].ceiling.pal == 0 ) {
         switch (sector[sectnum].ceiling.picnum) {
             case MOONSKY1:
             case BIGORBIT1:
@@ -108,7 +108,7 @@ int32_t ceilingspace(int16_t sectnum)
 
 int32_t floorspace(int16_t sectnum)
 {
-    if ( (sector[sectnum].floor.stat&1) && sector[sectnum].ceiling.pal == 0 ) {
+    if ( sector[sectnum].floor.flags.parallaxing && sector[sectnum].ceiling.pal == 0 ) {
         switch (sector[sectnum].floor.picnum) {
             case MOONSKY1:
             case BIGORBIT1:
@@ -986,7 +986,7 @@ void movefta(void)
                             case NUKEBARRELDENTED:
                             case NUKEBARRELLEAKED:
                             case TRIPBOMB:
-                                if (sector[s->sectnum].ceiling.stat&1) {
+                                if (sector[s->sectnum].ceiling.flags.parallaxing) {
                                     s->shade = sector[s->sectnum].ceiling.shade;
                                 } else {
                                     s->shade = sector[s->sectnum].floor.shade;
@@ -1007,7 +1007,7 @@ void movefta(void)
                 }
             }
             if ( badguy( s ) ) {
-                if (sector[s->sectnum].ceiling.stat&1) {
+                if (sector[s->sectnum].ceiling.flags.parallaxing) {
                     s->shade = sector[s->sectnum].ceiling.shade;
                 } else {
                     s->shade = sector[s->sectnum].floor.shade;
@@ -1304,7 +1304,7 @@ void moveplayers(void) //Players
             }
         }
 
-        if (sector[s->sectnum].ceiling.stat&1) {
+        if (sector[s->sectnum].ceiling.flags.parallaxing) {
             s->shade += (sector[s->sectnum].ceiling.shade-s->shade)>>1;
         } else {
             s->shade += (sector[s->sectnum].floor.shade-s->shade)>>1;
@@ -2609,7 +2609,7 @@ void moveweapons(void)
                         setsprite(i,dax,day,daz);
 
                         if (s->zvel < 0) {
-                            if ( sector[s->sectnum].ceiling.stat&1 )
+                            if ( sector[s->sectnum].ceiling.flags.parallaxing   )
                                 if (sector[s->sectnum].ceiling.pal == 0) {
                                     KILLIT(i);
                                 }
@@ -3278,7 +3278,7 @@ void moveactors(void)
 
                 getglobalz(i);
 
-                if (sector[s->sectnum].ceiling.stat&1) {
+                if (sector[s->sectnum].ceiling.flags.parallaxing) {
                     s->shade += (sector[s->sectnum].ceiling.shade-s->shade)>>1;
                 } else {
                     s->shade += (sector[s->sectnum].floor.shade-s->shade)>>1;
@@ -3504,7 +3504,7 @@ void moveactors(void)
 
                 t[1]+=128;
 
-                if (sector[sect].floor.stat&1) {
+                if (sector[sect].floor.flags.parallaxing) {
                     KILLIT(i);
                 }
 
@@ -3781,7 +3781,7 @@ void moveactors(void)
                         s->zvel = 0;
                         s->cstat &= (65535-8);
 
-                        if ( (sector[sect].ceiling.stat&1) || (hittype[i].ceilingz+6144) < s->z) {
+                        if ( (sector[sect].ceiling.flags.parallaxing) || (hittype[i].ceilingz+6144) < s->z) {
                             s->z += 2048;
                             t[0] = 3;
                             goto BOLT;
@@ -3812,7 +3812,7 @@ void moveactors(void)
                     s->xrepeat = 36 + (fixedPointCos(t[1])>>11);
                     s->yrepeat = 16 + (fixedPointSin(t[1])>>13);
 
-                    if (rnd(4) && (sector[sect].ceiling.stat&1) == 0 &&
+                    if (rnd(4) && !sector[sect].ceiling.flags.parallaxing &&
                         klabs(hittype[i].floorz-hittype[i].ceilingz)
                         < (192<<8) ) {
                         s->zvel = 0;
@@ -4569,7 +4569,7 @@ void moveexplosions(void)  // STATNUM 5
                         if ( s->sectnum == -1) {
                             KILLIT(i);
                         }
-                        if ( (sector[s->sectnum].floor.stat&2) ) {
+                        if ( (sector[s->sectnum].floor.flags.groudraw) ) {
                             KILLIT(i);
                         }
                         t[2]++;
@@ -4600,7 +4600,7 @@ void moveexplosions(void)  // STATNUM 5
 
                 if (t[0] == 0) {
                     t[0] = 1;
-                    if (sector[sect].floor.stat&2) {
+                    if (sector[sect].floor.flags.groudraw) {
                         KILLIT(i);
                     } else {
                         insertspriteq(i);
@@ -4950,7 +4950,7 @@ void moveeffectors(void)   //STATNUM 3
                     t[2] += (l*q);
                 }
 
-                if ( l && (sc->floor.stat&64) ) {
+                if ( l && (sc->floor.flags.align_texture_to_first_wall) ) {
                     for (p=connecthead; p>=0; p=connectpoint2[p]) {
                         if ( ps[p].cursectnum == s->sectnum && ps[p].on_ground == 1) {
 
@@ -5096,11 +5096,11 @@ void moveeffectors(void)   //STATNUM 3
                     s->ang += q;
 
                     if (s->xvel == sc->extra ) {
-                        if ( (sc->floor.stat&1) == 0 && (sc->ceiling.stat&1) == 0 ) {
+                        if ( !sc->floor.flags.parallaxing && !sc->ceiling.flags.parallaxing ) {
                             if ( Sound[hittype[i].lastvx].num == 0 ) {
                                 spritesound(hittype[i].lastvx,i);
                             }
-                        } else if ( ud.monsters_off == 0 && sc->floor.pal == 0 && (sc->floor.stat&1) && rnd(8) ) {
+                        } else if ( ud.monsters_off == 0 && sc->floor.pal == 0 && sc->floor.flags.parallaxing && rnd(8) ) {
                             p = findplayer(s,&x);
                             if (x < 20480) {
                                 j = s->ang;
@@ -5110,8 +5110,8 @@ void moveeffectors(void)   //STATNUM 3
                             }
                         }
                     }
-
-                    if (s->xvel <= 64 && (sc->floor.stat&1) == 0 && (sc->ceiling.stat&1) == 0 ) {
+                    
+                    if (s->xvel <= 64 && !sc->floor.flags.parallaxing && !sc->ceiling.flags.parallaxing ) {
                         stopsound(hittype[i].lastvx);
                     }
 
@@ -5515,7 +5515,7 @@ void moveeffectors(void)   //STATNUM 3
                 j = headspritesect[SECT];
                 while (j >= 0) {
                     if (sprite[j].cstat&16) {
-                        if (sc->ceiling.stat&1) {
+                        if (sc->ceiling.flags.parallaxing) {
                             sprite[j].shade = sc->ceiling.shade;
                         } else {
                             sprite[j].shade = sc->floor.shade;
@@ -5788,7 +5788,7 @@ void moveeffectors(void)   //STATNUM 3
                     j = headspritesect[SECT];
                     while (j >= 0) {
                         if (sprite[j].cstat&16) {
-                            if (sc->ceiling.stat&1) {
+                            if (sc->ceiling.flags.parallaxing) {
                                 sprite[j].shade = sc->ceiling.shade;
                             } else {
                                 sprite[j].shade = sc->floor.shade;
@@ -5823,7 +5823,7 @@ void moveeffectors(void)   //STATNUM 3
                     j = headspritesect[SECT];
                     while (j >= 0) {
                         if (sprite[j].cstat&16) {
-                            if (sc->ceiling.stat&1) {
+                            if (sc->ceiling.flags.parallaxing) {
                                 sprite[j].shade = sc->ceiling.shade;
                             } else {
                                 sprite[j].shade = sc->floor.shade;
@@ -5869,7 +5869,7 @@ void moveeffectors(void)   //STATNUM 3
                         //Change the shades
 
                         t[3]++;
-                        sc->ceiling.stat ^= 1;
+                        sc->ceiling.flags.parallaxing = 0;
 
                         if (s->ang == 512) {
                             wal = &wall[sc->wallptr];
@@ -6258,7 +6258,7 @@ void moveeffectors(void)   //STATNUM 3
                             sprite[j].x += x;
                             sprite[j].y += l;
                             setsprite(j,sprite[j].x,sprite[j].y,sprite[j].z);
-                            if ( sector[sprite[j].sectnum].floor.stat&2 )
+                            if ( sector[sprite[j].sectnum].floor.flags.groudraw)
                                 if (sprite[j].statnum == 2) {
                                     makeitfall(j);
                                 }
@@ -6396,7 +6396,7 @@ void moveeffectors(void)   //STATNUM 3
 
                                         setsprite(j,sprite[j].x,sprite[j].y,sprite[j].z);
 
-                                        if ( sector[sprite[j].sectnum].floor.stat&2 )
+                                        if ( sector[sprite[j].sectnum].floor.flags.groudraw)
                                             if (sprite[j].statnum == 2) {
                                                 makeitfall(j);
                                             }

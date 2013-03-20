@@ -761,7 +761,7 @@ void prelevel(uint8_t  g)
                 continue;
         }
 
-        if (sector[i].ceiling.stat&1) {
+        if (sector[i].ceiling.flags.parallaxing) {
             if (tiles[sector[i].ceiling.picnum].data == NULL) {
                 if (sector[i].ceiling.picnum == LA)
                     for (j=0; j<5; j++)
