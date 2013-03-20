@@ -60,6 +60,25 @@
  *   bits 9-15: reserved
  */
 
+
+typedef struct {
+    unsigned parallaxing                 :1;
+    unsigned groudraw                    :1;
+    unsigned swap_xy                     :1;
+    unsigned double_smooshiness          :1;
+    unsigned x_flip                      :1;
+    unsigned y_flip                      :1;
+    unsigned align_texture_to_first_wall :1;
+    unsigned type                        :2;
+    unsigned reserved_1                  :1;
+    unsigned reserved                    :6;
+} SectorFlags;
+
+#define SECTOR_NORMAL               0
+#define SECTOR_MASKED               1
+#define SECTOR_TRANSLUSCENT         2
+#define SECTOR_REVERSE_TRANSLUSCENT 3
+
 /* 40 bytes */
 typedef struct {
     short wallptr, wallnum;
@@ -79,7 +98,7 @@ struct _Sector;
 
 struct _InnerSector {
     int32_t z;
-    short stat;
+    SectorFlags flags;
     short picnum, heinum;
     int8_t shade;
     uint8_t  pal, xpanning, ypanning;

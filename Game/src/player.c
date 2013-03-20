@@ -565,7 +565,7 @@ void shoot(short i,short atwith)
 
                 if ( hitwall == -1 && hitspr == -1) {
                     if ( zvel < 0 ) {
-                        if ( sector[hitsect].ceiling.stat&1 ) {
+                        if ( sector[hitsect].ceiling.flags.parallaxing ) {
                             sprite[k].xrepeat = 0;
                             sprite[k].yrepeat = 0;
                             return;
@@ -1018,7 +1018,7 @@ SKIPBULLETHOLE:
             sprite[j].xrepeat = sprite[j].yrepeat = 1;
 
             if ( hitwall == -1 && hitspr == -1 && hitsect >= 0) {
-                if ( zvel < 0 && (sector[hitsect].ceiling.stat&1) == 0) {
+                if ( zvel < 0 && !sector[hitsect].ceiling.flags.parallaxing ) {
                     checkhitceiling(hitsect);
                 }
             } else if (hitspr >= 0) {
@@ -2339,7 +2339,7 @@ void processinput(short snum)
     p->ohoriz = p->horiz;
     p->ohorizoff = p->horizoff;
 
-    if ( p->aim_mode == 0 && p->on_ground && psectlotag != 2 && (sector[psect].floor.stat&2) ) {
+    if ( p->aim_mode == 0 && p->on_ground && psectlotag != 2 && sector[psect].floor.flags.groudraw ) {
         x = p->posx+(fixedPointCos(p->ang)>>5);
         y = p->posy+(fixedPointSin(p->ang)>>5);
         tempsect = psect;
@@ -2873,7 +2873,7 @@ void processinput(short snum)
             }
         } else {
             if (p->footprintcount > 0 && p->on_ground)
-                if ( (sector[p->cursectnum].floor.stat&2) != 2 ) {
+                if ( !sector[p->cursectnum].floor.flags.groudraw ) {
                     for (j=headspritesect[psect]; j>=0; j=nextspritesect[j])
                         if ( sprite[j].picnum == FOOTPRINTS || sprite[j].picnum == FOOTPRINTS2 || sprite[j].picnum == FOOTPRINTS3 || sprite[j].picnum == FOOTPRINTS4 )
                             if (klabs(sprite[j].x-p->posx) < 384)
@@ -2905,7 +2905,7 @@ void processinput(short snum)
         }
 
         if (p->posz < (fz-(i<<8)) ) { //falling
-            if ( (sb_snum&3) == 0 && p->on_ground && (sector[psect].floor.stat&2) && p->posz >= (fz-(i<<8)-(16<<8) ) ) {
+            if ( (sb_snum&3) == 0 && p->on_ground && sector[psect].floor.flags.groudraw && p->posz >= (fz-(i<<8)-(16<<8) ) ) {
                 p->posz = fz-(i<<8);
             } else {
                 p->on_ground = 0;
