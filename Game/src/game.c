@@ -5320,11 +5320,11 @@ short spawn( short j, short pn )
                     }
 
                     if ( sector[sect].ceiling.flags.parallaxing ) {
-                        sector[sect].ceiling.flags.parallaxing = 0;
+                        sector[sect].ceiling.flags.parallaxing = !sector[sect].ceiling.flags.parallaxing;
                         T4 = 1;
 
                         if (!sp->owner && sp->ang==512) {
-                            sector[sect].ceiling.flags.parallaxing = 0;
+                            sector[sect].ceiling.flags.parallaxing = !sector[sect].ceiling.flags.parallaxing;
                             T4 = 0;
                         }
 
