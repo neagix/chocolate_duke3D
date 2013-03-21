@@ -175,7 +175,6 @@ uint8_t  *palookupoffse[4];
 int32_t globalshade;
 int16_t globalpicnum, globalshiftval;
 int32_t globalyscale;
-SectorFlags globalorientation;
 uint8_t *globalbufplc;
 
 //FCS:
@@ -624,6 +623,7 @@ static void slowhline (int32_t xr, int32_t yp,
                        int32_t xpanning, int32_t ypanning,
                        int32_t g_x1, int32_t g_y1,
                        int32_t g_x2, int32_t g_y2,
+                       SectorFlags flags,
                        EngineState *engine_state)
 {
     int32_t xl, r, a1, a2, a3;
@@ -637,7 +637,7 @@ static void slowhline (int32_t xr, int32_t yp,
     a2 = g_y2 * r;
     a3 = (int32_t)globalpalwritten + (getpalookup(mulscale16(r,globvis),globalshade)<<8);
 
-    if (!(globalorientation.type == SECTOR_REVERSE_TRANSLUSCENT || globalorientation.type == SECTOR_TRANSLUSCENT)) {
+    if (!(flags.type == SECTOR_REVERSE_TRANSLUSCENT || flags.type == SECTOR_TRANSLUSCENT)) {
         mhline(globalbufplc,
                g_y1 * r + xpanning - a1 * (xr - xl),
                (xr-xl) << 16,
@@ -715,10 +715,8 @@ static void FloorCeilingScan (int32_t x1, int32_t x2, InnerSector floor_or_ceili
     if (floor_or_ceiling.sector->visibility != 0) {
         globvis = mulscale4(globvis,(int32_t)((uint8_t )(floor_or_ceiling.sector->visibility+16)));
     }
-    
-    globalorientation = floor_or_ceiling.flags;
-    
-    if (!globalorientation.align_texture_to_first_wall) {
+
+    if (!floor_or_ceiling.flags.align_texture_to_first_wall) {
         g_x1 = fixedPointSin(engine_state->ang);
         g_x2 = fixedPointSin(engine_state->ang);
         g_y1 = fixedPointCos(engine_state->ang);
@@ -756,12 +754,12 @@ static void FloorCeilingScan (int32_t x1, int32_t x2, InnerSector floor_or_ceili
     g_y1 = mulscale16(g_y1,viewingrangerecip);
     xshift = (8-(picsiz[globalpicnum]&15));
     yshift = (8-(picsiz[globalpicnum]>>4));
-    if (globalorientation.double_smooshiness) {
+    if (floor_or_ceiling.flags.double_smooshiness) {
         xshift++;
         yshift++;
     }
     
-    if (globalorientation.swap_xy) {
+    if (floor_or_ceiling.flags.swap_xy) {
         i = xpanning;
         xpanning = ypanning;
         ypanning = i;
@@ -773,13 +771,13 @@ static void FloorCeilingScan (int32_t x1, int32_t x2, InnerSector floor_or_ceili
         g_y2 = i;
     }
     
-    if (globalorientation.x_flip) {
+    if (floor_or_ceiling.flags.x_flip) {
         g_x1 = -g_x1;
         g_y1 = -g_y1;
         xpanning = -xpanning;
     }
     
-    if (globalorientation.y_flip) {
+    if (floor_or_ceiling.flags.y_flip) {
         g_x2 = -g_x2;
         g_y2 = -g_y2;
         ypanning = -ypanning;
@@ -807,7 +805,7 @@ static void FloorCeilingScan (int32_t x1, int32_t x2, InnerSector floor_or_ceili
     g_y2 = mulscale16(g_y2, zd);
     globvis = klabs(mulscale10(globvis, zd));
 
-    if (globalorientation.type == SECTOR_NORMAL) {
+    if (floor_or_ceiling.flags.type == SECTOR_NORMAL) {
         y1 = is_floor ? max(dplc[x1], umost[x1]) : umost[x1];
         y2 = y1;
         for (x=x1; x<=x2; x++) {
@@ -856,7 +854,7 @@ static void FloorCeilingScan (int32_t x1, int32_t x2, InnerSector floor_or_ceili
         return;
     }
     
-    switch (globalorientation.type) {
+    switch (floor_or_ceiling.flags.type) {
         case SECTOR_MASKED:
             msethlineshift(picsiz[globalpicnum]&15,picsiz[globalpicnum]>>4);
             break;
@@ -878,26 +876,26 @@ static void FloorCeilingScan (int32_t x1, int32_t x2, InnerSector floor_or_ceili
         if (twall < bwall-1) {
             if (twall >= y2) {
                 while (y1 < y2-1) {
-                    slowhline(x-1, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, engine_state);
+                    slowhline(x-1, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, floor_or_ceiling.flags, engine_state);
                 }
                 y1 = twall;
             } else {
                 while (y1 < twall) {
-                    slowhline(x-1, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, engine_state);
+                    slowhline(x-1, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, floor_or_ceiling.flags, engine_state);
                 }
                 while (y1 > twall) {
                     lastx[y1--] = x;
                 }
             }
             while (y2 > bwall) {
-                slowhline(x-1, --y2, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, engine_state);
+                slowhline(x-1, --y2, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, floor_or_ceiling.flags, engine_state);
             }
             while (y2 < bwall) {
                 lastx[y2++] = x;
             }
         } else {
             while (y1 < y2-1) {
-                slowhline(x-1, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, engine_state);
+                slowhline(x-1, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, floor_or_ceiling.flags, engine_state);
             }
             if (x == x2) {
                 g_x2 += g_y2;
@@ -912,7 +910,7 @@ static void FloorCeilingScan (int32_t x1, int32_t x2, InnerSector floor_or_ceili
     }
     
     while (y1 < y2-1) {
-        slowhline(x2, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, engine_state);
+        slowhline(x2, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, floor_or_ceiling.flags, engine_state);
     }
     
     faketimerhandler();
@@ -1280,6 +1278,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
     int32_t shoffs, shinc, m1, m2, *mptr1, *mptr2, *nptr1, *nptr2;
     int32_t g_x1, g_y1, g_x2, g_y2, g_x3, g_y3, g_zx;
     int32_t lx, ly, lz;
+    SectorFlags flags;
     walltype *wal;
     Sector *sec;
 
@@ -1289,7 +1288,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
         if (engine_state->posz <= GetZOfSlope(sector[sectnum].ceiling, engine_state->posx, engine_state->posy)) {
             return;    /* Back-face culling */
         }
-        globalorientation = sec->ceiling.flags;
+        flags = sec->ceiling.flags;
         globalpicnum = sec->ceiling.picnum;
         globalshade = sec->ceiling.shade;
         globalpal = sec->ceiling.pal;
@@ -1299,7 +1298,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
         if (engine_state->posz >= GetZOfSlope(sector[sectnum].floor, engine_state->posx, engine_state->posy)) {
             return;    /* Back-face culling */
         }
-        globalorientation = sec->floor.flags;
+        flags = sec->floor.flags;
         globalpicnum = sec->floor.picnum;
         globalshade = sec->floor.shade;
         globalpal = sec->floor.pal;
@@ -1339,7 +1338,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
     g_zx = -dmulscale17(wx, g_y2, -wy, g_x2) + mulscale10(1 - engine_state->horiz, zd);
     lz = -dmulscale25(wx, ly, -wy, lx);
 
-    if (globalorientation.align_texture_to_first_wall) { /* Relative alignment */
+    if (flags.align_texture_to_first_wall) { /* Relative alignment */
         dx = mulscale14(wall[wal->point2].x-wal->x,dasqr);
         dy = mulscale14(wall[wal->point2].y-wal->y,dasqr);
 
@@ -1360,7 +1359,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
         g_x2 = dmulscale16(x,dx,y,dy);
         g_y2 = mulscale12(dmulscale16(-y,dx,x,dy),i);
     }
-    if (globalorientation.swap_xy) {
+    if (flags.swap_xy) {
         i = lx;
         lx = -ly;
         ly = -i;
@@ -1371,12 +1370,12 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
         g_x2 = -g_y2;
         g_y2 = -i;
     }
-    if (globalorientation.x_flip) {
+    if (flags.x_flip) {
         g_x1 = -g_x1;
         g_x2 = -g_x2;
         lx = -lx;
     }
-    if (globalorientation.y_flip) {
+    if (flags.y_flip) {
         g_y1 = -g_y1;
         g_y2 = -g_y2;
         ly = -ly;
@@ -1390,7 +1389,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
 
     i = 8-(picsiz[globalpicnum]&15);
     j = 8-(picsiz[globalpicnum]>>4);
-    if (globalorientation.double_smooshiness) {
+    if (flags.double_smooshiness) {
         i++;
         j++;
     }
@@ -1887,7 +1886,6 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                             searchit = 1;
                         }
 
-                    globalorientation = *(SectorFlags *)&wal->flags;
                     globalpicnum = wal->picnum;
                     if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
                         globalpicnum = 0;
@@ -1912,14 +1910,15 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                     }
                     globalpal = (int32_t)wal->pal;
                     globalyscale = (wal->yrepeat<<(globalshiftval-19));
-                    if (!globalorientation.swap_xy) {
+                    if (!wal->flags.align_bottom) {
                         zd = (((engine_state->posz-nextsec->ceiling.z)*globalyscale)<<8);
                     } else {
                         zd = (((engine_state->posz-sec->ceiling.z)*globalyscale)<<8);
                     }
                     zd += (ypanning<<24);
-                    if (globalorientation.type == SECTOR_REVERSE_TRANSLUSCENT || globalorientation.type == SECTOR_TRANSLUSCENT) {
-                        globalyscale = -globalyscale, zd = -zd;
+                    if (wal->flags.transluscence_reversing) {
+                        globalyscale = -globalyscale;
+                        zd = -zd;
                     }
 
                     if (gotswall == 0) {
@@ -1996,7 +1995,6 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                     if (wal->flags.bottom_texture_swap) {
                         wallnum = wal->nextwall;
                         wal = &wall[wallnum];
-                        globalorientation = *(SectorFlags *)&wal->flags;
                         globalpicnum = wal->picnum;
                         if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
                             globalpicnum = 0;
@@ -2013,7 +2011,6 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                         wallnum = pvWalls[z].worldWallId;
                         wal = &wall[wallnum];
                     } else {
-                        globalorientation = *(SectorFlags *)&wal->flags;
                         globalpicnum = wal->picnum;
 
                         if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
@@ -2042,15 +2039,16 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                     globalshiftval = 32-globalshiftval;
                     globalyscale = (wal->yrepeat<<(globalshiftval-19));
 
-                    if (!globalorientation.swap_xy) {
+                    if (!wal->flags.align_bottom) {
                         zd = (((engine_state->posz-nextsec->floor.z)*globalyscale)<<8);
                     } else {
                         zd = (((engine_state->posz-sec->ceiling.z)*globalyscale)<<8);
                     }
 
                     zd += (ypanning<<24);
-                    if (globalorientation.type == SECTOR_REVERSE_TRANSLUSCENT || globalorientation.type == SECTOR_TRANSLUSCENT) {
-                        globalyscale = -globalyscale, zd = -zd;
+                    if (wal->flags.transluscence_reversing) {
+                        globalyscale = -globalyscale;
+                        zd = -zd;
                     }
 
                     if (gotswall == 0) {
@@ -2123,7 +2121,6 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
             }
         }
         if ((nextsectnum < 0) || wal->flags.one_way) { /* White/1-way wall */
-            globalorientation = *(SectorFlags *)&wal->flags;
             if (nextsectnum < 0) {
                 globalpicnum = wal->picnum;
             } else {
@@ -2156,13 +2153,13 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
             globalshiftval = 32-globalshiftval;
             globalyscale = (wal->yrepeat<<(globalshiftval-19));
             if (nextsectnum >= 0) {
-                if (!globalorientation.swap_xy) {
+                if (!wal->flags.align_bottom) {
                     zd = engine_state->posz - nextsec->ceiling.z;
                 } else {
                     zd = engine_state->posz - sec->ceiling.z;
                 }
             } else {
-                if (!globalorientation.swap_xy) {
+                if (!wal->flags.align_bottom) {
                     zd = engine_state->posz - sec->ceiling.z;
                 } else {
                     zd = engine_state->posz - sec->floor.z;
@@ -2170,7 +2167,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
             }
             zd = ((zd * globalyscale) << 8) + (ypanning << 24);
 
-            if (globalorientation.type == SECTOR_REVERSE_TRANSLUSCENT || globalorientation.type == SECTOR_TRANSLUSCENT) {
+            if (wal->flags.transluscence_reversing) {
                 globalyscale = -globalyscale;
                 zd = -zd;
             }
@@ -4123,7 +4120,6 @@ static void drawmaskwall(EngineState *engine_state)
 
     prepwall(z,wal);
 
-    globalorientation = *(SectorFlags *)&wal->flags;
     globalpicnum = wal->overpicnum;
     if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
         globalpicnum = 0;
@@ -4148,13 +4144,13 @@ static void drawmaskwall(EngineState *engine_state)
 
     globalshiftval = 32-globalshiftval;
     globalyscale = (wal->yrepeat<<(globalshiftval-19));
-    if (!globalorientation.swap_xy) {
+    if (!wal->flags.align_bottom) {
         zd = (((engine_state->posz-z1)*globalyscale)<<8);
     } else {
         zd = (((engine_state->posz-z2)*globalyscale)<<8);
     }
     zd += (ypanning<<24);
-    if (globalorientation.type == SECTOR_REVERSE_TRANSLUSCENT || globalorientation.type == SECTOR_TRANSLUSCENT) {
+    if (wal->flags.transluscence_reversing) {
         globalyscale = -globalyscale;
         zd = -zd;
     }
@@ -4206,7 +4202,7 @@ static void drawmaskwall(EngineState *engine_state)
             searchit = 1;
         }
 
-    if (!(globalorientation.type == SECTOR_MASKED || globalorientation.type == SECTOR_REVERSE_TRANSLUSCENT)) {
+    if (!wal->flags.transluscence_reversing) {
         maskwallscan(pvWalls[z].screenSpaceCoo[0][VEC_COL],
                      pvWalls[z].screenSpaceCoo[1][VEC_COL],
                      uwall, dwall, swall, lwall,
@@ -4214,8 +4210,8 @@ static void drawmaskwall(EngineState *engine_state)
                      xpanning,
                      engine_state);
     } else {
-        if (globalorientation.type == SECTOR_MASKED || globalorientation.type == SECTOR_REVERSE_TRANSLUSCENT) {
-            if (globalorientation.reserved_1) {
+        if (wal->flags.transluscence_reversing) {
+            if (wal->flags.reserved) {
                 settrans(TRANS_REVERSE);
             } else {
                 settrans(TRANS_NORMAL);
@@ -4234,6 +4230,7 @@ static void drawmaskwall(EngineState *engine_state)
 static void ceilspritehline (int32_t x2, int32_t y, int32_t zd,
                              int32_t xpanning, int32_t ypanning,
                              int32_t g_x1, int32_t g_y1, int32_t g_x2, int32_t g_y2,
+                             SectorFlags flags,
                              EngineState *engine_state)
 {
     int32_t x1, v, bx, by, a1, a2, a3;
@@ -4258,7 +4255,7 @@ static void ceilspritehline (int32_t x2, int32_t y, int32_t zd,
     a2 = mulscale14(g_y2,v);
     a3 = (int32_t)FP_OFF(palookup[globalpal]) + (getpalookup((int32_t)mulscale28(klabs(v),globvis),globalshade)<<8);
 
-    if (!globalorientation.groudraw) {
+    if (!flags.groudraw) {
         mhline(globalbufplc,bx,(x2-x1)<<16,0L,by,ylookup[y]+x1+frameoffset,a1,a2,a3);
     } else {
         thline(globalbufplc,bx,(x2-x1)<<16,0L,by,ylookup[y]+x1+frameoffset,a1,a2,a3);
@@ -4270,6 +4267,7 @@ static void ceilspritehline (int32_t x2, int32_t y, int32_t zd,
 static void ceilspritescan (int32_t x1, int32_t x2, int32_t zd,
                             int32_t xpanning, int32_t ypanning,
                             int32_t g_x1, int32_t g_y1, int32_t g_x2, int32_t g_y2,
+                            SectorFlags flags,
                             EngineState *engine_state)
 {
     int32_t x, y1, y2, twall, bwall;
@@ -4282,26 +4280,26 @@ static void ceilspritescan (int32_t x1, int32_t x2, int32_t zd,
         if (twall < bwall-1) {
             if (twall >= y2) {
                 while (y1 < y2-1) {
-                    ceilspritehline(x-1, ++y1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, engine_state);
+                    ceilspritehline(x-1, ++y1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, engine_state);
                 }
                 y1 = twall;
             } else {
                 while (y1 < twall) {
-                    ceilspritehline(x-1, ++y1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, engine_state);
+                    ceilspritehline(x-1, ++y1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, engine_state);
                 }
                 while (y1 > twall) {
                     lastx[y1--] = x;
                 }
             }
             while (y2 > bwall) {
-                ceilspritehline(x-1, --y2, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, engine_state);
+                ceilspritehline(x-1, --y2, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, engine_state);
             }
             while (y2 < bwall) {
                 lastx[y2++] = x;
             }
         } else {
             while (y1 < y2-1) {
-                ceilspritehline(x-1, ++y1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, engine_state);
+                ceilspritehline(x-1, ++y1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, engine_state);
             }
             if (x == x2) {
                 break;
@@ -4311,7 +4309,7 @@ static void ceilspritescan (int32_t x1, int32_t x2, int32_t zd,
         }
     }
     while (y1 < y2-1) {
-        ceilspritehline(x2, ++y1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, engine_state);
+        ceilspritehline(x2, ++y1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, engine_state);
     }
     faketimerhandler();
 }
@@ -4557,7 +4555,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         }
         z1 = z2 - ((spriteDim.height*tspr->yrepeat)<<2);
 
-        *(uint16_t *)&globalorientation = 0;
+        //*(uint16_t *)&globalorientation = 0;
         globalpicnum = tilenum;
         if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
             globalpicnum = 0;
@@ -4746,7 +4744,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         }
         z1 = z2 - ((spriteDim.height*tspr->yrepeat)<<2);
 
-        *(uint16_t *)&globalorientation = 0;
+        //*(uint16_t *)&globalorientation = 0;
         globalpicnum = tilenum;
         if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
             globalpicnum = 0;
@@ -5250,7 +5248,6 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
                 searchit = 1;
             }
 
-        globalorientation = *(SectorFlags *)&cstat;
         globalpicnum = tilenum;
         if ((uint32_t)globalpicnum >= (uint32_t)MAXTILES) {
             globalpicnum = 0;
@@ -5294,7 +5291,8 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         }
 
         /* Draw it! */
-        ceilspritescan(lx, rx-1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, engine_state);
+        // TODO: remove SectorFlags casting
+        ceilspritescan(lx, rx-1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, *(SectorFlags *)&cstat, engine_state);
     }
 }
 
