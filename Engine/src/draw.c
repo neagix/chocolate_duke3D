@@ -614,18 +614,18 @@ static uint8_t *tmach_asm3;
 static int32_t tmach_asm1;
 static int32_t tmach_asm2;
 
-void thline(uint8_t   *i1, int32_t i2, int32_t i3, int32_t i4, int32_t i5, uint8_t *i6, int32_t asm1, int32_t asm2, int32_t asm3)
+void thline(uint8_t   *i1, int32_t i2, int32_t i3, int32_t i5, uint8_t *i6, int32_t asm1, int32_t asm2, int32_t asm3)
 {
     tmach_eax = i1;
     tmach_asm3 = asm3;
     tmach_asm1 = asm1;
     tmach_asm2 = asm2;
-    thlineskipmodify(asm2,i2,i3,i4,i5,i6);
+    thlineskipmodify(asm2,i2,i3,i5,i6);
 }
 
 static uint8_t  tshift_al = 26;
 static uint8_t  tshift_bl = 6;
-void thlineskipmodify(int32_t i1, uint32_t i2, uint32_t i3, int32_t i4, int32_t i5, uint8_t *i6)
+void thlineskipmodify(int32_t i1, uint32_t i2, uint32_t i3, int32_t i5, uint8_t *i6)
 {
     uint32_t ebx;
     int counter = (i3>>16);

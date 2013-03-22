@@ -54,8 +54,8 @@ extern "C" {
     void mhline(uint8_t *,int32_t,int32_t,int32_t,uint8_t *,int32_t,int32_t,int32_t);
     void mhlineskipmodify(uint32_t,int32_t,int32_t,uint8_t *);
     void msethlineshift(int32_t,int32_t);
-    void thline(uint8_t *,int32_t,int32_t,int32_t,int32_t,uint8_t *,int32_t,int32_t,int32_t);
-    void thlineskipmodify(int32_t,uint32_t,uint32_t,int32_t,int32_t,uint8_t *);
+    void thline(uint8_t *,int32_t,int32_t,int32_t,uint8_t *,int32_t,int32_t,int32_t);
+    void thlineskipmodify(int32_t,uint32_t,uint32_t,int32_t,uint8_t *);
     void tsethlineshift(int32_t,int32_t);
     void setupslopevlin(int32_t,int32_t,int32_t,int32_t);
     void slopevlin(int32_t,uint32_t,int32_t,int32_t,int32_t,int32_t, int32_t, int32_t, int32_t);
