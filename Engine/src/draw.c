@@ -260,9 +260,9 @@ int32_t DrawVerticalLine(int32_t vince, uint8_t *palette, int32_t numPixels, int
 }
 
 
-int32_t tvlineasm1(int32_t i1, uint8_t   *texture, int32_t numPixels, int32_t i4, uint8_t  *source, uint8_t  *dest)
+int32_t tvlineasm1(int32_t i1, uint8_t   *texture, int32_t numPixels, int32_t i4, uint8_t  *source, int16_t shiftval, uint8_t  *dest)
 {
-    uint8_t shiftValue = (globalshiftval & 0x1f);
+    uint8_t shiftValue = (shiftval & 0x1f);
 
     numPixels++;
     while (numPixels) {

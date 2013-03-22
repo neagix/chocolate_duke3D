@@ -2663,6 +2663,7 @@ static void transmaskvline(int32_t x, int32_t zd, int32_t xpanning, int16_t picn
                y2v-y1v,
                vplc,
                tiles[picnum].data + i * tiles[picnum].dim.height,
+               globalshiftval,
                ylookup[y1v] + x + frameoffset);
 
     transarea += y2v-y1v;

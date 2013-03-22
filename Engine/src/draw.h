@@ -25,7 +25,6 @@ extern "C" {
 
 
     extern uint8_t  *globalpalwritten;
-    extern int16_t  globalshiftval;
     extern uint8_t *palookupoffse[4];
 
     void sethlinesizes(int32_t,int32_t,uint8_t *);
@@ -42,7 +41,7 @@ extern "C" {
 
     int32_t DrawVerticalLine(int32_t,uint8_t *,int32_t,int32_t,uint8_t *,uint8_t *);
 
-    int32_t tvlineasm1(int32_t,uint8_t *,int32_t,int32_t,uint8_t *,uint8_t   *dest);
+    int32_t tvlineasm1(int32_t,uint8_t *,int32_t,int32_t,uint8_t *,int16_t, uint8_t *dest);
     void setuptvlineasm2(int32_t,int32_t,int32_t);
     void tvlineasm2(uint32_t,uint32_t,uint32_t,uint32_t,uint32_t,uint32_t, int32_t *, int32_t *);
     void SetupVerticalLine(int32_t);
