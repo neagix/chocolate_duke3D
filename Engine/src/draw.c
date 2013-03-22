@@ -145,7 +145,7 @@ static int32_t rmmach_ebx;
 static int32_t rmmach_ecx;
 static int32_t rmmach_edx;
 static int32_t setupTileHeight;
-void setuprmhlineasm4(int32_t i1, int32_t i2, int32_t i3, int32_t i4, int32_t tileHeight, int32_t i6)
+void setuprmhlineasm4(int32_t i1, int32_t i2, int32_t i3, int32_t i4, int32_t tileHeight)
 {
     rmmach_eax = i1;
     rmmach_ebx = i2;
