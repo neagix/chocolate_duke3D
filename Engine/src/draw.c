@@ -92,7 +92,7 @@ static int32_t rmach_ebx;
 static int32_t rmach_ecx;
 static int32_t rmach_edx;
 static int32_t rmach_esi;
-void setuprhlineasm4(int32_t i1, int32_t i2, int32_t i3, int32_t i4, int32_t i5, int32_t i6)
+void setuprhlineasm4(int32_t i1, int32_t i2, int32_t i3, int32_t i4, int32_t i5)
 {
     rmach_eax = i1;
     rmach_ebx = i2;

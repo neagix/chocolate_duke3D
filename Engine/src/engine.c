@@ -3516,10 +3516,10 @@ static void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short pi
             if (dastat&64) {
                 if ((xv2&0x0000ffff) == 0) {
                     qlinemode = 1;
-                    setuprhlineasm4(0L,yv2<<16,(xv2>>16)*tileHeight+(yv2>>16),palookupoffs,0L,0L);
+                    setuprhlineasm4(0L,yv2<<16,(xv2>>16)*tileHeight+(yv2>>16),palookupoffs,0L);
                 } else {
                     qlinemode = 0;
-                    setuprhlineasm4(xv2<<16,yv2<<16,(xv2>>16)*tileHeight+(yv2>>16),palookupoffs,tileHeight,0L);
+                    setuprhlineasm4(xv2<<16,yv2<<16,(xv2>>16)*tileHeight+(yv2>>16),palookupoffs,tileHeight);
                 }
             } else {
                 setuprmhlineasm4(xv2<<16,yv2<<16,(xv2>>16)*tileHeight+(yv2>>16),palookupoffs,tileHeight,0L);
