@@ -338,7 +338,7 @@ static int32_t smach_eax;
 static int32_t smach2_eax;
 static int32_t smach5_eax;
 static int32_t smach_ecx;
-void setupspritevline(int32_t i1, int32_t i2, int32_t i3, int32_t i4, int32_t i5, int32_t i6)
+void setupspritevline(int32_t i1, int32_t i2, int32_t i3, int32_t i4, int32_t i5)
 {
     spal_eax = i1;
     smach_eax = (i5<<16);
