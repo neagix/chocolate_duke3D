@@ -5869,7 +5869,7 @@ void moveeffectors(void)   //STATNUM 3
                         //Change the shades
 
                         t[3]++;
-                        sc->ceiling.flags.parallaxing != sc->ceiling.flags.parallaxing;
+                        sc->ceiling.flags.parallaxing = !sc->ceiling.flags.parallaxing;
 
                         if (s->ang == 512) {
                             wal = &wall[sc->wallptr];
