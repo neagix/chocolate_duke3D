@@ -3731,7 +3731,7 @@ static void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short pi
 
             if ((dastat&1) == 0) {
                 if (dastat&64) {
-                    spritevline(0L,by<<16,y2-y1+1,bx<<16,(bx>>16)*tileHeight+(by>>16)+bufplc,p);
+                    spritevline(0L,by<<16,bx<<16,(bx>>16)*tileHeight+(by>>16)+bufplc,p);
                 } else {
                     mspritevline(0L,by<<16,y2-y1+1,bx<<16,(bx>>16)*tileHeight+(by>>16)+bufplc,p);
                 }

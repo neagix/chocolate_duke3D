@@ -348,7 +348,7 @@ void setupspritevline(int32_t i1, int32_t i2, int32_t i3, int32_t i4, int32_t i5
 }
 
 
-void spritevline(int32_t i1, uint32_t i2, int32_t i3, uint32_t i4, uint8_t *source, uint8_t *dest)
+void spritevline(int32_t i1, uint32_t i2, uint32_t i4, uint8_t *source, uint8_t *dest)
 {
 
 
