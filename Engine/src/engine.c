@@ -1117,7 +1117,7 @@ static void maskwallscan(int32_t x1, int32_t x2,
 
 
 /* renders parallaxed skies/floors  --ryan. */
-static void parascan(int32_t dax1, int32_t dax2, int32_t sectnum,uint8_t  dastat, int32_t bunch, EngineState *engine_state)
+static void parascan(int32_t dax1, int32_t dax2, uint8_t dastat, int32_t bunch, EngineState *engine_state)
 {
     Sector *sec;
     int32_t a, k, l, m, n, x, z, wallnum, nextsectnum, horizbak, zd;
@@ -1130,8 +1130,7 @@ static void parascan(int32_t dax1, int32_t dax2, int32_t sectnum,uint8_t  dastat
     int32_t yscale;
     int32_t vis;
 
-    sectnum = pvWalls[bunchfirst[bunch]].sectorId;
-    sec = &sector[sectnum];
+    sec = &sector[pvWalls[bunchfirst[bunch]].sectorId];
 
     horizbak = engine_state->horiz;
     if (parallaxyscale != 65536) {
@@ -1815,7 +1814,9 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                         sectnum,
                         engine_state);
         } else {
-            parascan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],sectnum,0,bunch,engine_state);
+            parascan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],
+                     pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],
+                     0, bunch, engine_state);
         }
     }
 
@@ -1829,7 +1830,9 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                       sectnum,
                       engine_state);
         } else {
-            parascan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],sectnum,1,bunch,engine_state);
+            parascan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],
+                     pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],
+                     1, bunch, engine_state);
         }
     }
 
