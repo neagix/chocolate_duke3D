@@ -400,7 +400,7 @@ static int32_t msmach_eax;
 static int32_t msmach2_eax;
 static int32_t msmach5_eax;
 static int32_t msmach_ecx;
-void msetupspritevline(int32_t i1, int32_t i2, int32_t i3, int32_t i4, int32_t i5, int32_t i6)
+void msetupspritevline(int32_t i1, int32_t i2, int32_t i3, int32_t i4, int32_t i5)
 {
     mspal_eax = i1;
     msmach_eax = (i5<<16);

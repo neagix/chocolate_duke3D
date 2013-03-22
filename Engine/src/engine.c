@@ -3677,7 +3677,7 @@ static void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short pi
             if (dastat&64) {
                 setupspritevline(palookupoffs,(xv>>16)*tileHeight,xv<<16,tileHeight,yv);
             } else {
-                msetupspritevline(palookupoffs,(xv>>16)*tileHeight,xv<<16,tileHeight,yv,0L);
+                msetupspritevline(palookupoffs,(xv>>16)*tileHeight,xv<<16,tileHeight,yv);
             }
         } else {
             tsetupspritevline(palookupoffs,(xv>>16)*tileHeight,xv<<16,tileHeight,yv);
