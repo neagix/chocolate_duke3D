@@ -209,7 +209,7 @@ void setBytesPerLine(int32_t _bytesperline)
 
 
 // Internal, only used by DrawVerticalLine
-int32_t DrawTopBottomLines(int32_t vince, uint8_t *palette, int32_t numPixels, int32_t vplce, uint8_t  *texture, uint8_t  *dest)
+int32_t DrawTopBottomLines(int32_t vince, uint8_t *palette, int32_t vplce, uint8_t  *texture, uint8_t  *dest)
 {
 
     if (!RENDER_DRAW_TOP_AND_BOTTOM_COLUMN) {
@@ -237,7 +237,7 @@ int32_t DrawVerticalLine(int32_t vince, uint8_t *palette, int32_t numPixels, int
     }
 
     if (numPixels == 0) {
-        return DrawTopBottomLines(vince, palette, numPixels, vplce, texture, dest);
+        return DrawTopBottomLines(vince, palette, vplce, texture, dest);
     }
 
     numPixels++;
