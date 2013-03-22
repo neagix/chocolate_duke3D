@@ -2795,7 +2795,7 @@ int loadboard(char  *filename, int32_t *daposx, int32_t *daposy,
         kread16(fil,&w->point2);
         kread16(fil,&w->nextwall);
         kread16(fil,&w->nextsector);
-        kread16(fil,&w->flags);
+        kread16(fil,(int16_t *)&w->flags);
         kread16(fil,&w->picnum);
         kread16(fil,&w->overpicnum);
         kread8(fil,(uint8_t *)&w->shade);
