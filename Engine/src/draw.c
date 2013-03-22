@@ -410,7 +410,7 @@ void msetupspritevline(int32_t i1, int32_t i2, int32_t i3, int32_t i4, int32_t i
 }
 
 
-void mspritevline(int32_t colorIndex, int32_t i2, int32_t i3, int32_t i4, uint8_t   *source, uint8_t   *dest)
+void mspritevline(int32_t colorIndex, int32_t i2, int32_t i4, uint8_t   *source, uint8_t   *dest)
 {
 
 setup:
