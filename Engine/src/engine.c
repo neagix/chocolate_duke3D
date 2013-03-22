@@ -1587,26 +1587,19 @@ static int owallmost(short *mostbuf, int32_t w, int32_t z, EngineState *engine_s
 
 
 // calculate top and bottom edges of walls
-static int wallmost(short *mostbuf, int32_t w, int32_t sectnum, bool is_floor, EngineState *engine_state)
+static int wallmost(short *mostbuf, int32_t w, InnerSector floor_or_ceiling, EngineState *engine_state)
 {
     int32_t bad, i, j, t, y, z, inty, intz, xcross, yinc, fw;
     int32_t x1, y1, z1, x2, y2, z2, xv, yv, dx, dy, dasqr, oz1, oz2;
     int32_t s1, s2, s3, s4, ix1, ix2, iy1, iy2;
 
-    if (is_floor) {
-        z = sector[sectnum].floor.z - engine_state->posz;
-        if (!sector[sectnum].floor.flags.groudraw) {
-            return(owallmost(mostbuf, w, z, engine_state));
-        }
-    } else {
-        z = sector[sectnum].ceiling.z - engine_state->posz;
-        if (!sector[sectnum].ceiling.flags.groudraw) {
-            return(owallmost(mostbuf, w, z, engine_state));
-        }
+    z = floor_or_ceiling.z - engine_state->posz;
+    if (!floor_or_ceiling.flags.groudraw) {
+        return(owallmost(mostbuf, w, z, engine_state));
     }
 
     i = pvWalls[w].worldWallId;
-    if (i == sector[sectnum].wallptr) {
+    if (i == floor_or_ceiling.sector->wallptr) {
         return(owallmost(mostbuf, w, z, engine_state));
     }
 
@@ -1615,7 +1608,7 @@ static int wallmost(short *mostbuf, int32_t w, int32_t sectnum, bool is_floor, E
     y1 = wall[i].y;
     y2 = wall[wall[i].point2].y-y1;
 
-    fw = sector[sectnum].wallptr;
+    fw = floor_or_ceiling.sector->wallptr;
     i = wall[fw].point2;
     dx = wall[i].x-wall[fw].x;
     dy = wall[i].y-wall[fw].y;
@@ -1635,13 +1628,8 @@ static int wallmost(short *mostbuf, int32_t w, int32_t sectnum, bool is_floor, E
         i = divscale28(i,j);
     }
 
-    if (is_floor == 0) {
-        t = mulscale15(sector[sectnum].ceiling.heinum,dasqr);
-        z1 = sector[sectnum].ceiling.z;
-    } else {
-        t = mulscale15(sector[sectnum].floor.heinum,dasqr);
-        z1 = sector[sectnum].floor.z;
-    }
+    t = mulscale15(floor_or_ceiling.heinum,dasqr);
+    z1 = floor_or_ceiling.z;
 
     z1 = dmulscale24(dx*t, mulscale20(y2,i)+((y1-wall[fw].y)<<8), -dy*t,mulscale20(x2, i)+((x1-wall[fw].x)<<8))+((z1-engine_state->posz)<<7);
 
@@ -1661,13 +1649,8 @@ static int wallmost(short *mostbuf, int32_t w, int32_t sectnum, bool is_floor, E
         i = divscale28(i,j);
     }
 
-    if (is_floor) {
-        t = mulscale15(sector[sectnum].floor.heinum,dasqr);
-        z2 = sector[sectnum].floor.z;
-    } else {
-        t = mulscale15(sector[sectnum].ceiling.heinum,dasqr);
-        z2 = sector[sectnum].ceiling.z;
-    }
+    t = mulscale15(floor_or_ceiling.heinum,dasqr);
+    z2 = floor_or_ceiling.z;
 
     z2 = dmulscale24(dx*t,mulscale20(y2,i)+((y1-wall[fw].y)<<8),-dy*t,mulscale20(x2,i)+((x1-wall[fw].x)<<8))+((z2-engine_state->posz)<<7);
 
@@ -1787,9 +1770,8 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
     andwstat1 = 0xff;
     andwstat2 = 0xff;
     for (; z>=0; z=bunchWallsList[z]) { /* uplc/dplc calculation */
-
-        andwstat1 &= wallmost(uplc, z, sectnum, false, engine_state);
-        andwstat2 &= wallmost(dplc, z, sectnum, true, engine_state);
+        andwstat1 &= wallmost(uplc, z, sec->ceiling, engine_state);
+        andwstat2 &= wallmost(dplc, z, sec->floor, engine_state);
     }
 
     /* draw ceilings */
@@ -1891,7 +1873,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                                     }
                                 }
                 } else {
-                    wallmost(dwall, z, nextsectnum, false, engine_state);
+                    wallmost(dwall, z, sector[nextsectnum].ceiling, engine_state);
                     if ((cz[2] > fz[0]) || (cz[3] > fz[1]))
                         for (i=x1; i<=x2; i++) if (dwall[i] > dplc[i]) {
                                 dwall[i] = dplc[i];
@@ -1996,7 +1978,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                                     }
                                 }
                 } else {
-                    wallmost(uwall, z, nextsectnum, true, engine_state);
+                    wallmost(uwall, z, sector[nextsectnum].floor, engine_state);
                     if ((fz[2] < cz[0]) || (fz[3] < cz[1]))
                         for (i=x1; i<=x2; i++) if (uwall[i] < uplc[i]) {
                                 uwall[i] = uplc[i];
@@ -4140,15 +4122,15 @@ static void drawmaskwall(EngineState *engine_state)
     z1 = max(nsec->ceiling.z, sec->ceiling.z);
     z2 = min(nsec->floor.z, sec->floor.z);
 
-    wallmost(uwall, z, sectnum, false, engine_state);
-    wallmost(uplc, z, (int32_t)wal->nextsector, false, engine_state);
+    wallmost(uwall, z, sec->ceiling, engine_state);
+    wallmost(uplc, z, nsec->ceiling, engine_state);
     for (x=pvWalls[z].screenSpaceCoo[0][VEC_COL]; x<=pvWalls[z].screenSpaceCoo[1][VEC_COL]; x++)
         if (uplc[x] > uwall[x]) {
             uwall[x] = uplc[x];
         }
 
-    wallmost(dwall, z, sectnum, true, engine_state);
-    wallmost(dplc, z, (int32_t)wal->nextsector, true, engine_state);
+    wallmost(dwall, z, sec->floor, engine_state);
+    wallmost(dplc, z, nsec->floor, engine_state);
     for (x=pvWalls[z].screenSpaceCoo[0][VEC_COL]; x<=pvWalls[z].screenSpaceCoo[1][VEC_COL]; x++)
         if (dplc[x] < dwall[x]) {
             dwall[x] = dplc[x];
