@@ -42,6 +42,8 @@ extern "C" {
         int32_t visibility;
         int32_t pisibility;
         int32_t hisibility;
+        
+        int32_t uclip, dclip;
     } EngineState;
 
 

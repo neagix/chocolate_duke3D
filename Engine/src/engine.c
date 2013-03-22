@@ -165,7 +165,7 @@ int32_t *horizlookup=0, *horizlookup2=0, horizycent;
 int32_t globalpal;
 int32_t cosviewingrangeglobalang, sinviewingrangeglobalang;
 uint8_t  *globalpalwritten;
-int32_t globaluclip, globaldclip, globvis = 0;
+int32_t globvis = 0;
 uint8_t  globparaceilclip, globparaflorclip;
 
 int32_t xyaspect, viewingrangerecip;
@@ -1516,10 +1516,10 @@ static int owallmost(short *mostbuf, int32_t w, int32_t z, EngineState *engine_s
     int32_t s1, s2, s3, s4, ix1, ix2, iy1, iy2, t;
 
     z <<= 7;
-    s1 = mulscale20(globaluclip,pvWalls[w].screenSpaceCoo[0][VEC_DIST]);
-    s2 = mulscale20(globaluclip,pvWalls[w].screenSpaceCoo[1][VEC_DIST]);
-    s3 = mulscale20(globaldclip,pvWalls[w].screenSpaceCoo[0][VEC_DIST]);
-    s4 = mulscale20(globaldclip,pvWalls[w].screenSpaceCoo[1][VEC_DIST]);
+    s1 = mulscale20(engine_state->uclip,pvWalls[w].screenSpaceCoo[0][VEC_DIST]);
+    s2 = mulscale20(engine_state->uclip,pvWalls[w].screenSpaceCoo[1][VEC_DIST]);
+    s3 = mulscale20(engine_state->dclip,pvWalls[w].screenSpaceCoo[0][VEC_DIST]);
+    s4 = mulscale20(engine_state->dclip,pvWalls[w].screenSpaceCoo[1][VEC_DIST]);
     bad = (z<s1)+((z<s2)<<1)+((z>s3)<<2)+((z>s4)<<3);
 
     ix1 = pvWalls[w].screenSpaceCoo[0][VEC_COL];
@@ -1684,10 +1684,10 @@ static int wallmost(short *mostbuf, int32_t w, int32_t sectnum, uint8_t  dastat,
     z2 = dmulscale24(dx*t,mulscale20(y2,i)+((y1-wall[fw].y)<<8),-dy*t,mulscale20(x2,i)+((x1-wall[fw].x)<<8))+((z2-engine_state->posz)<<7);
 
 
-    s1 = mulscale20(globaluclip,pvWalls[w].screenSpaceCoo[0][VEC_DIST]);
-    s2 = mulscale20(globaluclip,pvWalls[w].screenSpaceCoo[1][VEC_DIST]);
-    s3 = mulscale20(globaldclip,pvWalls[w].screenSpaceCoo[0][VEC_DIST]);
-    s4 = mulscale20(globaldclip,pvWalls[w].screenSpaceCoo[1][VEC_DIST]);
+    s1 = mulscale20(engine_state->uclip,pvWalls[w].screenSpaceCoo[0][VEC_DIST]);
+    s2 = mulscale20(engine_state->uclip,pvWalls[w].screenSpaceCoo[1][VEC_DIST]);
+    s3 = mulscale20(engine_state->dclip,pvWalls[w].screenSpaceCoo[0][VEC_DIST]);
+    s4 = mulscale20(engine_state->dclip,pvWalls[w].screenSpaceCoo[1][VEC_DIST]);
     bad = (z1<s1)+((z2<s2)<<1)+((z1>s3)<<2)+((z2>s4)<<3);
 
     ix1 = pvWalls[w].screenSpaceCoo[0][VEC_COL];
@@ -2477,8 +2477,8 @@ EngineState *drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daan
     engine_state.ang = (daang&2047); //FCS: Mask and keep only 11 bits of angle value.
 
     engine_state.horiz = mulscale16(dahoriz-100,xdimenscale)+(ydimen>>1);
-    globaluclip = (0 - engine_state.horiz) * xdimscale;
-    globaldclip = (ydimen - engine_state.horiz) * xdimscale;
+    engine_state.uclip = (0 - engine_state.horiz) * xdimscale;
+    engine_state.dclip = (ydimen - engine_state.horiz) * xdimscale;
 
     i = mulscale16(xdimenscale,viewingrangerecip);
     engine_state.pisibility = mulscale16(parallaxvisibility, i);
