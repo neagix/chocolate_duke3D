@@ -3781,7 +3781,7 @@ EngineState *displayrooms(short snum,int32_t smoothratio)
             }
 
             if ( wall[mirrorwall[i]].overpicnum == MIRROR ) {
-                preparemirror(cposx,cposy,cposz,cang,choriz,mirrorwall[i],mirrorsector[i],&tposx,&tposy,&tang);
+                preparemirror(cposx,cposy,cang,mirrorwall[i],&tposx,&tposy,&tang);
 
                 j = visibility;
                 visibility = (j>>1) + (j>>2);
@@ -8451,7 +8451,7 @@ void findGRPToUse(char *groupfilefullpath)
 static int load_duke3d_groupfile(void)
 {
     // FIX_00032: Added multi base GRP manager. Use duke3d*.grp to handle multiple grp.
-
+    /*
     char  groupfilefullpath[512];
     groupfilefullpath[0] = '\0';
 
@@ -8463,8 +8463,8 @@ static int load_duke3d_groupfile(void)
 
 
     FixFilePath(groupfilefullpath);
-
-    return(initgroupfile(groupfilefullpath) != -1);
+    */
+    return(initgroupfile("/Users/canassa/apps/chocolate_duke3D/DUKE3D.GRP") != -1);
 }
 
 int main(int argc,char  **argv)

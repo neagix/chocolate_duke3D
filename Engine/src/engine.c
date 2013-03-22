@@ -8489,9 +8489,8 @@ void setviewback(void)
 
 
 
-void preparemirror(int32_t dax, int32_t day, int32_t daz,
-                   short daang, int32_t dahoriz, short dawall,
-                   short dasector, int32_t *tposx, int32_t *tposy,
+void preparemirror(int32_t dax, int32_t day, short daang,
+                   short dawall, int32_t *tposx, int32_t *tposy,
                    short *tang)
 {
     int32_t i, j, x, y, dx, dy;
