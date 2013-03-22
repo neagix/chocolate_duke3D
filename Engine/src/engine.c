@@ -1117,7 +1117,7 @@ static void maskwallscan(int32_t x1, int32_t x2,
 
 
 /* renders parallaxed skies/floors  --ryan. */
-static void parascan(int32_t dax1, int32_t dax2, bool is_floor, int32_t bunch, EngineState *engine_state)
+static void parascan(bool is_floor, int32_t bunch, EngineState *engine_state)
 {
     Sector *sec;
     InnerSector floor_or_ceiling, next_sector;
@@ -1784,9 +1784,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                         sectnum,
                         engine_state);
         } else {
-            parascan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],
-                     pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],
-                     false, bunch, engine_state);
+            parascan(false, bunch, engine_state);
         }
     }
 
@@ -1800,9 +1798,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                       sectnum,
                       engine_state);
         } else {
-            parascan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],
-                     pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],
-                     true, bunch, engine_state);
+            parascan(true, bunch, engine_state);
         }
     }
 
