@@ -1117,11 +1117,11 @@ static void maskwallscan(int32_t x1, int32_t x2,
 
 
 /* renders parallaxed skies/floors  --ryan. */
-static void parascan(int32_t dax1, int32_t dax2, uint8_t dastat, int32_t bunch, EngineState *engine_state)
+static void parascan(int32_t dax1, int32_t dax2, bool is_floor, int32_t bunch, EngineState *engine_state)
 {
     Sector *sec;
+    InnerSector floor_or_ceiling, next_sector;
     int32_t a, k, l, m, n, x, z, wallnum, nextsectnum, horizbak, zd;
-    SectorFlags j;
     int32_t xpanning, ypanning;
     short *topptr, *botptr;
     int16_t picnum;
@@ -1131,6 +1131,8 @@ static void parascan(int32_t dax1, int32_t dax2, uint8_t dastat, int32_t bunch, 
     int32_t vis;
 
     sec = &sector[pvWalls[bunchfirst[bunch]].sectorId];
+    
+    floor_or_ceiling = is_floor ? sec->floor : sec->ceiling;
 
     horizbak = engine_state->horiz;
     if (parallaxyscale != 65536) {
@@ -1142,23 +1144,13 @@ static void parascan(int32_t dax1, int32_t dax2, uint8_t dastat, int32_t bunch, 
         vis = mulscale4(vis,(int32_t)((uint8_t )(sec->visibility+16)));
     }
 
-    if (dastat == 0) {
-        globalpal = sec->ceiling.pal;
-        picnum = sec->ceiling.picnum;
-        shade = (int32_t)sec->ceiling.shade;
-        xpanning = (int32_t)sec->ceiling.xpanning;
-        ypanning = (int32_t)sec->ceiling.ypanning;
-        topptr = umost;
-        botptr = uplc;
-    } else {
-        globalpal = sec->floor.pal;
-        picnum = sec->floor.picnum;
-        shade = (int32_t)sec->floor.shade;
-        xpanning = (int32_t)sec->floor.xpanning;
-        ypanning = (int32_t)sec->floor.ypanning;
-        topptr = dplc;
-        botptr = dmost;
-    }
+    globalpal = floor_or_ceiling.pal;
+    picnum = floor_or_ceiling.picnum;
+    shade = (int32_t)floor_or_ceiling.shade;
+    xpanning = (int32_t)floor_or_ceiling.xpanning;
+    ypanning = (int32_t)floor_or_ceiling.ypanning;
+    topptr = is_floor ? dplc : umost;
+    botptr = is_floor ? dmost : uplc;
 
     if ((uint32_t)picnum >= (uint32_t)MAXTILES) {
         picnum = 0;
@@ -1183,14 +1175,10 @@ static void parascan(int32_t dax1, int32_t dax2, uint8_t dastat, int32_t bunch, 
     for (z=bunchfirst[bunch]; z>=0; z=bunchWallsList[z]) {
         wallnum = pvWalls[z].worldWallId;
         nextsectnum = wall[wallnum].nextsector;
+        
+        next_sector = is_floor ? sector[nextsectnum].floor : sector[nextsectnum].ceiling;
 
-        if (dastat == 0) {
-            j = sector[nextsectnum].ceiling.flags;
-        } else {
-            j = sector[nextsectnum].floor.flags;
-        }
-
-        if ((nextsectnum < 0) || (wall[wallnum].flags.one_way) || !j.parallaxing) {
+        if ((nextsectnum < 0) || (wall[wallnum].flags.one_way) || !next_sector.flags.parallaxing) {
             if (x == -1) {
                 x = pvWalls[z].screenSpaceCoo[0][VEC_COL];
             }
@@ -1816,7 +1804,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
         } else {
             parascan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],
                      pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],
-                     0, bunch, engine_state);
+                     false, bunch, engine_state);
         }
     }
 
@@ -1832,7 +1820,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
         } else {
             parascan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],
                      pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],
-                     1, bunch, engine_state);
+                     true, bunch, engine_state);
         }
     }
 
