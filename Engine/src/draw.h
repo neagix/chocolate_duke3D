@@ -51,7 +51,7 @@ extern "C" {
     void mspritevline(int32_t,int32_t,int32_t,uint8_t *,uint8_t *);
     void tsetupspritevline(uint8_t *,int32_t,int32_t,int32_t,int32_t);
     void DrawSpriteVerticalLine(int32_t,int32_t,uint32_t,uint8_t * ,uint8_t *);
-    void mhline(uint8_t *,int32_t,int32_t,int32_t,int32_t,uint8_t *,int32_t,int32_t,int32_t);
+    void mhline(uint8_t *,int32_t,int32_t,int32_t,uint8_t *,int32_t,int32_t,int32_t);
     void mhlineskipmodify(uint32_t,int32_t,int32_t,uint8_t *);
     void msethlineshift(int32_t,int32_t);
     void thline(uint8_t *,int32_t,int32_t,int32_t,int32_t,uint8_t *,int32_t,int32_t,int32_t);
