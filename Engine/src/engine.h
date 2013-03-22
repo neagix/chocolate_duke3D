@@ -44,6 +44,7 @@ extern "C" {
         int32_t hisibility;
         
         int32_t uclip, dclip;
+        uint8_t ceiling_clip, floor_clip;
     } EngineState;
 
 

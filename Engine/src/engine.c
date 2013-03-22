@@ -166,7 +166,6 @@ int32_t globalpal;
 int32_t cosviewingrangeglobalang, sinviewingrangeglobalang;
 uint8_t  *globalpalwritten;
 int32_t globvis = 0;
-uint8_t  globparaceilclip, globparaflorclip;
 
 int32_t xyaspect, viewingrangerecip;
 
@@ -1888,7 +1887,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
 
             if (!sec->ceiling.flags.parallaxing || !nextsec->ceiling.flags.parallaxing) {
                 if ((cz[2] <= cz[0]) && (cz[3] <= cz[1])) {
-                    if (globparaceilclip)
+                    if (engine_state->ceiling_clip)
                         for (x=x1; x<=x2; x++)
                             if (uplc[x] > umost[x])
                                 if (umost[x] <= dmost[x]) {
@@ -1993,7 +1992,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
             }
             if (!sec->floor.flags.parallaxing || !nextsec->floor.flags.parallaxing) {
                 if ((fz[2] >= fz[0]) && (fz[3] >= fz[1])) {
-                    if (globparaflorclip)
+                    if (engine_state->floor_clip)
                         for (x=x1; x<=x2; x++)
                             if (dplc[x] < dmost[x])
                                 if (umost[x] <= dmost[x]) {
@@ -2533,17 +2532,17 @@ EngineState *drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daan
         }
     }
 
-    globparaceilclip = 1;
-    globparaflorclip = 1;
+    engine_state.ceiling_clip = 1;
+    engine_state.floor_clip = 1;
 
     //Update the ceiling and floor Z coordinate for the player's 2D position.
     getzsofslope(currentSectorNumber, engine_state.posx, engine_state.posy, &cz, &fz);
 
     if (engine_state.posz < cz) {
-        globparaceilclip = 0;
+        engine_state.ceiling_clip = 0;
     }
     if (engine_state.posz > fz) {
-        globparaflorclip = 0;
+        engine_state.floor_clip = 0;
     }
 
     //Build the list of potentially visible wall in to "bunches".
