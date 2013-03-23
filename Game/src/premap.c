@@ -380,11 +380,11 @@ void xyzmirror(short i,short tileId)
 
     setviewtotile(tileId,tiles[tileId].dim.height,tiles[tileId].dim.width);
 
-    EngineState *engine_state = drawrooms(SX,SY,SZ,SA,100+sprite[i].shade,SECT);
+    EngineState *engine_state = drawrooms(SX,SY,SZ,SA,100+sprite[i].shade,SECT,false);
     display_mirror = 1;
     animatesprites(SX,SY,SA,65536L,engine_state);
     display_mirror = 0;
-    drawmasks(engine_state);
+    drawmasks(engine_state, false);
 
     setviewback();
     squarerotatetile(tileId);

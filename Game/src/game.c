@@ -3536,9 +3536,9 @@ static void SE40_Draw(int spnum,int32_t x,int32_t y,int32_t z,short a,short h,in
     offx=x-sprite[i].x;
     offy=y-sprite[i].y;
     i=floor2;
-    EngineState *engine_state = drawrooms(offx+sprite[i].x,offy+sprite[i].y,z,a,h,sprite[i].sectnum);
+    EngineState *engine_state = drawrooms(offx+sprite[i].x,offy+sprite[i].y,z,a,h,sprite[i].sectnum,false);
     animatesprites(x,y,a,smoothratio, engine_state);
-    drawmasks(engine_state);
+    drawmasks(engine_state, false);
 
     for (j=0; j<MAXSPRITES; j++) { // restore ceiling or floor
         if (sprite[j].picnum==1 &&
@@ -3643,9 +3643,9 @@ EngineState *displayrooms(short snum,int32_t smoothratio)
 
         se40code(s->x,s->y,s->z,cang,s->yvel,smoothratio);
 
-        engine_state = drawrooms(s->x,s->y,s->z-(4<<8),cang,s->yvel,s->sectnum);
+        engine_state = drawrooms(s->x,s->y,s->z-(4<<8),cang,s->yvel,s->sectnum,false);
         animatesprites(s->x, s->y, cang, smoothratio, engine_state);
-        drawmasks(engine_state);
+        drawmasks(engine_state, false);
     } else {
         i = divscale22(1,sprite[p->i].yrepeat+28);
         if (i != oyrepeat) {
@@ -3781,27 +3781,26 @@ EngineState *displayrooms(short snum,int32_t smoothratio)
             }
 
             if ( wall[mirrorwall[i]].overpicnum == MIRROR ) {
-                preparemirror(cposx,cposy,cang,mirrorwall[i],&tposx,&tposy,&tang);
+                ReverseCoordinatesInX(cposx, cposy, cang, &wall[mirrorwall[i]], &tposx, &tposy, &tang);
 
                 j = visibility;
                 visibility = (j>>1) + (j>>2);
 
-                engine_state = drawrooms(tposx,tposy,cposz,tang,choriz,mirrorsector[i]+MAXSECTORS);
+                engine_state = drawrooms(tposx,tposy,cposz,tang,choriz,mirrorsector[i]+MAXSECTORS,true);
 
                 display_mirror = 1;
                 animatesprites(tposx, tposy, tang, smoothratio, engine_state);
                 display_mirror = 0;
 
-                drawmasks(engine_state);
-                completemirror();   //Reverse screen x-wise in this function
+                drawmasks(engine_state, true);
                 visibility = j;
             }
             gotpic[MIRROR>>3] &= ~(1<<(MIRROR&7));
         }
 
-        EngineState *engine_state = drawrooms(cposx,cposy,cposz,cang,choriz,sect);
+        EngineState *engine_state = drawrooms(cposx,cposy,cposz,cang,choriz,sect,false);
         animatesprites(cposx, cposy, cang,smoothratio, engine_state);
-        drawmasks(engine_state);
+        drawmasks(engine_state, false);
 
         if (screencapt == 1) {
             setviewback();

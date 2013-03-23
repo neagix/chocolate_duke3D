@@ -17,6 +17,8 @@
 #ifndef _INCLUDE_ENGINE_H_
 #define _INCLUDE_ENGINE_H_
 
+#include <stdbool.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -87,9 +89,9 @@ extern "C" {
 
 
     void nextpage(void);
-    EngineState *drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,int16_t daang, int32_t dahoriz, int16_t dacursectnum);
+    EngineState *drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,int16_t daang, int32_t dahoriz, int16_t dacursectnum, bool draw_mirror);
     int loadboard(char  *filename, int32_t *daposx, int32_t *daposy,int32_t *daposz, int16_t *daang, int16_t *dacursectnum);
-    void drawmasks(EngineState *engine_state);
+    void drawmasks(EngineState *engine_state, bool draw_mirror);
     void printext256(int32_t xpos, int32_t ypos, int16_t col, int16_t backcol,char  name[82], uint8_t  fontsize);
 
     void initengine(void);
@@ -153,8 +155,7 @@ extern "C" {
     void setviewtotile(int16_t tilenume, int32_t xsiz, int32_t ysiz);
     void setviewback(void);
     void squarerotatetile(int16_t tilenume);
-    void preparemirror(int32_t dax, int32_t day, int16_t daang, int16_t dawall, int32_t *tposx, int32_t *tposy, short *tang);
-    void completemirror(void);
+    void ReverseCoordinatesInX(int32_t camera_x, int32_t camera_y, short camera_ang, walltype *mirror_wall, int32_t *tposx, int32_t *tposy, short *tang);
     int clipinsidebox(int32_t x, int32_t y, int16_t wallnum, int32_t walldist);
 
 #include "cache.h"

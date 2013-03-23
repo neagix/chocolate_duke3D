@@ -190,7 +190,7 @@ extern "C" {
         int32 scripthandle,
         uint8_t   *sectionname,
         uint8_t   *entryname,
-        boolean *bool
+        boolean *bool_
     );
 
     /*
@@ -345,7 +345,7 @@ extern "C" {
         int32 scripthandle,
         uint8_t   *sectionname,
         uint8_t   *entryname,
-        boolean bool
+        boolean bool_
     );
 
     /*

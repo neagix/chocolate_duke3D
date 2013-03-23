@@ -88,14 +88,6 @@ uint8_t  textfont[1024], smalltextfont[1024];
 
 GameMode game_mode;
 
-
-
-
-
-
-
-
-
 enum vector_index_e {VEC_X=0,VEC_Y=1};
 enum screenSpaceCoo_index_e {VEC_COL=0,VEC_DIST=1};
 typedef int32_t vector_t[2];
@@ -111,20 +103,6 @@ typedef struct pvWall_s {
 
 // Potentially Visible walls are stored in this stack.
 pvWall_t pvWalls[MAXWALLSB];
-
-
-
-
-//xb1 and xb2 seems to be storing the column of the wall endpoint
-//yb1 and yb2 store the Y distance from the camera.
-
-//static int32_t xb1[MAXWALLSB], yb1[MAXWALLSB], xb2[MAXWALLSB], yb2[MAXWALLSB];
-
-/*
-//rx1,rx2,ry1,ry2 stores the cameraspace wall endpoints coordinates.
-static int32_t rx1[MAXWALLSB], ry1[MAXWALLSB], rx2[MAXWALLSB], ry2[MAXWALLSB];
-static short thesector[MAXWALLSB], thewall[MAXWALLSB];
-*/
 
 // bunchWallsList contains the list of walls in a bunch.
 static short bunchWallsList[MAXWALLSB];
@@ -221,7 +199,6 @@ short searchsector, searchwall, searchstat;     /* search output */
 
 int32_t numtilefiles, artfil = -1, artfilnum, artfilplc;
 
-static uint8_t  inpreparemirror = 0;
 static int32_t mirrorsx1, mirrorsy1, mirrorsx2, mirrorsy2;
 
 int32_t totalclocklock;
@@ -2390,7 +2367,8 @@ static int bunchfront(int32_t firstBunchID, int32_t secondBunchID, EngineState *
 /*
       FCS: Draw every walls in Front to Back Order.
 */
-EngineState *drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daang, int32_t dahoriz, short currentSectorNumber)
+EngineState *drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,
+                       short daang, int32_t dahoriz, short currentSectorNumber, bool draw_mirror)
 {
     int32_t i, j, closest;
     //Ceiling and Floor height at the player position.
@@ -2519,8 +2497,7 @@ EngineState *drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,short daan
     scansector(currentSectorNumber, &numscans, &numbunches, &engine_state);
 
     // Are we drawing a mirror?
-    if (inpreparemirror) {
-        inpreparemirror = 0;
+    if (draw_mirror) {
         mirrorsx1 = xdimen-1;
         mirrorsx2 = 0;
         for (i=numscans-1; i>=0; i--) {
@@ -5316,10 +5293,40 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
     }
 }
 
+
+void DrawMirror(void)
+{
+    int32_t i, dy, p;
+    char buffer[MAXWALLS];
+    
+    // This seems to be bleeding the mirror by 1 pixel when
+    // the left or right border are on screen. I am not sure
+    // why this is done. I didn't notice no difference when
+    // this as was removed.
+    if (mirrorsx1 > 0) mirrorsx1--;
+    if (mirrorsx2 < windowx2-windowx1-1) mirrorsx2++;
+    
+    // Wall is not visible, skip drawing
+    if (mirrorsx2 < mirrorsx1) return;
+    
+    p = frameplace+ylookup[windowy1+mirrorsy1]+windowx1+mirrorsx1;
+    i = windowx2-windowx1-mirrorsx2-mirrorsx1;
+    mirrorsx2 -= mirrorsx1;
+    // FIX_00085: Optimized Video driver. FPS increases by +20%.
+    for (dy=mirrorsy2-mirrorsy1-1; dy>=0; dy--) {
+        copybufbyte((void *)(p), buffer, mirrorsx2 + 1);
+        buffer[mirrorsx2] = buffer[mirrorsx2 - 1];
+        copybufreverse(&buffer[mirrorsx2], (void *)(p+i), mirrorsx2 + 1);
+        p += ylookup[1];
+        faketimerhandler();
+    }
+}
+
+
 /*
      FCS: Draw every transparent sprites in Back To Front Order. Also draw decals on the walls...
  */
-void drawmasks(EngineState *engine_state)
+void drawmasks(EngineState *engine_state, bool draw_mirror)
 {
     int32_t i, j, k, l, gap, xs, ys, xp, yp, yoff, yspan;
     /* int32_t zs, zp; */
@@ -5467,6 +5474,8 @@ void drawmasks(EngineState *engine_state)
     while (engine_state->maskwallcnt > 0) {
         drawmaskwall(engine_state);
     }
+    
+    if (draw_mirror) DrawMirror();
 }
 
 
@@ -8481,61 +8490,24 @@ void setviewback(void)
 
 
 
-
-void preparemirror(int32_t dax, int32_t day, short daang,
-                   short dawall, int32_t *tposx, int32_t *tposy,
-                   short *tang)
+// Reverse x-wise the input coordinates, used for drawing mirrors
+void ReverseCoordinatesInX(int32_t camera_x, int32_t camera_y, short camera_ang, walltype *mirror_wall,
+                   int32_t *tposx, int32_t *tposy, short *tang)
 {
-    int32_t i, j, x, y, dx, dy;
+    int32_t i, j, dx, dy;
 
-    x = wall[dawall].x;
-    dx = wall[wall[dawall].point2].x-x;
-    y = wall[dawall].y;
-    dy = wall[wall[dawall].point2].y-y;
-    j = dx*dx + dy*dy;
-    if (j == 0) {
-        return;
-    }
-    i = (((dax-x)*dx + (day-y)*dy)<<1);
-    *tposx = (x<<1) + scale(dx,i,j) - dax;
-    *tposy = (y<<1) + scale(dy,i,j) - day;
-    *tang = (((getangle(dx,dy)<<1)-daang)&2047);
+    dx = wall[mirror_wall->point2].x - mirror_wall->x;
+    dy = wall[mirror_wall->point2].y - mirror_wall->y;
 
-    inpreparemirror = 1;
-}
-
-
-void completemirror(void)
-{
-    int32_t i, dy, p;
-    char buffer[MAXWALLS];
-
-    /* Can't reverse with uninitialized data */
-    if (inpreparemirror) {
-        inpreparemirror = 0;
-        return;
-    }
-    if (mirrorsx1 > 0) {
-        mirrorsx1--;
-    }
-    if (mirrorsx2 < windowx2-windowx1-1) {
-        mirrorsx2++;
-    }
-    if (mirrorsx2 < mirrorsx1) {
-        return;
-    }
-
-    p = frameplace+ylookup[windowy1+mirrorsy1]+windowx1+mirrorsx1;
-    i = windowx2-windowx1-mirrorsx2-mirrorsx1;
-    mirrorsx2 -= mirrorsx1;
-    // FIX_00085: Optimized Video driver. FPS increases by +20%.
-    for (dy=mirrorsy2-mirrorsy1-1; dy>=0; dy--) {
-        copybufbyte((void *)(p), buffer, mirrorsx2 + 1);
-        buffer[mirrorsx2] = buffer[mirrorsx2 - 1];
-        copybufreverse(&buffer[mirrorsx2], (void *)(p+i), mirrorsx2 + 1);
-        p += ylookup[1];
-        faketimerhandler();
-    }
+    j = dx * dx + dy * dy;
+    
+    if (j == 0) return;
+    
+    i = (((camera_x - mirror_wall->x) * dx + (camera_y - mirror_wall->y) * dy)<<1);
+    
+    *tposx = (mirror_wall->x << 1) + scale(dx, i, j) - camera_x;
+    *tposy = (mirror_wall->y << 1) + scale(dy, i, j) - camera_y;
+    *tang = (((getangle(dx, dy) << 1) - camera_ang) & 2047);
 }
 
 

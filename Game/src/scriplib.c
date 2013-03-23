@@ -744,7 +744,7 @@ void SCRIPT_GetBoolean
     int32 scripthandle,
     uint8_t   *sectionname,
     uint8_t   *entryname,
-    boolean *bool
+    boolean *bool_
 )
 {
     STUBBED("GetBoolean");
@@ -1060,7 +1060,7 @@ void SCRIPT_PutBoolean
     int32 scripthandle,
     uint8_t   *sectionname,
     uint8_t   *entryname,
-    boolean bool
+    boolean bool_
 )
 {
     STUBBED("PutBoolean");
