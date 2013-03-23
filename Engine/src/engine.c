@@ -7739,7 +7739,7 @@ void makepalookup(int32_t palnum, uint8_t  *remapbuf, int8_t r,
     if (palookup[palnum] == NULL) {
         /* Allocate palookup buffer */
         if ((palookup[palnum] = (uint8_t *)kkmalloc(numpalookups<<8)) == NULL) {
-            allocache((int32_t *)&palookup[palnum],numpalookups<<8,&permanentlock);
+            allocache(&palookup[palnum],numpalookups<<8,&permanentlock);
         }
     }
 
