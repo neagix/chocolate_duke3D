@@ -498,7 +498,7 @@ char  *grpVersion2char(uint8_t  grp_to_identify)
             break;
         default:
             Error(EXIT_FAILURE,"Failed the GRP Identification\n");
-            break;
+	    return "";
     }
 
     return(id);
