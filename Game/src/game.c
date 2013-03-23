@@ -8451,7 +8451,7 @@ void findGRPToUse(char *groupfilefullpath)
 static int load_duke3d_groupfile(void)
 {
     // FIX_00032: Added multi base GRP manager. Use duke3d*.grp to handle multiple grp.
-    /*
+
     char  groupfilefullpath[512];
     groupfilefullpath[0] = '\0';
 
@@ -8463,8 +8463,8 @@ static int load_duke3d_groupfile(void)
 
 
     FixFilePath(groupfilefullpath);
-    */
-    return(initgroupfile("/Users/canassa/apps/chocolate_duke3D/DUKE3D.GRP") != -1);
+
+    return(initgroupfile(groupfilefullpath) != -1);
 }
 
 int main(int argc,char  **argv)
