@@ -45,7 +45,7 @@
 /* used to be static. --ryan. */
 uint8_t  moustat = 0;
 
-int32_t transarea = 0, beforedrawrooms = 1;
+int32_t beforedrawrooms = 1;
 
 /* used to be static. --ryan. */
 int32_t oxdimen = -1, oviewingrange = -1, oxyaspect = -1;
@@ -648,7 +648,6 @@ static void slowhline (int32_t xr, int32_t yp,
            g_x2 * r + ypanning - a2 * (xr - xl),
            ylookup[yp]+xl+frameoffset,
            a1, a2, a3);
-    transarea += (xr-xl);
 }
 
 
@@ -2658,8 +2657,6 @@ static void transmaskvline(int32_t x, int32_t zd,
                tiles[picnum].data + i * tiles[picnum].dim.height,
                shiftval,
                ylookup[y1v] + x + frameoffset);
-
-    transarea += y2v-y1v;
 }
 
 
@@ -3736,7 +3733,6 @@ static void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short pi
                 }
             } else {
                 DrawSpriteVerticalLine(by<<16,y2-y1+1,bx<<16,(bx>>16)*tileHeight+(by>>16)+bufplc,p);
-                transarea += (y2-y1);
             }
             faketimerhandler();
         }
@@ -4275,7 +4271,6 @@ static void ceilspritehline (int32_t x2, int32_t y, int32_t zd,
         mhline(globalbufplc,bx,(x2-x1)<<16,by,ylookup[y]+x1+frameoffset,a1,a2,a3);
     } else {
         thline(globalbufplc,bx,(x2-x1)<<16,by,ylookup[y]+x1+frameoffset,a1,a2,a3);
-        transarea += (x2-x1);
     }
 }
 
@@ -7912,7 +7907,6 @@ static void fillpolygon(int32_t npoints, uint8_t polyType,
                     mhline(globalbufplc,bx,(x2-x1)<<16,by,p,a1,a2,asm3);
                 } else {
                     thline(globalbufplc,bx,(x2-x1)<<16,by,p,a1,a2,asm3);
-                    transarea += (x2-x1);
                 }
             }
         }
@@ -8530,8 +8524,6 @@ void completemirror(void)
     if (mirrorsx2 < mirrorsx1) {
         return;
     }
-
-    transarea += (mirrorsx2-mirrorsx1)*(windowy2-windowy1);
 
     p = frameplace+ylookup[windowy1+mirrorsy1]+windowx1+mirrorsx1;
     i = windowx2-windowx1-mirrorsx2-mirrorsx1;
