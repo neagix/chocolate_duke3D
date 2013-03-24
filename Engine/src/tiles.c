@@ -10,6 +10,7 @@
 #include "engine.h"
 #include "draw.h"
 #include "filesystem.h"
+#include "math.h"
 
 char  artfilename[20];
 
@@ -53,6 +54,12 @@ void setviewtotile(short tilenume, int32_t tileWidth, int32_t tileHeight)
 }
 
 
+uint32_t RoundPowerOf2 (uint32_t value) {
+    value = (unsigned)log2(value);
+    if (!value) value++;
+    
+    return value;
+}
 
 
 void squarerotatetile(short tilenume)
@@ -162,7 +169,6 @@ void loadtile(short tilenume)
 
 uint8_t *allocatepermanenttile(short tilenume, int32_t width, int32_t height)
 {
-    int32_t j;
     uint32_t tileDataSize;
 
     //Check dimensions are correct.
@@ -179,21 +185,11 @@ uint8_t *allocatepermanenttile(short tilenume, int32_t width, int32_t height)
     tiles[tilenume].dim.height = height;
     tiles[tilenume].animFlags = 0;
 
-    j = 15;
-    while ((j > 1) && (pow2long[j] > width)) {
-        j--;
-    }
-    picsiz[tilenume] = ((uint8_t )j);
+    picsiz[tilenume] = RoundPowerOf2(width);
+    picsiz[tilenume] += (uint8_t )RoundPowerOf2(height)<<4;
 
-    j = 15;
-    while ((j > 1) && (pow2long[j] > height)) {
-        j--;
-    }
-    picsiz[tilenume] += ((uint8_t )(j<<4));
-
-    return(tiles[tilenume].data);
+    return tiles[tilenume].data;
 }
-
 
 
 int loadpics(char  *filename, char *gamedir)
@@ -201,7 +197,7 @@ int loadpics(char  *filename, char *gamedir)
 {
     int32_t artsize = 0L, cachesize;
     int32_t offscount, localtilestart, localtileend, dasiz;
-    short fil, i, j, k;
+    short fil, i, k;
 
 
     strcpy(artfilename,filename);
@@ -278,19 +274,8 @@ int loadpics(char  *filename, char *gamedir)
     initcache(pic,cachesize);
 
     for (i=0; i<MAXTILES; i++) {
-        j = 15;
-        while ((j > 1) && (pow2long[j] > tiles[i].dim.width)) {
-            j--;
-        }
-
-        picsiz[i] = ((uint8_t )j);
-        j = 15;
-
-        while ((j > 1) && (pow2long[j] > tiles[i].dim.height)) {
-            j--;
-        }
-
-        picsiz[i] += ((uint8_t )(j<<4));
+        picsiz[i] = RoundPowerOf2(tiles[i].dim.width);
+        picsiz[i] += (uint8_t )RoundPowerOf2(tiles[i].dim.height)<<4;
     }
 
     artfil = -1;
