@@ -1251,7 +1251,7 @@ static void parascan(bool is_floor, int32_t bunch, EngineState *engine_state)
 
 
 #define BITSOFPRECISION 3  /* Don't forget to change this in A.ASM also! */
-static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dastat, EngineState *engine_state)
+static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dastat, int32_t pallete, EngineState *engine_state)
 {
     int32_t i, j, l, x, y, dx, dy, wx, wy, y1, y2, daz, zd;
     int32_t daslope, dasqr;
@@ -1397,7 +1397,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
     }
     vis = mulscale13(vis,daz);
     vis = mulscale16(vis,xdimscale);
-    j =(int32_t) FP_OFF(palookup[globalpal]);
+    j =(int32_t) FP_OFF(palookup[pallete]);
 
     setupslopevlin(((int32_t)(picsiz[picnum]&15))+(((int32_t)(picsiz[picnum]>>4))<<8),
                    tiles[picnum].data,
@@ -1750,7 +1750,9 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
     /* draw ceilings */
     if ((andwstat1&3) != 3) {
         if (sec->ceiling.flags.groudraw && !sec->ceiling.flags.parallaxing) {
-            grouscan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],sectnum,0,engine_state);
+            grouscan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],
+                     pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],
+                     sectnum, 0, globalpal, engine_state);
         } else if (!sec->ceiling.flags.parallaxing) {
             CeilingScan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],
                         pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],
@@ -1764,7 +1766,9 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
     /* draw floors */
     if ((andwstat2&12) != 12) {
         if (sec->floor.flags.groudraw && !sec->floor.flags.parallaxing) {
-            grouscan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],sectnum,1,engine_state);
+            grouscan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],
+                     pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],
+                     sectnum, 1, globalpal, engine_state);
         } else if (!sec->floor.flags.parallaxing) {
             FloorScan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],
                       pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],
@@ -4216,6 +4220,7 @@ static void ceilspritehline (int32_t x2, int32_t y, int32_t zd,
                              int32_t g_x1, int32_t g_y1, int32_t g_x2, int32_t g_y2,
                              SectorFlags flags,
                              int32_t shade, int32_t vis,
+                             int32_t pallete,
                              EngineState *engine_state)
 {
     int32_t x1, v, bx, by, a1, a2, a3;
@@ -4238,7 +4243,7 @@ static void ceilspritehline (int32_t x2, int32_t y, int32_t zd,
 
     a1 = mulscale14(g_x2,v);
     a2 = mulscale14(g_y2,v);
-    a3 = (int32_t)FP_OFF(palookup[globalpal]) + (getpalookup((int32_t)mulscale28(klabs(v),vis),shade)<<8);
+    a3 = (int32_t)FP_OFF(palookup[pallete]) + (getpalookup((int32_t)mulscale28(klabs(v),vis),shade)<<8);
 
     if (!flags.groudraw) {
         mhline(globalbufplc,bx,(x2-x1)<<16,by,ylookup[y]+x1+frameoffset,a1,a2,a3);
@@ -4264,26 +4269,26 @@ static void ceilspritescan (int32_t x1, int32_t x2, int32_t zd,
         if (twall < bwall-1) {
             if (twall >= y2) {
                 while (y1 < y2-1) {
-                    ceilspritehline(x-1, ++y1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, shade, vis, engine_state);
+                    ceilspritehline(x-1, ++y1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, shade, vis, globalpal, engine_state);
                 }
                 y1 = twall;
             } else {
                 while (y1 < twall) {
-                    ceilspritehline(x-1, ++y1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, shade, vis, engine_state);
+                    ceilspritehline(x-1, ++y1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, shade, vis, globalpal, engine_state);
                 }
                 while (y1 > twall) {
                     lastx[y1--] = x;
                 }
             }
             while (y2 > bwall) {
-                ceilspritehline(x-1, --y2, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, shade, vis, engine_state);
+                ceilspritehline(x-1, --y2, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, shade, vis, globalpal, engine_state);
             }
             while (y2 < bwall) {
                 lastx[y2++] = x;
             }
         } else {
             while (y1 < y2-1) {
-                ceilspritehline(x-1, ++y1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, shade, vis, engine_state);
+                ceilspritehline(x-1, ++y1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, shade, vis, globalpal, engine_state);
             }
             if (x == x2) {
                 break;
@@ -4293,7 +4298,7 @@ static void ceilspritescan (int32_t x1, int32_t x2, int32_t zd,
         }
     }
     while (y1 < y2-1) {
-        ceilspritehline(x2, ++y1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, shade, vis, engine_state);
+        ceilspritehline(x2, ++y1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, shade, vis, globalpal, engine_state);
     }
     faketimerhandler();
 }
