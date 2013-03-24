@@ -138,7 +138,6 @@ static int32_t xsi[8], ysi[8];
 /* used to be static. --ryan. */
 int32_t *horizlookup=0, *horizlookup2=0, horizycent;
 
-int32_t globalpal;
 int32_t cosviewingrangeglobalang, sinviewingrangeglobalang;
 uint8_t  *globalpalwritten;
 
@@ -936,6 +935,7 @@ static void wallscan(int32_t x1, int32_t x2,
                      int32_t shade,
                      int16_t shiftval,
                      int32_t yscale, int32_t vis,
+                     int32_t pallete,
                      EngineState *engine_state)
 {
     int32_t bufplce[4], vplce[4], vince[4];
@@ -964,7 +964,7 @@ static void wallscan(int32_t x1, int32_t x2,
         tileHeight = (picsiz[picnum]>>4);
     }
 
-    fpalookup = palookup[globalpal];
+    fpalookup = palookup[pallete];
 
     SetupVerticalLine(shiftval);
 
@@ -1017,6 +1017,7 @@ static void maskwallscan(int32_t x1, int32_t x2,
                          int32_t shade,
                          int16_t shiftval,
                          int32_t yscale, int32_t vis,
+                         int32_t pallete,
                          EngineState *engine_state)
 {
     int32_t x, xnice, ynice;
@@ -1045,7 +1046,7 @@ static void maskwallscan(int32_t x1, int32_t x2,
         tileHeight = (picsiz[picnum]>>4);
     }
 
-    fpalookup = palookup[globalpal];
+    fpalookup = palookup[pallete];
 
     SetupVerticalLine(shiftval);
 
@@ -1102,6 +1103,7 @@ static void parascan(bool is_floor, int32_t bunch, EngineState *engine_state)
     int16_t shiftval;
     int32_t yscale;
     int32_t vis;
+    int32_t pallete;
 
     sec = &sector[pvWalls[bunchfirst[bunch]].sectorId];
     
@@ -1117,7 +1119,7 @@ static void parascan(bool is_floor, int32_t bunch, EngineState *engine_state)
         vis = mulscale4(vis,(int32_t)((uint8_t )(sec->visibility+16)));
     }
 
-    globalpal = floor_or_ceiling.pal;
+    pallete = floor_or_ceiling.pal;
     picnum = floor_or_ceiling.picnum;
     shade = (int32_t)floor_or_ceiling.shade;
     xpanning = (int32_t)floor_or_ceiling.xpanning;
@@ -1185,7 +1187,7 @@ static void parascan(bool is_floor, int32_t bunch, EngineState *engine_state)
                          pvWalls[z].screenSpaceCoo[0][VEC_COL] - 1,
                          topptr, botptr, swplc, lplc,
                          zd,
-                         xpanning, picnum, shade, shiftval, yscale, vis,
+                         xpanning, picnum, shade, shiftval, yscale, vis, pallete,
                          engine_state);
             } else {
                 a = x;
@@ -1193,7 +1195,7 @@ static void parascan(bool is_floor, int32_t bunch, EngineState *engine_state)
                     n = l+pskyoff[lplc[x]>>m];
                     if (n != picnum) {
                         wallscan(a, x-1, topptr ,botptr, swplc, lplc, zd,
-                                 xpanning, picnum, shade, shiftval, yscale, vis,
+                                 xpanning, picnum, shade, shiftval, yscale, vis, pallete,
                                  engine_state);
                         a = x;
                         picnum = n;
@@ -1202,7 +1204,7 @@ static void parascan(bool is_floor, int32_t bunch, EngineState *engine_state)
                 }
                 if (a < x) {
                     wallscan(a, x-1, topptr, botptr, swplc, lplc, zd,
-                             xpanning, picnum, shade, shiftval,  yscale, vis,
+                             xpanning, picnum, shade, shiftval,  yscale, vis, pallete,
                              engine_state);
                 }
             }
@@ -1222,7 +1224,7 @@ static void parascan(bool is_floor, int32_t bunch, EngineState *engine_state)
                      pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],
                      topptr, botptr, swplc, lplc,
                      zd,
-                     xpanning, picnum, shade, shiftval, yscale, vis,
+                     xpanning, picnum, shade, shiftval, yscale, vis, pallete,
                      engine_state);
         } else {
             a = x;
@@ -1231,7 +1233,7 @@ static void parascan(bool is_floor, int32_t bunch, EngineState *engine_state)
                 if (n != picnum) {
                     wallscan(a, x-1,
                              topptr, botptr, swplc, lplc, zd,
-                             xpanning, picnum, shade, shiftval, yscale, vis,
+                             xpanning, picnum, shade, shiftval, yscale, vis, pallete,
                              engine_state);
                     a = x;
                     picnum = n;
@@ -1240,7 +1242,7 @@ static void parascan(bool is_floor, int32_t bunch, EngineState *engine_state)
             }
             if (a <= x) {
                 wallscan(a, x, topptr, botptr, swplc, lplc, zd,
-                         xpanning, picnum, shade, shiftval, yscale, vis,
+                         xpanning, picnum, shade, shiftval, yscale, vis, pallete,
                          engine_state);
             }
         }
@@ -1251,7 +1253,7 @@ static void parascan(bool is_floor, int32_t bunch, EngineState *engine_state)
 
 
 #define BITSOFPRECISION 3  /* Don't forget to change this in A.ASM also! */
-static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dastat, int32_t pallete, EngineState *engine_state)
+static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dastat, EngineState *engine_state)
 {
     int32_t i, j, l, x, y, dx, dy, wx, wy, y1, y2, daz, zd;
     int32_t daslope, dasqr;
@@ -1264,6 +1266,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
     int16_t picnum;
     int32_t shade;
     int32_t vis;
+    int32_t pallete;
 
     sec = &sector[sectnum];
 
@@ -1274,7 +1277,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
         flags = sec->ceiling.flags;
         picnum = sec->ceiling.picnum;
         shade = sec->ceiling.shade;
-        globalpal = sec->ceiling.pal;
+        pallete = sec->ceiling.pal;
         daslope = sec->ceiling.heinum;
         daz = sec->ceiling.z;
     } else {
@@ -1284,7 +1287,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
         flags = sec->floor.flags;
         picnum = sec->floor.picnum;
         shade = sec->floor.shade;
-        globalpal = sec->floor.pal;
+        pallete = sec->floor.pal;
         daslope = sec->floor.heinum;
         daz = sec->floor.z;
     }
@@ -1752,7 +1755,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
         if (sec->ceiling.flags.groudraw && !sec->ceiling.flags.parallaxing) {
             grouscan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],
                      pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],
-                     sectnum, 0, globalpal, engine_state);
+                     sectnum, 0, engine_state);
         } else if (!sec->ceiling.flags.parallaxing) {
             CeilingScan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],
                         pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],
@@ -1768,7 +1771,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
         if (sec->floor.flags.groudraw && !sec->floor.flags.parallaxing) {
             grouscan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],
                      pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],
-                     sectnum, 1, globalpal, engine_state);
+                     sectnum, 1, engine_state);
         } else if (!sec->floor.flags.parallaxing) {
             FloorScan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],
                       pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],
@@ -1882,7 +1885,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                     if (sec->visibility != 0) {
                         vis = mulscale4(vis,(int32_t)((uint8_t )(sec->visibility+16)));
                     }
-                    globalpal = (int32_t)wal->pal;
+
                     yscale = (wal->yrepeat<<(shiftval-19));
                     if (!wal->flags.align_bottom) {
                         zd = (((engine_state->posz-nextsec->ceiling.z)*yscale)<<8);
@@ -1900,7 +1903,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                         prepwall(z,wal);
                     }
                     wallscan(x1, x2, uplc, dwall, swall, lwall, zd,
-                             xpanning, picnum, shade, shiftval, yscale, vis,
+                             xpanning, picnum, shade, shiftval, yscale, vis, wal->pal,
                              engine_state);
 
                     if ((cz[2] >= cz[0]) && (cz[3] >= cz[1])) {
@@ -1983,7 +1986,6 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                         }
 
                         shade = (int32_t)wal->shade;
-                        globalpal = (int32_t)wal->pal;
                         wallnum = pvWalls[z].worldWallId;
                         wal = &wall[wallnum];
                     } else {
@@ -2000,7 +2002,6 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                             picnum += animateoffs(picnum);
                         }
                         shade = (int32_t)wal->shade;
-                        globalpal = (int32_t)wal->pal;
                     }
                     vis = engine_state->visibility;
                     if (sec->visibility != 0) {
@@ -2032,7 +2033,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                         prepwall(z,wal);
                     }
                     wallscan(x1, x2, uwall, dplc, swall, lwall, zd,
-                             xpanning, picnum, shade, shiftval, yscale, vis,
+                             xpanning, picnum, shade, shiftval, yscale, vis, wal->pal,
                              engine_state);
 
                     if ((fz[2] <= fz[0]) && (fz[3] <= fz[1])) {
@@ -2122,7 +2123,6 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                 vis = mulscale4(vis,(int32_t)((uint8_t )(sec->visibility+16)));
             }
 
-            globalpal = (int32_t)wal->pal;
             shiftval = (picsiz[picnum]>>4);
             if (pow2long[shiftval] != tiles[picnum].dim.height) {
                 shiftval++;
@@ -2156,7 +2156,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
             }
 
             wallscan(x1, x2, uplc, dplc, swall, lwall, zd,
-                     xpanning, picnum, shade, shiftval, yscale, vis,
+                     xpanning, picnum, shade, shiftval, yscale, vis, wal->pal,
                      engine_state);
 
             for (x=x1; x<=x2; x++)
@@ -2603,7 +2603,7 @@ static int spritewallfront (spritetype *s, int32_t w)
 
 static void transmaskvline(int32_t x, int32_t zd,
                            int32_t xpanning, int16_t picnum, int32_t shade,
-                           int16_t shiftval, int32_t yscale, int32_t vis,
+                           int16_t shiftval, int32_t yscale, int32_t vis, int32_t pallete,
                            EngineState *engine_state)
 {
     int32_t vplc, vinc, i;
@@ -2630,7 +2630,7 @@ static void transmaskvline(int32_t x, int32_t zd,
     }
 
     tvlineasm1(vinc,
-               FP_OFF(palookup[globalpal]) + (getpalookup((int32_t)mulscale16(swall[x],vis),shade)<<8),  // palookupoffs
+               FP_OFF(palookup[pallete]) + (getpalookup((int32_t)mulscale16(swall[x],vis),shade)<<8),  // palookupoffs
                y2v-y1v,
                vplc,
                tiles[picnum].data + i * tiles[picnum].dim.height,
@@ -2642,7 +2642,7 @@ static void transmaskvline(int32_t x, int32_t zd,
 // transmaskwallscan is like maskwallscan, but it can also blend to the background
 static void transmaskwallscan(int32_t x1, int32_t x2, int32_t zd,
                               int32_t xpanning, int16_t picnum, int32_t shade,
-                              int16_t shiftval, int32_t yscale, int32_t vis,
+                              int16_t shiftval, int32_t yscale, int32_t vis, int32_t pallete,
                               EngineState *engine_state)
 {
     int32_t x;
@@ -2663,7 +2663,7 @@ static void transmaskwallscan(int32_t x1, int32_t x2, int32_t zd,
     }
 
     while (x <= x2) {
-        transmaskvline(x, zd, xpanning, picnum, shade, shiftval, yscale, vis, engine_state), x++;
+        transmaskvline(x, zd, xpanning, picnum, shade, shiftval, yscale, vis, pallete, engine_state), x++;
     }
     
     faketimerhandler();
@@ -3050,20 +3050,13 @@ static void loadpalette(void)
     }
 
     globalpalwritten = palookup[0];
-    globalpal = 0;
 
-
-
-
-    kread(fil,palookup[globalpal],numpalookups<<8);
-
+    kread(fil,palookup[0],numpalookups<<8);
 
     /*kread(fil,transluc,65536);*/
     for (k = 0; k < (65536 / 4); k++) {
         kread32(fil, ((int32_t *) transluc) + k);
     }
-
-
 
     kclose(fil);
 
@@ -4069,6 +4062,7 @@ static void drawmaskwall(EngineState *engine_state)
     int16_t shiftval;
     int32_t yscale;
     int32_t vis;
+    int32_t pallete;
     
     engine_state->maskwallcnt--;
 
@@ -4123,7 +4117,7 @@ static void drawmaskwall(EngineState *engine_state)
     if (sec->visibility != 0) {
         vis = mulscale4(vis,(int32_t)((uint8_t )(sec->visibility+16)));
     }
-    globalpal = (int32_t)wal->pal;
+    pallete = (int32_t)wal->pal;
     shiftval = (picsiz[picnum]>>4);
     if (pow2long[shiftval] != tiles[picnum].dim.height) {
         shiftval++;
@@ -4194,7 +4188,7 @@ static void drawmaskwall(EngineState *engine_state)
                      pvWalls[z].screenSpaceCoo[1][VEC_COL],
                      uwall, dwall, swall, lwall,
                      zd,
-                     xpanning, picnum, shade, shiftval, yscale, vis,
+                     xpanning, picnum, shade, shiftval, yscale, vis, pallete,
                      engine_state);
     } else {
         if (wal->flags.transluscence_reversing) {
@@ -4206,7 +4200,7 @@ static void drawmaskwall(EngineState *engine_state)
         }
         transmaskwallscan(pvWalls[z].screenSpaceCoo[0][VEC_COL],
                           pvWalls[z].screenSpaceCoo[1][VEC_COL],
-                          zd, xpanning, picnum, shade, shiftval, yscale, vis,
+                          zd, xpanning, picnum, shade, shiftval, yscale, vis, pallete,
                           engine_state);
     }
 }
@@ -4304,7 +4298,7 @@ static void ceilspritescan (int32_t x1, int32_t x2, int32_t zd,
     faketimerhandler();
 }
 
-static void drawsprite (EngineState *engine_state, int32_t pallete, int32_t *spritesx, int32_t *spritesy)
+static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *spritesy)
 {
     spritetype *tspr;
     Sector *sec;
@@ -4326,6 +4320,7 @@ static void drawsprite (EngineState *engine_state, int32_t pallete, int32_t *spr
     int16_t shiftval;
     int32_t yscale;
     int32_t vis;
+    int32_t pallete;
     
     engine_state->spritesortcnt--;
 
@@ -4352,7 +4347,7 @@ static void drawsprite (EngineState *engine_state, int32_t pallete, int32_t *spr
 
     sectnum = tspr->sectnum;
     sec = &sector[sectnum];
-    globalpal = tspr->pal;
+    pallete = tspr->pal;
     // FIX_00088: crash on maps using a bad palette index (like the end of roch3.map)
     if (!palookup[pallete]) {
         pallete = 0;    // seem to crash when globalpal > 25
@@ -4579,11 +4574,11 @@ static void drawsprite (EngineState *engine_state, int32_t pallete, int32_t *spr
 
         if ((cstat&2) == 0) {
             maskwallscan(lx,rx,uwall,dwall,swall,lwall, zd,
-                         xpanning, picnum, shade, shiftval, yscale, vis,
+                         xpanning, picnum, shade, shiftval, yscale, vis, pallete,
                          engine_state);
         } else {
             transmaskwallscan(lx, rx, zd,
-                              xpanning, picnum, shade, shiftval, yscale, vis,
+                              xpanning, picnum, shade, shiftval, yscale, vis, pallete,
                               engine_state);
         }
     } else if ((cstat&48) == 16) {
@@ -4896,12 +4891,12 @@ static void drawsprite (EngineState *engine_state, int32_t pallete, int32_t *spr
             maskwallscan(pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL],
                          pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL],
                          uwall,dwall,swall,lwall, zd,
-                         xpanning, picnum, shade, shiftval, yscale, vis,
+                         xpanning, picnum, shade, shiftval, yscale, vis, pallete,
                          engine_state);
         } else {
             transmaskwallscan(pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL],
                               pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL],
-                              zd, xpanning, picnum, shade, shiftval, yscale, vis,
+                              zd, xpanning, picnum, shade, shiftval, yscale, vis, pallete,
                               engine_state);
         }
     } else if ((cstat&48) == 32) {
@@ -5432,7 +5427,7 @@ void drawmasks(EngineState *engine_state, bool draw_mirror)
     while ((engine_state->spritesortcnt > 0) && (engine_state->maskwallcnt > 0)) { /* While BOTH > 0 */
         j = engine_state->maskwall[engine_state->maskwallcnt-1];
         if (spritewallfront(tspriteptr[engine_state->spritesortcnt-1],pvWalls[j].worldWallId) == 0) {
-            drawsprite(engine_state, globalpal, spritesx, spritesy);
+            drawsprite(engine_state, spritesx, spritesy);
         } else {
             /*
             // Check to see if any sprites behind the masked wall...
@@ -5471,7 +5466,7 @@ void drawmasks(EngineState *engine_state, bool draw_mirror)
         }
     }
     while (engine_state->spritesortcnt > 0) {
-        drawsprite(engine_state, globalpal, spritesx, spritesy);
+        drawsprite(engine_state, spritesx, spritesy);
     }
     while (engine_state->maskwallcnt > 0) {
         drawmaskwall(engine_state);
