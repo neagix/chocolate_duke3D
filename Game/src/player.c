@@ -209,7 +209,7 @@ int32_t hitawall(struct player_struct *p,short *hitw)
     return ( FindDistance2D(sx-p->posx,sy-p->posy) );
 }
 
-short aim(spritetype *s,short aang, short auto_aim)
+short aim(Sprite *s,short aang, short auto_aim)
 {
     uint8_t  gotshrinker,gotfreezer;
     short i, j, a, k, cans;
@@ -326,7 +326,7 @@ void shoot(short i,short atwith)
     short sect, hitsect, hitspr, hitwall, l, sa, p, j, k, scount;
     int32_t sx, sy, sz, vel, zvel, hitx, hity, hitz, x, oldzvel, dal;
     uint8_t  sizx,sizy;
-    spritetype *s;
+    Sprite *s;
 
     s = &sprite[i];
     sect = s->sectnum;
@@ -2293,7 +2293,7 @@ void processinput(short snum)
     uint32_t sb_snum;
     short psect, psectlotag,*kb, tempsect, pi;
     struct player_struct *p;
-    spritetype *s;
+    Sprite *s;
     char text[512];
 
     p = &ps[snum];

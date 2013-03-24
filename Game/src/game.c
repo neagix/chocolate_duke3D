@@ -1404,7 +1404,7 @@ void check_fta_sounds(short i)
         }
 }
 
-short inventory(spritetype *s)
+short inventory(Sprite *s)
 {
     switch (s->picnum) {
         case FIRSTAID:
@@ -1420,7 +1420,7 @@ short inventory(spritetype *s)
 }
 
 
-short badguy(spritetype *s)
+short badguy(Sprite *s)
 {
 
     switch (s->picnum) {
@@ -3268,7 +3268,7 @@ void updatesectorz(int32_t x, int32_t y, int32_t z, short *sectnum)
 
 void view(struct player_struct *pp, int32_t *vx, int32_t *vy,int32_t *vz,short *vsectnum, short ang, short horiz)
 {
-    spritetype *sp;
+    Sprite *sp;
     int32_t i, nx, ny, nz, hx, hy, hitx, hity, hitz;
     short bakcstat, hitsect, hitwall, hitsprite, daang;
 
@@ -3629,7 +3629,7 @@ EngineState *displayrooms(short snum,int32_t smoothratio)
     animatecamsprite();
 
     if (ud.camerasprite >= 0) {
-        spritetype *s;
+        Sprite *s;
 
         s = &sprite[ud.camerasprite];
 
@@ -3861,7 +3861,7 @@ short LocateTheLocator(short n,short sn)
 short EGS(short whatsect,int32_t s_x,int32_t s_y,int32_t s_z,short s_pn,int8_t s_s,int8_t s_xr,int8_t s_yr,short s_a,short s_ve,int32_t s_zv,short s_ow,int8_t s_ss)
 {
     short i;
-    spritetype *s;
+    Sprite *s;
 
     i = insertsprite(whatsect,s_ss);
 
@@ -3988,7 +3988,7 @@ short spawn( short j, short pn )
 {
     short i, s, startwall, endwall, sect, clostest;
     int32_t x, y, d;
-    spritetype *sp;
+    Sprite *sp;
     char text[512];
 
     if (j >= 0) {
@@ -5768,7 +5768,7 @@ void animatesprites(int32_t x, int32_t y, short a, int32_t smoothratio, EngineSt
 {
     short i, j, k, p, sect;
     int32_t l, t1,t3,t4;
-    spritetype *s,*t;
+    Sprite *s,*t;
 
     for (j=0; j < engine_state->spritesortcnt; j++) {
         t = &tsprite[j];
@@ -6099,7 +6099,7 @@ void animatesprites(int32_t x, int32_t y, short a, int32_t smoothratio, EngineSt
                 }
 
                 if ( ( display_mirror == 1 || screenpeek != p || s->owner == -1 ) && ud.multimode > 1 && ud.showweapons && sprite[ps[p].i].extra > 0 && ps[p].curr_weapon > 0 ) {
-                    memcpy((spritetype *)&tsprite[(engine_state->spritesortcnt)],(spritetype *)t,sizeof(spritetype));
+                    memcpy((Sprite *)&tsprite[(engine_state->spritesortcnt)],(Sprite *)t,sizeof(Sprite));
 
                     tsprite[engine_state->spritesortcnt].statnum = 99;
 
@@ -6377,7 +6377,7 @@ PALONLY:
 
                         if ( (s->z-daz) < (8<<8) )
                             if ( ps[screenpeek].posz < daz ) {
-                                memcpy((spritetype *)&tsprite[engine_state->spritesortcnt],(spritetype *)t,sizeof(spritetype));
+                                memcpy((Sprite *)&tsprite[engine_state->spritesortcnt],(Sprite *)t,sizeof(Sprite));
 
                                 tsprite[engine_state->spritesortcnt].statnum = 99;
 

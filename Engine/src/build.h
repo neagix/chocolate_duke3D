@@ -187,18 +187,18 @@ typedef struct {
     short sectnum, statnum;
     short ang, owner, xvel, yvel, zvel;
     short lotag, hitag, extra;
-} spritetype;
+} Sprite;
 
 #pragma pack()
 
 EXTERN SectorOnGRP sector_on_grp[MAXSECTORS];
 EXTERN Sector sector[MAXSECTORS];
 EXTERN walltype wall[MAXWALLS];
-EXTERN spritetype sprite[MAXSPRITES];
+EXTERN Sprite sprite[MAXSPRITES];
 
 EXTERN uint16_t mapCRC;
 
-EXTERN spritetype tsprite[MAXSPRITESONSCREEN];
+EXTERN Sprite tsprite[MAXSPRITESONSCREEN];
 
 EXTERN int32_t xdim, ydim, numpages;
 

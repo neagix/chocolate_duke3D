@@ -466,7 +466,7 @@ int32_t ifsquished(short i, short p)
 
 void hitradius( short i, int32_t  r, int32_t  hp1, int32_t  hp2, int32_t  hp3, int32_t  hp4 )
 {
-    spritetype *s,*sj;
+    Sprite *s,*sj;
     walltype *wal;
     int32_t d, q, x1, y1;
     int32_t sectcnt, sectend, dasect, startwall, endwall, nextsect;
@@ -735,7 +735,7 @@ int movesprite(short spritenum, int32_t xchange, int32_t ychange, int32_t zchang
 
 short ssp(short i,uint32_t cliptype) //The set sprite function
 {
-    spritetype *s;
+    Sprite *s;
     int32_t movetype;
 
     s = &sprite[i];
@@ -762,7 +762,7 @@ void insertspriteq(short i)
     }
 }
 
-void lotsofmoney(spritetype *s, short n)
+void lotsofmoney(Sprite *s, short n)
 {
     short i ,j;
     for (i=n; i>0; i--) {
@@ -771,7 +771,7 @@ void lotsofmoney(spritetype *s, short n)
     }
 }
 
-void lotsofmail(spritetype *s, short n)
+void lotsofmail(Sprite *s, short n)
 {
     short i ,j;
     for (i=n; i>0; i--) {
@@ -780,7 +780,7 @@ void lotsofmail(spritetype *s, short n)
     }
 }
 
-void lotsofpaper(spritetype *s, short n)
+void lotsofpaper(Sprite *s, short n)
 {
     short i ,j;
     for (i=n; i>0; i--) {
@@ -791,7 +791,7 @@ void lotsofpaper(spritetype *s, short n)
 
 
 
-void guts(spritetype *s,short gtype, short n, short p)
+void guts(Sprite *s,short gtype, short n, short p)
 {
     int32_t gutz,floorz;
     short i,a,j;
@@ -834,7 +834,7 @@ void guts(spritetype *s,short gtype, short n, short p)
     }
 }
 
-void gutsdir(spritetype *s,short gtype, short n, short p)
+void gutsdir(Sprite *s,short gtype, short n, short p)
 {
     int32_t gutz,floorz;
     short i,a,j;
@@ -906,7 +906,7 @@ void ms(short i)
 
     short startwall,endwall,x;
     int32_t tx,ty,j,k;
-    spritetype *s;
+    Sprite *s;
 
     s = &sprite[i];
 
@@ -934,7 +934,7 @@ void movefta(void)
 {
     int32_t x, px, py, sx, sy;
     short i, j, p, psect, ssect, nexti;
-    spritetype *s;
+    Sprite *s;
 
     i = headspritestat[2];
     while (i >= 0) {
@@ -1035,7 +1035,7 @@ short ifhitsectors(short sectnum)
 short ifhitbyweapon(short sn)
 {
     short j, p;
-    spritetype *npc;
+    Sprite *npc;
 
     if ( hittype[sn].extra >= 0 ) {
         if (sprite[sn].extra >= 0 ) {
@@ -1198,7 +1198,7 @@ void moveplayers(void) //Players
 {
     short i , nexti;
     int32_t otherx;
-    spritetype *s;
+    Sprite *s;
     struct player_struct *p;
 
     i = headspritestat[10];
@@ -1320,7 +1320,7 @@ void movefx(void)
 {
     short i, j, nexti, p;
     int32_t x, ht;
-    spritetype *s;
+    Sprite *s;
 
     i = headspritestat[11];
     while (i >= 0) {
@@ -1407,7 +1407,7 @@ BOLT:
 void movefallers(void)
 {
     short i, nexti, sect, j;
-    spritetype *s;
+    Sprite *s;
     int32_t x;
 
     i = headspritestat[12];
@@ -1494,7 +1494,7 @@ void movestandables(void)
 {
     short i, j, k, m, nexti, nextj, p, sect;
     int32_t l=0, x, *t;
-    spritetype *s;
+    Sprite *s;
 
     i = headspritestat[6];
     while (i >= 0) {
@@ -2344,7 +2344,7 @@ void bounce(short i)
 {
     int32_t k, l, daang, dax, day, daz, xvect, yvect, zvect;
     short hitsect;
-    spritetype *s = &sprite[i];
+    Sprite *s = &sprite[i];
 
     xvect = mulscale10(s->xvel,fixedPointCos(s->ang));
     yvect = mulscale10(s->xvel,fixedPointSin(s->ang));
@@ -2385,7 +2385,7 @@ void moveweapons(void)
     short i, j, k, nexti, p, q;
     int32_t dax,day,daz, x, ll;
     uint32_t qq;
-    spritetype *s;
+    Sprite *s;
 
     i = headspritestat[4];
     while (i >= 0) {
@@ -3033,7 +3033,7 @@ void moveactors(void)
 {
     int32_t x, m, l, *t;
     short a, i, j, nexti, nextj, sect, p;
-    spritetype *s;
+    Sprite *s;
     uint16_t k;
 
     i = headspritestat[1];
@@ -4270,7 +4270,7 @@ void moveexplosions(void)  // STATNUM 5
 {
     short i, j, nexti, sect, p;
     int32_t l, x, *t;
-    spritetype *s;
+    Sprite *s;
 
     i = headspritestat[5];
     while (i >= 0) {
@@ -4828,7 +4828,7 @@ void moveeffectors(void)   //STATNUM 3
 {
     int32_t q=0, l, m, x, st, j, *t;
     short i, k, nexti, nextk, p, sh, nextj;
-    spritetype *s;
+    Sprite *s;
     Sector *sc;
     walltype *wal;
 

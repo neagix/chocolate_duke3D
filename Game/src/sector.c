@@ -79,7 +79,7 @@ short callsound(short sn,short whatsprite)
 short check_activator_motion( short lotag )
 {
     short i, j;
-    spritetype *s;
+    Sprite *s;
 
     i = headspritestat[8];
     while ( i >= 0 ) {
@@ -196,7 +196,7 @@ short checkcursectnums(short sect)
     return -1;
 }
 
-int32_t ldist(spritetype *s1,spritetype *s2)
+int32_t ldist(Sprite *s1,Sprite *s2)
 {
     int32_t vx,vy;
     vx = s1->x - s2->x;
@@ -207,7 +207,7 @@ int32_t ldist(spritetype *s1,spritetype *s2)
 // Declaration here just to shut down compiler warning:
 // The linker was able to find it :/ regardless !
 int FindDistance3D(int ix, int iy, int iz);
-int32_t dist(spritetype *s1,spritetype *s2)
+int32_t dist(Sprite *s1,Sprite *s2)
 {
     int32_t vx,vy,vz;
     vx = s1->x - s2->x;
@@ -216,7 +216,7 @@ int32_t dist(spritetype *s1,spritetype *s2)
     return(FindDistance3D(vx,vy,vz>>4));
 }
 
-short findplayer(spritetype *s,int32_t *d)
+short findplayer(Sprite *s,int32_t *d)
 {
     short j, closest_player;
     int32_t x, closest;
@@ -1960,7 +1960,7 @@ uint8_t  checkhitceiling(short sn)
 void checkhitsprite(short i,short sn)
 {
     short j, k, p;
-    spritetype *s;
+    Sprite *s;
 
     i &= (MAXSPRITES-1);
 

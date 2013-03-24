@@ -358,7 +358,7 @@ int loadplayer(int8_t spot)
         sector[i].floor.sector   = &sector[i];
     }
     
-    kdfread(&sprite[0],sizeof(spritetype),MAXSPRITES,fil);
+    kdfread(&sprite[0],sizeof(Sprite),MAXSPRITES,fil);
     kdfread(&headspritesect[0],2,MAXSECTORS+1,fil);
     kdfread(&prevspritesect[0],2,MAXSPRITES,fil);
     kdfread(&nextspritesect[0],2,MAXSPRITES,fil);
@@ -641,7 +641,7 @@ int saveplayer(int8_t spot)
     dfwrite(&wall[0],sizeof(walltype),MAXWALLS,fil);
     dfwrite(&numsectors,2,1,fil);
     dfwrite(&sector_on_grp[0],sizeof(SectorOnGRP),MAXSECTORS,fil);
-    dfwrite(&sprite[0],sizeof(spritetype),MAXSPRITES,fil);
+    dfwrite(&sprite[0],sizeof(Sprite),MAXSPRITES,fil);
     dfwrite(&headspritesect[0],2,MAXSECTORS+1,fil);
     dfwrite(&prevspritesect[0],2,MAXSPRITES,fil);
     dfwrite(&nextspritesect[0],2,MAXSPRITES,fil);
@@ -4205,7 +4205,7 @@ void drawoverheadmap(int32_t cposx, int32_t cposy, int32_t czoom, short cang)
     short p;
     uint8_t  col;
     walltype *wal, *wal2;
-    spritetype *spr;
+    Sprite *spr;
 
     xvect = fixedPointSin((-cang)) * czoom;
     yvect = fixedPointSin((1536-cang)) * czoom;

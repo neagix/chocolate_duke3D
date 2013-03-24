@@ -38,7 +38,7 @@ static int32_t last_used_size;
 static short g_i,g_p;
 static int32_t g_x;
 static int32_t *g_t;
-static spritetype *g_sp;
+static Sprite *g_sp;
 
 #define NUMKEYWORDS     112
 
@@ -46,8 +46,8 @@ static spritetype *g_sp;
 void FixFilePath(char  *filename);
 
 //From actors.c
-void lotsofmail(spritetype *s, short n);
-void lotsofpaper(spritetype *s, short n);
+void lotsofmail(Sprite *s, short n);
+void lotsofpaper(Sprite *s, short n);
 
 char  *keyw[NUMKEYWORDS] = {
     "definelevelname",  // 0
@@ -209,7 +209,7 @@ void getglobalz(short i)
 {
     int32_t hz,lz,zr;
 
-    spritetype *s = &sprite[i];
+    Sprite *s = &sprite[i];
 
     if ( s->statnum == 10 || s->statnum == 6 || s->statnum == 2 || s->statnum == 1 || s->statnum == 4) {
         if (s->statnum == 4) {
@@ -247,7 +247,7 @@ void getglobalz(short i)
 
 void makeitfall(short i)
 {
-    spritetype *s = &sprite[i];
+    Sprite *s = &sprite[i];
     int32_t hz,lz,c;
 
     if ( floorspace(s->sectnum) ) {
@@ -1617,7 +1617,7 @@ void loadefs(char  *filenam, char  *mptr, int readfromGRP)
     }
 }
 
-uint8_t  dodge(spritetype *s)
+uint8_t  dodge(Sprite *s)
 {
     short i;
     int32_t bx,by,mx,my,bxvect,byvect,mxvect,myvect,d;
@@ -1653,7 +1653,7 @@ short furthestangle(short i,short angs)
 {
     short j, hitsect,hitwall,hitspr,furthest_angle, angincs;
     int32_t hx, hy, hz, d, greatestd;
-    spritetype *s = &sprite[i];
+    Sprite *s = &sprite[i];
 
     greatestd = -(1<<30);
     angincs = 2048/angs;
@@ -1679,11 +1679,11 @@ short furthestangle(short i,short angs)
     return (furthest_angle&2047);
 }
 
-short furthestcanseepoint(short i,spritetype *ts,int32_t *dax,int32_t *day)
+short furthestcanseepoint(short i,Sprite *ts,int32_t *dax,int32_t *day)
 {
     short j, hitsect,hitwall,hitspr, angincs;
     int32_t hx, hy, hz, d, da;//, d, cd, ca,tempx,tempy,cx,cy;
-    spritetype *s = &sprite[i];
+    Sprite *s = &sprite[i];
 
     if ( (g_t[0]&63) ) {
         return -1;
@@ -2082,7 +2082,7 @@ uint8_t  parse(void)
             parseifelse(hittype[g_i].actorstayput == -1);
             break;
         case 5: {
-            spritetype *s;
+            Sprite *s;
 
             if (ps[g_p].holoduke_on >= 0) {
                 s = &sprite[ps[g_p].holoduke_on];

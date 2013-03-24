@@ -1133,7 +1133,7 @@ void resetpspritevars(uint8_t  g)
 {
     short i, j, nexti,circ;
     int32_t firstx,firsty;
-    spritetype *s;
+    Sprite *s;
     uint8_t  aimmode[MAXPLAYERS];
     STATUSBARTYPE tsbar[MAXPLAYERS];
 

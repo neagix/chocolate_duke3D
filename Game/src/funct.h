@@ -75,11 +75,11 @@ extern uint8_t  isanearoperator(short lotag);
 //#line "sector.c" 161
 extern short checkcursectnums(short sect);
 //#line "sector.c" 169
-extern int32_t ldist(spritetype *s1,spritetype *s2);
+extern int32_t ldist(Sprite *s1,Sprite *s2);
 //#line "sector.c" 177
-extern int32_t dist(spritetype *s1,spritetype *s2);
+extern int32_t dist(Sprite *s1,Sprite *s2);
 //#line "sector.c" 186
-extern short findplayer(spritetype *s,int32_t *d);
+extern short findplayer(Sprite *s,int32_t *d);
 //#line "sector.c" 214
 extern short findotherplayer(short p,int32_t *d);
 //#line "sector.c" 240
@@ -198,7 +198,7 @@ extern int32_t hitasprite(short i,short *hitsp);
 //#line "player.c" 152
 extern int32_t hitawall(struct player_struct *p,short *hitw);
 //#line "player.c" 163
-extern short aim(spritetype *s,short aang, short auto_aim);
+extern short aim(Sprite *s,short aang, short auto_aim);
 //#line "player.c" 234
 extern void shoot(short i,short atwith);
 //#line "player.c" 939
@@ -288,11 +288,11 @@ extern void passone(int readfromGRP);
 //#line "gamedef.c" 1239
 extern void loadefs(char  *fn,char  *mptr, int readfromGRP);
 //#line "gamedef.c" 1342
-extern uint8_t  dodge(spritetype *s);
+extern uint8_t  dodge(Sprite *s);
 //#line "gamedef.c" 1374
 extern short furthestangle(short i,short angs);
 //#line "gamedef.c" 1404
-extern short furthestcanseepoint(short i,spritetype *ts,int32_t *dax,int32_t *day);
+extern short furthestcanseepoint(short i,Sprite *ts,int32_t *dax,int32_t *day);
 //#line "gamedef.c" 1444
 extern void alterang(short a);
 //#line "gamedef.c" 1512
@@ -332,9 +332,9 @@ extern void checksync(void );
 //#line "game.c" 815
 extern void check_fta_sounds(short i);
 //#line "game.c" 869
-extern short inventory(spritetype *s);
+extern short inventory(Sprite *s);
 //#line "game.c" 886
-extern short badguy(spritetype *s);
+extern short badguy(Sprite *s);
 //#line "game.c" 924
 extern short badguypic(short pn);
 //#line "game.c" 963
@@ -550,9 +550,9 @@ extern short ssp(short i,uint32_t cliptype);
 //#line "actors.c" 658
 extern void insertspriteq(short i);
 //#line "actors.c" 666
-extern void lotsofmoney(spritetype *s,short n);
+extern void lotsofmoney(Sprite *s,short n);
 //#line "actors.c" 676
-extern void guts(spritetype *s,short gtype,short n,short p);
+extern void guts(Sprite *s,short gtype,short n,short p);
 //#line "actors.c" 718
 extern void setsectinterpolate(short i);
 //#line "actors.c" 742

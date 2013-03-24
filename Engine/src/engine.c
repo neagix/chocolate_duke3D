@@ -113,7 +113,7 @@ static short smoststart[MAXWALLSB];
 static uint8_t  smostwalltype[MAXWALLSB];
 static int32_t smostwall[MAXWALLSB], smostwallcnt = -1L;
 
-static spritetype *tspriteptr[MAXSPRITESONSCREEN];
+static Sprite *tspriteptr[MAXSPRITESONSCREEN];
 
 //FCS: (up-most pixel on column x that can still be drawn to)
 short umost[MAXXDIM+1];
@@ -234,7 +234,7 @@ unsigned int _swap32(unsigned int D)
 static void scansector (short sectnum, short *numscans, short *numbunches, EngineState *engine_state)
 {
     walltype *wal, *wal2;
-    spritetype *spr;
+    Sprite *spr;
     int32_t xs, ys, x1, y1, x2, y2, xp1, yp1, xp2=0, yp2=0, tempint;
     short z, zz, startwall, endwall, numscansbefore, scanfirst, bunchfrst;
     short nextsectnum;
@@ -261,7 +261,7 @@ static void scansector (short sectnum, short *numscans, short *numbunches, Engin
                 xs = spr->x - engine_state->posx;
                 ys = spr->y - engine_state->posy;
                 if ((spr->cstat&48) || (xs * fixedPointCos(engine_state->ang) + ys * fixedPointSin(engine_state->ang) > 0)) {
-                    copybufbyte(spr,&tsprite[engine_state->spritesortcnt],sizeof(spritetype));
+                    copybufbyte(spr,&tsprite[engine_state->spritesortcnt],sizeof(Sprite));
                     tsprite[engine_state->spritesortcnt++].owner = z;
                 }
             }
@@ -2482,7 +2482,7 @@ EngineState *drawrooms(int32_t daposx, int32_t daposy, int32_t daposz,
 }
 
 
-static int spritewallfront (spritetype *s, int32_t w)
+static int spritewallfront (Sprite *s, int32_t w)
 {
     walltype *wal;
     int32_t x1, y1;
@@ -2569,7 +2569,7 @@ int loadboard(char  *filename, int32_t *daposx, int32_t *daposy,
     int x;
     short fil, i, numsprites;
     Sector *sect;
-    spritetype *s;
+    Sprite *s;
     walltype *w;
 
     // FIX_00058: Save/load game crash in both single and multiplayer
@@ -2693,7 +2693,7 @@ int loadboard(char  *filename, int32_t *daposx, int32_t *daposy,
 
     mapCRC = crc16((uint8_t *)sector, numsectors*sizeof(Sector));
     mapCRC += crc16((uint8_t *)wall, numwalls*sizeof(walltype));
-    mapCRC += crc16((uint8_t *)sprite, numsprites*sizeof(spritetype));
+    mapCRC += crc16((uint8_t *)sprite, numsprites*sizeof(Sprite));
 
     return(0);
 }
@@ -2808,7 +2808,7 @@ int saveboard(char  *filename, int32_t *daposx, int32_t *daposy,
     for (j=0; j<MAXSTATUS; j++) {
         i = headspritestat[j];
         while (i != -1) {
-            spritetype *s = &sprite[i];
+            Sprite *s = &sprite[i];
             write32(fil,s->x);
             write32(fil,s->y);
             write32(fil,s->z);
@@ -4183,7 +4183,7 @@ static void ceilspritescan (int32_t x1, int32_t x2, int32_t zd,
 
 static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *spritesy)
 {
-    spritetype *tspr;
+    Sprite *tspr;
     Sector *sec;
     int32_t startum, startdm, sectnum, xb, yp, cstat;
     int32_t siz, xsiz, ysiz, xoff, yoff;
@@ -5809,7 +5809,7 @@ int hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum,
 {
     Sector *sec;
     walltype *wal, *wal2;
-    spritetype *spr;
+    Sprite *spr;
     int32_t z, zz, x1, y1=0, z1=0, x2, y2, x3, y3, x4, y4, intx, inty, intz;
     int32_t topt, topu, bot, dist, offx, offy, cstat;
     int32_t i, j, k, l, tilenum, xoff, yoff, dax, day, daz, daz2;
@@ -6194,7 +6194,7 @@ int neartag(int32_t xs, int32_t ys, int32_t zs, short sectnum, short ange,
             int32_t *neartaghitdist, int32_t neartagrange, uint8_t  tagsearch)
 {
     walltype *wal, *wal2;
-    spritetype *spr;
+    Sprite *spr;
     int32_t i, z, zz, xe, ye, ze, x1, y1, z1, x2, y2, intx, inty, intz;
     int32_t topt, topu, bot, dist, offx, offy, vx, vy, vz;
     short tempshortcnt, tempshortnum, dasector, startwall, endwall;
@@ -6490,7 +6490,7 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
               int32_t flordist, uint32_t  cliptype)
 {
     walltype *wal, *wal2;
-    spritetype *spr;
+    Sprite *spr;
     Sector *sec, *sec2;
     int32_t i, j, templong1, templong2;
     int32_t oxvect, oyvect, goalx, goaly, intx, inty, lx, ly, retval;
@@ -7139,7 +7139,7 @@ void getzrange(int32_t x, int32_t y, int32_t z, short sectnum,
 {
     Sector *sec;
     walltype *wal, *wal2;
-    spritetype *spr;
+    Sprite *spr;
     int32_t clipsectcnt, startwall, endwall, tilenum, xoff, yoff, dax, day;
     int32_t xmin, ymin, xmax, ymax, i, j, k, l, daz, daz2, dx, dy;
     int32_t x1, y1, x2, y2, x3, y3, x4, y4, ang, cosang, sinang;
@@ -8081,7 +8081,7 @@ static int clippoly (int32_t npoints, int32_t clipstat)
 void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang, EngineState *engine_state)
 {
     Sector *sec;
-    spritetype *spr;
+    Sprite *spr;
     int32_t tilenum, xoff, yoff, i, j, k, l, cosang, sinang, xspan, yspan;
     int32_t xrepeat, yrepeat, x, y, x1, y1, x2, y2, x3, y3, x4, y4, bakx1, baky1;
     int32_t s, ox, oy, cx1, cy1, cx2, cy2;
