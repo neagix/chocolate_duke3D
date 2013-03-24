@@ -51,7 +51,7 @@ void sethlinesizes(int32_t i1, int32_t _bits, uint8_t *textureAddress)
 
 //FCS:   Draw ceiling/floors
 //Draw a line from destination in the framebuffer to framebuffer-numPixels
-void hlineasm4(int32_t numPixels, int32_t shade, uint32_t i4, uint32_t i5, uint8_t *dest, int32_t asm1, int32_t asm2)
+void hlineasm4(int32_t numPixels, int32_t shade, uint32_t i4, uint32_t i5, uint8_t *dest, int32_t asm1, int32_t asm2, int8_t *pallete)
 {
 
     int32_t shifter = ((256-machxbits_al) & 0x1f);
@@ -74,7 +74,7 @@ void hlineasm4(int32_t numPixels, int32_t shade, uint32_t i4, uint32_t i5, uint8
         source = texture[source];
 
         if (pixelsAllowed-- > 0) {
-            *dest = globalpalwritten[shade|source];
+            *dest = pallete[shade|source];
         }
 
         dest--;

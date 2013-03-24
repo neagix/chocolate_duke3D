@@ -139,7 +139,6 @@ static int32_t xsi[8], ysi[8];
 int32_t *horizlookup=0, *horizlookup2=0, horizycent;
 
 int32_t cosviewingrangeglobalang, sinviewingrangeglobalang;
-uint8_t  *globalpalwritten;
 
 int32_t xyaspect, viewingrangerecip;
 
@@ -565,7 +564,7 @@ static int32_t getpalookup(int32_t davis, int32_t dashade)
 static void hline (int32_t xr, int32_t yp,
                    int32_t xpanning, int32_t ypanning,
                    int32_t g_x1, int32_t g_y1,
-                   int32_t g_x2, int32_t g_y2, int32_t shade, int32_t vis,
+                   int32_t g_x2, int32_t g_y2, int32_t shade, int32_t vis, int8_t *pallete,
                    EngineState *engine_state)
 {
     int32_t xl, r, s;
@@ -584,7 +583,7 @@ static void hline (int32_t xr, int32_t yp,
               g_y1 * r + xpanning,
               ylookup[yp]+xr+frameoffset,
               g_x1 * r,
-              g_y2 * r);
+              g_y2 * r, pallete);
 }
 
 
@@ -605,7 +604,7 @@ static void slowhline (int32_t xr, int32_t yp,
     r = horizlookup2[yp - engine_state->horiz + horizycent];
     a1 = g_x1 * r;
     a2 = g_y2 * r;
-    a3 = (int32_t)globalpalwritten + (getpalookup(mulscale16(r,vis),shade)<<8);
+    a3 = (int32_t)palookup[0] + (getpalookup(mulscale16(r,vis),shade)<<8);
 
     if (!(flags.type == SECTOR_REVERSE_TRANSLUSCENT || flags.type == SECTOR_TRANSLUSCENT)) {
         mhline(globalbufplc,
@@ -640,11 +639,7 @@ static void FloorCeilingScan (int32_t x1, int32_t x2, InnerSector floor_or_ceili
     int16_t picnum;
     int32_t shade;
     int32_t vis;
-    
-    //Retrieve the floor palette.
-    if (palookup[floor_or_ceiling.pal] != globalpalwritten) {
-        globalpalwritten = palookup[floor_or_ceiling.pal];
-    }
+    int8_t *pallete = (int8_t *)palookup[floor_or_ceiling.pal];
     
     zd = GetDistanceFromFloorOrCeiling(floor_or_ceiling, engine_state->posz, is_floor);
     
@@ -785,26 +780,26 @@ static void FloorCeilingScan (int32_t x1, int32_t x2, InnerSector floor_or_ceili
             if (twall < bwall-1) {
                 if (twall >= y2) {
                     while (y1 < y2-1) {
-                        hline(x-1, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, shade, vis, engine_state);
+                        hline(x-1, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, shade, vis, pallete, engine_state);
                     }
                     y1 = twall;
                 } else {
                     while (y1 < twall) {
-                        hline(x-1, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, shade, vis, engine_state);
+                        hline(x-1, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, shade, vis, pallete, engine_state);
                     }
                     while (y1 > twall) {
                         lastx[y1--] = x;
                     }
                 }
                 while (y2 > bwall) {
-                    hline(x-1, --y2, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, shade, vis, engine_state);
+                    hline(x-1, --y2, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, shade, vis, pallete, engine_state);
                 }
                 while (y2 < bwall) {
                     lastx[y2++] = x;
                 }
             } else {
                 while (y1 < y2-1) {
-                    hline(x-1,++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, shade, vis, engine_state);
+                    hline(x-1,++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, shade, vis, pallete, engine_state);
                 }
                 if (x == x2) {
                     g_x2 += g_y2;
@@ -818,7 +813,7 @@ static void FloorCeilingScan (int32_t x1, int32_t x2, InnerSector floor_or_ceili
             g_y1 += g_x1;
         }
         while (y1 < y2-1) {
-            hline(x2, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, shade, vis, engine_state);
+            hline(x2, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, shade, vis, pallete, engine_state);
         }
         
         faketimerhandler();
@@ -3048,9 +3043,7 @@ static void loadpalette(void)
     if ((transluc = (uint8_t *)kkmalloc(65536)) == NULL) {
         allocache(&transluc,65536,&permanentlock);
     }
-
-    globalpalwritten = palookup[0];
-
+    
     kread(fil,palookup[0],numpalookups<<8);
 
     /*kread(fil,transluc,65536);*/
@@ -7805,7 +7798,7 @@ void setbrightness(uint8_t  dabrightness, uint8_t  *dapal)
 //This is only used by drawmapview.
 static void fillpolygon(int32_t npoints, uint8_t polyType,
                         int32_t a1, int32_t a2, int32_t asm3,
-                        int32_t g_x1, int32_t g_y2, int32_t shade,
+                        int32_t g_x1, int32_t g_y2, int32_t shade, int8_t *pallete,
                         EngineState *engine_state)
 {
     int32_t z, zz, x1, y1, x2, y2, miny, maxy, y, xinc, cnt;
@@ -7901,7 +7894,7 @@ static void fillpolygon(int32_t npoints, uint8_t polyType,
                 by = ox*a2 - engine_state->posy;
 
                 p = ylookup[y]+x2+frameplace;
-                hlineasm4(x2-x1,shade<<8,by,bx,p,a1,a2);
+                hlineasm4(x2-x1,shade<<8,by,bx,p,a1,a2,pallete);
             } else {
                 /* maphline */
                 ox = x1+1-(xdim>>1);
@@ -8412,7 +8405,7 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang, EngineState
             g_y2 <<= 2;
             engine_state->posy <<= (20+2);
 
-            fillpolygon(npoints, polyType, (g_y1<<2), (g_x2<<2), a3, g_x1, g_y2, shade, engine_state);
+            fillpolygon(npoints, polyType, (g_y1<<2), (g_x2<<2), a3, g_x1, g_y2, shade, palookup, engine_state);
         }
     }
 }

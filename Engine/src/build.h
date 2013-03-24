@@ -69,11 +69,14 @@ typedef struct {
     unsigned x_flip                      :1;
     unsigned y_flip                      :1;
     unsigned align_texture_to_first_wall :1;
+    // I checked all levels in Duke Nukem Atomic edition but none the 'type' flag
+    // I guess this is used for room over room in Shadow Warrior, but I am not sure
     unsigned type                        :2;
     unsigned reserved_1                  :1;
     unsigned reserved                    :6;
 } SectorFlags;
 
+// Defines for the 'type' flag
 #define SECTOR_NORMAL               0
 #define SECTOR_MASKED               1
 #define SECTOR_TRANSLUSCENT         2
