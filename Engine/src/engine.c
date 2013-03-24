@@ -80,8 +80,6 @@ int32_t pow2long[32] = {
     268435456L,536870912L,1073741824L,2147483647L,
 };
 
-char  kensmessage[128];
-
 uint8_t  britable[16][64];
 uint8_t  textfont[1024], smalltextfont[1024];
 
@@ -3075,8 +3073,6 @@ static void loadpalette(void)
 
 int setgamemode(uint8_t  davidoption, int32_t daxdim, int32_t daydim)
 {
-    strcpy(kensmessage,"!!!! BUILD engine&tools programmed by Ken Silverman of E.G. RI.  (c) Copyright 1995 Ken Silverman.  Summary:  BUILD = Ken. !!!!");
-
     return(_setgamemode(davidoption, daxdim, daydim));
 }
 
