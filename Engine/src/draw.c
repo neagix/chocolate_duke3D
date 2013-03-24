@@ -664,9 +664,6 @@ void tsethlineshift(int32_t i1, int32_t i2)
 }
 
 
-
-
-static int32_t slopemach_ebx;
 static int32_t slopemach_ecx;
 static int32_t slopemach_edx;
 static uint8_t  slopemach_ah1;
@@ -676,10 +673,9 @@ typedef union {
     unsigned int i;
     float f;
 } bitwisef2i;
-void setupslopevlin(int32_t i1, int32_t i2, int32_t i3, int32_t asm1)
+void setupslopevlin(int32_t i1, int32_t i3, int32_t asm1)
 {
     bitwisef2i c;
-    slopemach_ebx = i2;
     slopemach_ecx = i3;
     slopemach_edx = (1<<(i1&0x1f)) - 1;
     slopemach_edx <<= ((i1&0x1f00)>>8);
@@ -692,7 +688,9 @@ void setupslopevlin(int32_t i1, int32_t i2, int32_t i3, int32_t asm1)
 #define high32(a) ((int)(((__int64)a&(__int64)0xffffffff00000000)>>32))
 
 //FCS: Render RENDER_SLOPPED_CEILING_AND_FLOOR
-void slopevlin(int32_t i1, uint32_t i2, int32_t i3, int32_t i4, int32_t i5, int32_t i6, int32_t asm3, int32_t g_x3, int32_t g_y3)
+void slopevlin(int32_t i1, uint32_t i2, int32_t i3, int32_t i4,
+               int32_t i5, int32_t i6, int32_t asm3,
+               int32_t g_x3, int32_t g_y3, uint8_t *tile_data)
 {
     uint32_t ecx,eax,ebx,edx,esi,edi, asm4;
 #pragma This is so bad to cast asm3 to int then float :( !!!
@@ -731,7 +729,7 @@ void slopevlin(int32_t i1, uint32_t i2, int32_t i3, int32_t i4, int32_t i5, int3
             ebx &= slopemach_edx;
             edi += eax;
             i1 += slopemach_ecx;
-            edx = ((edx&0xffffff00)|((((uint8_t *)(ebx+edx))[slopemach_ebx])));
+            edx = ((edx&0xffffff00)|((((uint8_t *)(ebx+edx))[(uint32_t)tile_data])));
             ebx = *((uint32_t *)i3); // register trickery
             i3 -= 4;
             eax = ((eax&0xffffff00)|(*((uint8_t *)(ebx+edx))));

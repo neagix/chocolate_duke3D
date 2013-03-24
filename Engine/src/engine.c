@@ -1294,7 +1294,6 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
     j =(int32_t) FP_OFF(palookup[pallete]);
 
     setupslopevlin(((int32_t)(picsiz[picnum]&15))+(((int32_t)(picsiz[picnum]>>4))<<8),
-                   tiles[picnum].data,
                    -ylookup[1],
                    -(zd >> (16-BITSOFPRECISION)));
 
@@ -1351,7 +1350,8 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
                       y2 - y1 + 1,
                       g_x1, g_y1,
                       a3,
-                      g_x3, g_y3);
+                      g_x3, g_y3,
+                      tiles[picnum].data);
 
             if ((x&15) == 0) {
                 faketimerhandler();
