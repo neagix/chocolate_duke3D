@@ -144,7 +144,6 @@ int32_t xyaspect, viewingrangerecip;
 
 uint8_t  *palookupoffse[4];
 
-uint8_t *globalbufplc;
 
 //FCS:
 // Those two variables are using during portal flooding:
@@ -634,9 +633,6 @@ static void FloorCeilingScan (int32_t x1, int32_t x2, InnerSector floor_or_ceili
     //If the texture is not in RAM: Load it !!
     TILE_MakeAvailable(picnum);
     
-    //Check where is the texture in RAM
-    globalbufplc = tiles[picnum].data;
-    
     //Retrieve the shade of the sector (illumination level).
     shade = (int32_t)floor_or_ceiling.shade;
     
@@ -724,7 +720,7 @@ static void FloorCeilingScan (int32_t x1, int32_t x2, InnerSector floor_or_ceili
     g_x2 = (g_x2-g_y2)*halfxdimen;
     
     //Setup the drawing routine paramters
-    sethlinesizes(picsiz[picnum]&15,picsiz[picnum]>>4,globalbufplc);
+    sethlinesizes(picsiz[picnum]&15, picsiz[picnum]>>4, tiles[picnum].data);
     
     g_x2 += g_y2*(x1-1);
     g_y1 += g_x1*(x1-1);
@@ -4099,6 +4095,7 @@ static void ceilspritehline (int32_t x2, int32_t y, int32_t zd,
                              SectorFlags flags,
                              int32_t shade, int32_t vis,
                              int32_t pallete,
+                             uint8_t *tile_data,
                              EngineState *engine_state)
 {
     int32_t x1, v, bx, by, a1, a2, a3;
@@ -4124,9 +4121,9 @@ static void ceilspritehline (int32_t x2, int32_t y, int32_t zd,
     a3 = (int32_t)FP_OFF(palookup[pallete]) + (getpalookup((int32_t)mulscale28(klabs(v),vis),shade)<<8);
 
     if (!flags.groudraw) {
-        mhline(globalbufplc,bx,(x2-x1)<<16,by,ylookup[y]+x1+frameoffset,a1,a2,a3);
+        mhline(tile_data, bx, (x2-x1)<<16, by, ylookup[y]+x1+frameoffset, a1, a2, a3);
     } else {
-        thline(globalbufplc,bx,(x2-x1)<<16,by,ylookup[y]+x1+frameoffset,a1,a2,a3);
+        thline(tile_data, bx, (x2-x1)<<16, by, ylookup[y]+x1+frameoffset, a1, a2, a3);
     }
 }
 
@@ -4136,6 +4133,7 @@ static void ceilspritescan (int32_t x1, int32_t x2, int32_t zd,
                             int32_t g_x1, int32_t g_y1, int32_t g_x2, int32_t g_y2,
                             SectorFlags flags, int32_t shade, int32_t vis,
                             int32_t pallete,
+                            uint8_t *tile_data,
                             EngineState *engine_state)
 {
     int32_t x, y1, y2, twall, bwall;
@@ -4148,26 +4146,26 @@ static void ceilspritescan (int32_t x1, int32_t x2, int32_t zd,
         if (twall < bwall-1) {
             if (twall >= y2) {
                 while (y1 < y2-1) {
-                    ceilspritehline(x-1, ++y1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, shade, vis, pallete, engine_state);
+                    ceilspritehline(x-1, ++y1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, shade, vis, pallete, tile_data, engine_state);
                 }
                 y1 = twall;
             } else {
                 while (y1 < twall) {
-                    ceilspritehline(x-1, ++y1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, shade, vis, pallete, engine_state);
+                    ceilspritehline(x-1, ++y1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, shade, vis, pallete, tile_data, engine_state);
                 }
                 while (y1 > twall) {
                     lastx[y1--] = x;
                 }
             }
             while (y2 > bwall) {
-                ceilspritehline(x-1, --y2, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, shade, vis, pallete, engine_state);
+                ceilspritehline(x-1, --y2, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, shade, vis, pallete, tile_data, engine_state);
             }
             while (y2 < bwall) {
                 lastx[y2++] = x;
             }
         } else {
             while (y1 < y2-1) {
-                ceilspritehline(x-1, ++y1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, shade, vis, pallete, engine_state);
+                ceilspritehline(x-1, ++y1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, shade, vis, pallete, tile_data, engine_state);
             }
             if (x == x2) {
                 break;
@@ -4177,7 +4175,7 @@ static void ceilspritescan (int32_t x1, int32_t x2, int32_t zd,
         }
     }
     while (y1 < y2-1) {
-        ceilspritehline(x2, ++y1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, shade, vis, pallete, engine_state);
+        ceilspritehline(x2, ++y1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, shade, vis, pallete, tile_data, engine_state);
     }
     faketimerhandler();
 }
@@ -5132,7 +5130,6 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         TILE_MakeAvailable(picnum);
 
         setgotpic(picnum);
-        globalbufplc = tiles[picnum].data;
 
         vis = mulscale16(engine_state->hisibility,viewingrange);
         if (sec->visibility != 0) {
@@ -5168,7 +5165,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
 
         /* Draw it! */
         // TODO: remove SectorFlags casting
-        ceilspritescan(lx, rx-1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, *(SectorFlags *)&cstat, shade, vis, pallete, engine_state);
+        ceilspritescan(lx, rx-1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, *(SectorFlags *)&cstat, shade, vis, pallete, tiles[picnum].data, engine_state);
     }
 }
 
@@ -7689,7 +7686,8 @@ void setbrightness(uint8_t  dabrightness, uint8_t  *dapal)
 //This is only used by drawmapview.
 static void fillpolygon(int32_t npoints, uint8_t polyType,
                         int32_t a1, int32_t a2, int32_t asm3,
-                        int32_t g_x1, int32_t g_y2, int32_t shade, uint8_t *pallete,
+                        int32_t g_x1, int32_t g_y2, int32_t shade,
+                        uint8_t *pallete, uint8_t *tile_data,
                         EngineState *engine_state)
 {
     int32_t z, zz, x1, y1, x2, y2, miny, maxy, y, xinc, cnt;
@@ -7794,9 +7792,9 @@ static void fillpolygon(int32_t npoints, uint8_t polyType,
 
                 p = ylookup[y]+x1+frameplace;
                 if (polyType == 1) {
-                    mhline(globalbufplc,bx,(x2-x1)<<16,by,p,a1,a2,asm3);
+                    mhline(tile_data, bx, (x2-x1)<<16, by, p, a1, a2, asm3);
                 } else {
-                    thline(globalbufplc,bx,(x2-x1)<<16,by,p,a1,a2,asm3);
+                    thline(tile_data, bx, (x2-x1)<<16, by, p, a1, a2, asm3);
                 }
             }
         }
@@ -8234,7 +8232,6 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang, EngineState
 
             TILE_MakeAvailable(picnum);
 
-            globalbufplc = tiles[picnum].data;
             if (sector[spr->sectnum].ceiling.flags.parallaxing) {
                 shade = ((int32_t)sector[spr->sectnum].ceiling.shade);
             } else {
@@ -8296,7 +8293,7 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang, EngineState
             g_y2 <<= 2;
             engine_state->posy <<= (20+2);
 
-            fillpolygon(npoints, polyType, (g_y1<<2), (g_x2<<2), a3, g_x1, g_y2, shade, (uint8_t *)palookup, engine_state);
+            fillpolygon(npoints, polyType, (g_y1<<2), (g_x2<<2), a3, g_x1, g_y2, shade, (uint8_t *)palookup, tiles[picnum].data, engine_state);
         }
     }
 }
