@@ -250,7 +250,7 @@ extern int g_iTicksPerFrame;
 #define RX  sprite[i].xrepeat
 #define RY  sprite[i].yrepeat
 #define OW  sprite[i].owner
-#define CS  sprite[i].cstat
+#define CS  sprite[i].flags
 #define SH  sprite[i].extra
 #define CX  sprite[i].xoffset
 #define CY  sprite[i].yoffset

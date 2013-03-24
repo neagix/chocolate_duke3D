@@ -341,7 +341,7 @@ void cacheit(void)
 
         j = headspritesect[i];
         while (j >= 0) {
-            if (sprite[j].xrepeat != 0 && sprite[j].yrepeat != 0 && (sprite[j].cstat&32768) == 0)
+            if (sprite[j].xrepeat != 0 && sprite[j].yrepeat != 0 && !sprite[j].flags.invisible)
                 if (tiles[sprite[j].picnum].data == NULL) {
                     cachespritenum(j);
                 }
@@ -796,7 +796,7 @@ void prelevel(uint8_t  g)
     while (i >= 0) {
         nexti = nextspritestat[i];
 
-        if (sprite[i].lotag == -1 && (sprite[i].cstat&16) ) {
+        if (sprite[i].lotag == -1 && (sprite[i].flags.type == WALL_SPRITE) ) {
             ps[0].exitx = SX;
             ps[0].exity = SY;
         } else switch (PN) {
@@ -1276,7 +1276,7 @@ void resetpspritevars(uint8_t  g)
             s->shade = 0;
             s->xrepeat = 42;
             s->yrepeat = 36;
-            s->cstat = 1+256;
+            *(int16_t *)&s->flags = 1+256;
             s->xoffset = 0;
             s->clipdist = 64;
 

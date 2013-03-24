@@ -535,14 +535,16 @@ SKIPWALLCHECK:
             sj = &sprite[j];
 
             if ( x == 0 || x >= 5 || AFLAMABLE(sj->picnum) ) {
-                if ( s->picnum != SHRINKSPARK || (sj->cstat&257) )
+                if ( s->picnum != SHRINKSPARK || (sj->flags.blocking || sj->flags.hitscan) )
                     if ( dist( s, sj ) < r ) {
                         if ( badguy(sj) && !cansee( sj->x, sj->y,sj->z+q, sj->sectnum, s->x, s->y, s->z+q, s->sectnum) ) {
                             goto BOLT;
                         }
                         checkhitsprite( j, i );
                     }
-            } else if ( sj->extra >= 0 && sj != s && ( sj->picnum == TRIPBOMB || badguy(sj) || sj->picnum == QUEBALL || sj->picnum == STRIPEBALL || (sj->cstat&257) || sj->picnum == DUKELYINGDEAD ) ) {
+            } else if ( sj->extra >= 0 && sj != s &&
+                       (sj->picnum == TRIPBOMB || badguy(sj) || sj->picnum == QUEBALL || sj->picnum == STRIPEBALL ||
+                       (sj->flags.blocking || sj->flags.hitscan) || sj->picnum == DUKELYINGDEAD ) ) {
                 if ( s->picnum == SHRINKSPARK && sj->picnum != SHARK && ( j == s->owner || sj->xrepeat < 24 ) ) {
                     j = nextj;
                     continue;
@@ -767,7 +769,7 @@ void lotsofmoney(Sprite *s, short n)
     short i ,j;
     for (i=n; i>0; i--) {
         j = EGS(s->sectnum,s->x,s->y,s->z-(TRAND%(47<<8)),MONEY,-32,8,8,TRAND&2047,0,0,0,5);
-        sprite[j].cstat = TRAND&12;
+        *(int16_t *)&sprite[j].flags = TRAND&12;
     }
 }
 
@@ -776,7 +778,7 @@ void lotsofmail(Sprite *s, short n)
     short i ,j;
     for (i=n; i>0; i--) {
         j = EGS(s->sectnum,s->x,s->y,s->z-(TRAND%(47<<8)),MAIL,-32,8,8,TRAND&2047,0,0,0,5);
-        sprite[j].cstat = TRAND&12;
+        *(int16_t *)&sprite[j].flags = TRAND&12;
     }
 }
 
@@ -785,7 +787,7 @@ void lotsofpaper(Sprite *s, short n)
     short i ,j;
     for (i=n; i>0; i--) {
         j = EGS(s->sectnum,s->x,s->y,s->z-(TRAND%(47<<8)),PAPER,-32,8,8,TRAND&2047,0,0,0,5);
-        sprite[j].cstat = TRAND&12;
+        *(int16_t *)&sprite[j].flags = TRAND&12;
     }
 }
 
@@ -1166,7 +1168,7 @@ void movedummyplayers(void)
             KILLIT(i);
         } else {
             if (ps[p].on_ground && ps[p].on_warping_sector == 1 && sector[ps[p].cursectnum].lotag == 1 ) {
-                CS = 257;
+                *(int16_t *)&CS = 257;
                 SZ = sector[SECT].ceiling.z+(27<<8);
                 SA = ps[p].ang;
                 if (T1 == 8) {
@@ -1178,7 +1180,7 @@ void movedummyplayers(void)
                 if (sector[SECT].lotag != 2) {
                     SZ = sector[SECT].floor.z;
                 }
-                CS = (short) 32768;
+                *(int16_t *)&CS = (int16_t)32768;
             }
         }
 
@@ -1236,7 +1238,7 @@ void moveplayers(void) //Players
                     }
                 if (ud.god) {
                     s->extra = max_player_health;
-                    s->cstat = 257;
+                    *(int16_t *)&s->flags = 257;
                     p->jetpack_amount =     1599;
                 }
 
@@ -1273,11 +1275,11 @@ void moveplayers(void) //Players
             hittype[i].bposy = s->y;
             hittype[i].bposz = s->z;
 
-            s->cstat = 0;
+            *(int16_t *)&s->flags = 0;
 
             if (s->xrepeat < 42) {
                 s->xrepeat += 4;
-                s->cstat |= 2;
+                s->flags.transluscence = 1;
             } else {
                 s->xrepeat = 42;
             }
@@ -1429,9 +1431,9 @@ void movefallers(void)
                         while (j >= 0) {
                             if (sprite[j].hitag == SHT) {
                                 hittype[j].temp_data[0] = 1;
-                                sprite[j].cstat &= (65535-64);
+                                sprite[j].flags.one_sided = 0;
                                 if (sprite[j].picnum == CEILINGSTEAM || sprite[j].picnum == STEAM) {
-                                    sprite[j].cstat |= 32768;
+                                    sprite[j].flags.invisible = 1;
                                 }
                             }
                             j = nextspritestat[j];
@@ -1702,7 +1704,7 @@ void movestandables(void)
                 }
 
                 if ( s->picnum == TIRE && T2 == 32 ) {
-                    s->cstat = 0;
+                    *(int16_t *)&s->flags = 0;
                     j = spawn(i,BLOODPOOL);
                     sprite[j].shade = 127;
                 } else {
@@ -1853,7 +1855,7 @@ void movestandables(void)
 
         if ( s->picnum >= CRACK1 && s->picnum <= CRACK4 ) {
             if (s->hitag > 0) {
-                t[0] = s->cstat;
+                t[0] = *(int16_t *)&s->flags;
                 t[1] = s->ang;
                 j = ifhitbyweapon(i);
                 if (j == FIREEXT || j == RPG || j == RADIUSEXPLOSION || j == SEENINE || j == OOZFILTER ) {
@@ -1868,7 +1870,7 @@ void movestandables(void)
 
                     goto DETONATE;
                 } else {
-                    s->cstat = t[0];
+                    *(int16_t *)&s->flags = t[0];
                     s->ang = t[1];
                     s->extra = 0;
                 }
@@ -2120,7 +2122,7 @@ CLEAR_THE_BOLT2:
                 s->picnum++;
 
                 if (l&1) {
-                    s->cstat ^= 2;    // l not defined here. Line is met in 2nd demo with l = 0.
+                    s->flags.transluscence = !s->flags.transluscence;    // l not defined here. Line is met in 2nd demo with l = 0.
                 }
 
                 if ( (TRAND&1) && sector[sect].floor.picnum == HURTRAIL ) {
@@ -2169,7 +2171,7 @@ CLEAR_THE_BOLT:
                 s->xrepeat=l+8;
 
                 if (l&1) {
-                    s->cstat ^= 2;
+                    s->flags.transluscence = !s->flags.transluscence;
                 }
 
                 if ( s->picnum == (BOLT1+1) && (TRAND&7) == 0 && sector[sect].floor.picnum == HURTRAIL ) {
@@ -2194,7 +2196,7 @@ CLEAR_THE_BOLT:
                 if ( t[1] ) {
                     t[1]--;
                     if (t[1] == 0) {
-                        s->cstat &= 32767;
+                        s->flags.invisible = 0;
                     }
                 } else {
                     makeitfall(i);
@@ -2204,7 +2206,7 @@ CLEAR_THE_BOLT:
                     }
 
                     if (s->zvel == 0) {
-                        s->cstat |= 32768;
+                        s->flags.invisible = 1;
 
                         if (s->pal != 2 && s->hitag == 0) {
                             spritesound(SOMETHING_DRIPPING,i);
@@ -2428,7 +2430,7 @@ void moveweapons(void)
                             s->y+((k*fixedPointSin(s->ang))>>9),
                             s->z+((k*ksgn(s->zvel))*klabs(s->zvel/12)),TONGUE,-40+(k<<1),
                             8,8,0,0,0,i,5);
-                    sprite[q].cstat = 128;
+                    *(int16_t *)&sprite[q].flags = 128;
                     sprite[q].pal = 8;
                 }
                 q = EGS(s->sectnum,
@@ -2436,7 +2438,7 @@ void moveweapons(void)
                         s->y+((k*fixedPointSin(s->ang))>>9),
                         s->z+((k*ksgn(s->zvel))*klabs(s->zvel/12)),INNERJAW,-40,
                         32,32,0,0,0,i,5);
-                sprite[q].cstat = 128;
+                *(int16_t *)&sprite[q].flags = 128;
                 if ( T2 > 512 && T2 < (1024) ) {
                     sprite[q].picnum = INNERJAW+1;
                 }
@@ -2523,7 +2525,7 @@ void moveweapons(void)
                                 s->z+((k*ksgn(s->zvel))*klabs(s->zvel/24)),FIRELASER,-40+(k<<2),
                                 s->xrepeat,s->yrepeat,0,0,0,s->owner,5);
 
-                        sprite[x].cstat = 128;
+                        *(int16_t *)&sprite[x].flags = 128;
                         sprite[x].pal = s->pal;
                     }
                 } else if (s->picnum == SPIT) if (s->zvel < 6144) {
@@ -2646,7 +2648,7 @@ void moveweapons(void)
                                 if ( s->zvel > 0) {
                                     spawn(i,EXPLOSION2BOT);
                                 } else {
-                                    sprite[k].cstat |= 8;
+                                    sprite[k].flags.y_flip = 1;
                                     sprite[k].z += (48<<8);
                                 }
                             }
@@ -2659,7 +2661,7 @@ void moveweapons(void)
                             sprite[k].xrepeat = sprite[k].yrepeat = s->xrepeat>>1;
                             if ( (j&49152) == 16384) {
                                 if ( s->zvel < 0) {
-                                    sprite[k].cstat |= 8;
+                                    sprite[k].flags.y_flip = 1;
                                     sprite[k].z += (72<<8);
                                 }
                             }
@@ -2926,7 +2928,7 @@ void movetransports(void)
                                     goto JBOLT;
                                 case PLAYERONWATER:
                                     if (sectlotag == 2) {
-                                        sprite[j].cstat &= 32767;
+                                        sprite[j].flags.invisible = 0;
                                         break;
                                     }
                                 default:
@@ -3057,25 +3059,25 @@ void moveactors(void)
         switch (s->picnum) {
             case DUCK:
             case TARGET:
-                if (s->cstat&32) {
+                if (s->flags.type == FLOOR_SPRITE) {
                     t[0]++;
                     if (t[0] > 60) {
                         t[0] = 0;
-                        s->cstat = 128+257+16;
+                        *(int16_t *)&s->flags = 128+257+16;
                         s->extra = 1;
                     }
                 } else {
                     j = ifhitbyweapon(i);
                     if ( j >= 0 ) {
-                        s->cstat = 32+128;
+                        *(int16_t *)&s->flags = 32+128;
                         k = 1;
 
                         j = headspritestat[1];
                         while (j >= 0) {
                             if ( sprite[j].lotag == s->lotag &&
                                  sprite[j].picnum == s->picnum ) {
-                                if ( ( sprite[j].hitag && !(sprite[j].cstat&32) ) ||
-                                     ( !sprite[j].hitag && (sprite[j].cstat&32) )
+                                if ( ( sprite[j].hitag && !sprite[j].flags.type == FLOOR_SPRITE ) ||
+                                     ( !sprite[j].hitag && sprite[j].flags.type == FLOOR_SPRITE )
                                    ) {
                                     k = 0;
                                     break;
@@ -3186,9 +3188,9 @@ void moveactors(void)
                         s->xvel = 0;
                     }
                     if ( s->picnum == STRIPEBALL ) {
-                        s->cstat = 257;
-                        s->cstat |= 4&s->xvel;
-                        s->cstat |= 8&s->xvel;
+                        *(int16_t *)&s->flags = 257;
+                        *(int16_t *)&s->flags |= 4&s->xvel;
+                        *(int16_t *)&s->flags |= 8&s->xvel;
                     }
                 } else {
                     p = findplayer(s,&x);
@@ -3240,7 +3242,7 @@ void moveactors(void)
                     for (l=512; l<(2048-512); l+= 128)
                         for (j=0; j<2048; j += 128) {
                             k = spawn(i,FORCESPHERE);
-                            sprite[k].cstat = 257+128;
+                            *(int16_t *)&sprite[k].flags = 257+128;
                             sprite[k].clipdist = 64;
                             sprite[k].ang = j;
                             sprite[k].zvel = fixedPointSin(l)>>5;
@@ -3290,10 +3292,10 @@ void moveactors(void)
 
                 if ( ud.multimode < 2 ) {
                     if ( actor_tog == 1) {
-                        s->cstat = (short)32768;
+                        *(int16_t *)&s->flags = (int16_t)32768;
                         goto BOLT;
                     } else if (actor_tog == 2) {
-                        s->cstat = 257;
+                        *(int16_t *)&s->flags = 257;
                     }
                 }
                 IFHIT {
@@ -3494,10 +3496,10 @@ void moveactors(void)
 // #ifndef VOLUMEONE
                 if ( ud.multimode < 2 ) {
                     if ( actor_tog == 1) {
-                        s->cstat = (short)32768;
+                        *(int16_t *)&s->flags = (int16_t)32768;
                         goto BOLT;
                     } else if (actor_tog == 2) {
-                        s->cstat = 257;
+                        *(int16_t *)&s->flags = 257;
                     }
                 }
 // #endif
@@ -3527,7 +3529,7 @@ void moveactors(void)
                         goto BOLT;
                     }
                     makeitfall(i);
-                    s->cstat = 257;
+                    *(int16_t *)&s->flags = 257;
                     s->picnum = GREENSLIME+2;
                     s->extra = 1;
                     s->pal = 1;
@@ -3553,9 +3555,9 @@ void moveactors(void)
                 }
 
                 if (x < 1596) {
-                    s->cstat = 0;
+                    *(int16_t *)&s->flags = 0;
                 } else {
-                    s->cstat = 257;
+                    *(int16_t *)&s->flags = 257;
                 }
 
                 if (t[0] == -4) { //On the player
@@ -3695,7 +3697,7 @@ void moveactors(void)
                 if (t[0] == -1) { //Shrinking down
                     makeitfall(i);
 
-                    s->cstat &= 65535-8;
+                    s->flags.y_flip = 0;
                     s->picnum = GREENSLIME+4;
 
 //                    if(s->yrepeat > 62)
@@ -3779,7 +3781,7 @@ void moveactors(void)
 
                     if (t[0]==2) {
                         s->zvel = 0;
-                        s->cstat &= (65535-8);
+                        s->flags.y_flip = 0;
 
                         if ( (sector[sect].ceiling.flags.parallaxing) || (hittype[i].ceilingz+6144) < s->z) {
                             s->z += 2048;
@@ -3787,7 +3789,7 @@ void moveactors(void)
                             goto BOLT;
                         }
                     } else {
-                        s->cstat |= 8;
+                        s->flags.y_flip = 1;
                         makeitfall(i);
                     }
 
@@ -3872,12 +3874,12 @@ void moveactors(void)
 
             case HEAVYHBOMB:
 
-                if ( (s->cstat&32768) ) {
+                if (s->flags.invisible) {
                     t[2]--;
                     if (t[2] <= 0) {
                         spritesound(TELEPORTER,i);
                         spawn(i,TRANSPORTERSTAR);
-                        s->cstat = 257;
+                        *(int16_t *)&s->flags = 257;
                     }
                     goto BOLT;
                 }
@@ -3885,9 +3887,11 @@ void moveactors(void)
                 p = findplayer(s,&x);
 
                 if ( x < 1220 ) {
-                    s->cstat &= ~257;
+                    s->flags.blocking = 1;
+                    s->flags.hitscan = 1;
                 } else {
-                    s->cstat |= 257;
+                    s->flags.blocking = 1;
+                    s->flags.hitscan = 1;
                 }
 
                 if (t[3] == 0 ) {
@@ -3959,7 +3963,7 @@ void moveactors(void)
                         s->xvel = 0;
                     }
                     if (s->xvel&8) {
-                        s->cstat ^= 4;
+                        s->flags.x_flip = !s->flags.x_flip;
                     }
                 }
 
@@ -4018,7 +4022,7 @@ DETONATEB:
                         } else {
                             t[2] = respawnitemtime;
                             spawn(i,RESPAWNMARKERRED);
-                            s->cstat = (short) 32768;
+                            *(int16_t *)&s->flags = (int16_t) 32768;
                             s->yrepeat = 9;
                             goto BOLT;
                         }
@@ -4059,7 +4063,7 @@ DETONATEB:
                             } else {
                                 t[2] = respawnitemtime;
                                 spawn(i,RESPAWNMARKERRED);
-                                s->cstat = (short) 32768;
+                                *(int16_t *)&s->flags = (int16_t) 32768;
                             }
                         }
 
@@ -4093,7 +4097,7 @@ DETONATEB:
                                 break;
                             case REACTORSPARK:
                             case REACTOR2SPARK:
-                                sprite[j].cstat = (short) 32768;
+                                *(int16_t *)&sprite[j].flags = (int16_t) 32768;
                                 break;
                         }
                         j = nextspritesect[j];
@@ -4218,7 +4222,7 @@ DETONATEB:
                     if (camerashitable) {
                         IFHIT {
                             t[0] = 1; // static
-                            s->cstat = (short)32768;
+                            *(int16_t *)&s->flags = (int16_t)32768;
                             for (x=0; x<5; x++) {
                                 RANDOMSCRAP;
                             }
@@ -4246,10 +4250,10 @@ DETONATEB:
 // #ifndef VOLOMEONE
         if ( ud.multimode < 2 && badguy(s) ) {
             if ( actor_tog == 1) {
-                s->cstat = (short)32768;
+                *(int16_t *)&s->flags = (int16_t)32768;
                 goto BOLT;
             } else if (actor_tog == 2) {
-                s->cstat = 257;
+                *(int16_t *)&s->flags = 257;
             }
         }
 // #endif
@@ -4408,9 +4412,10 @@ void moveexplosions(void)  // STATNUM 5
                     if ( t[0] > 7 ) {
                         KILLIT(i);
                     } else if ( t[0] > 4 ) {
-                        s->cstat |= 512+2;
+                        s->flags.transluscence = 1;
+                        s->flags.transluscence_reversing = 1;
                     } else if ( t[0] > 2 ) {
-                        s->cstat |= 2;
+                        s->flags.transluscence = 1;
                     }
                     s->xoffset = sprite[s->owner].xoffset;
                     s->yoffset = sprite[s->owner].yoffset;
@@ -4759,7 +4764,7 @@ void moveexplosions(void)  // STATNUM 5
 
                 if (s->xvel > 0) {
                     s->xvel -= 2;
-                    s->cstat = ((s->xvel&3)<<2);
+                    *(int16_t *)&s->flags = ((s->xvel&3)<<2);
                 } else {
                     s->xvel = 0;
                 }
@@ -5514,7 +5519,7 @@ void moveeffectors(void)   //STATNUM 3
 
                 j = headspritesect[SECT];
                 while (j >= 0) {
-                    if (sprite[j].cstat&16) {
+                    if (sprite[j].flags.type != FACE_SPRITE) {
                         if (sc->ceiling.flags.parallaxing) {
                             sprite[j].shade = sc->ceiling.shade;
                         } else {
@@ -5787,7 +5792,7 @@ void moveeffectors(void)   //STATNUM 3
 
                     j = headspritesect[SECT];
                     while (j >= 0) {
-                        if (sprite[j].cstat&16) {
+                        if (sprite[j].flags.type != FACE_SPRITE) {
                             if (sc->ceiling.flags.parallaxing) {
                                 sprite[j].shade = sc->ceiling.shade;
                             } else {
@@ -5822,7 +5827,7 @@ void moveeffectors(void)   //STATNUM 3
 
                     j = headspritesect[SECT];
                     while (j >= 0) {
-                        if (sprite[j].cstat&16) {
+                        if (sprite[j].flags.type != FACE_SPRITE) {
                             if (sc->ceiling.flags.parallaxing) {
                                 sprite[j].shade = sc->ceiling.shade;
                             } else {
@@ -6611,7 +6616,7 @@ void moveeffectors(void)   //STATNUM 3
                         j = headspritestat[0];
                         while (j >= 0) {
                             if ( sprite[j].picnum == NATURALLIGHTNING && sprite[j].hitag == s->hitag) {
-                                sprite[j].cstat |= 32768;
+                                sprite[j].flags.invisible = 1;
                             }
                             j = nextspritestat[j];
                         }
@@ -6634,7 +6639,7 @@ void moveeffectors(void)   //STATNUM 3
                         while (j >= 0) {
                             if ( sprite[j].picnum == NATURALLIGHTNING && sprite[j].hitag == s->hitag) {
                                 if ( rnd(32) && (T3&1) ) {
-                                    sprite[j].cstat &= 32767;
+                                    sprite[j].flags.invisible = 0;
                                     spawn(j,SMALLSMOKE);
 
                                     p = findplayer(s,&x);
@@ -6652,7 +6657,7 @@ void moveeffectors(void)   //STATNUM 3
                                     }
                                     break;
                                 } else {
-                                    sprite[j].cstat |= 32768;
+                                    sprite[j].flags.invisible = 1;
                                 }
                             }
 

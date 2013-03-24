@@ -4260,20 +4260,20 @@ void drawoverheadmap(int32_t cposx, int32_t cposy, int32_t czoom, short cang)
         {
             spr = &sprite[j];
 
-            if (j == k || (spr->cstat&0x8000) || spr->cstat == 257 || spr->xrepeat == 0) {
+            if (j == k || spr->flags.invisible || (*(int16_t *)&spr->flags) == 257 || spr->xrepeat == 0) {
                 continue;
             }
 
             col = 71; //cyan
-            if (spr->cstat&1) {
+            if (spr->flags.blocking) {
                 col = 234;    //magenta
             }
 
             sprx = spr->x;
             spry = spr->y;
 
-            if ( (spr->cstat&257) != 0) switch (spr->cstat&48) {
-                    case 0:
+            if ( spr->flags.blocking || spr->flags.hitscan ) switch (spr->flags.type) {
+                    case FACE_SPRITE:
                         break;
                         ox = sprx-cposx;
                         oy = spry-cposy;
@@ -4296,13 +4296,13 @@ void drawoverheadmap(int32_t cposx, int32_t cposy, int32_t czoom, short cang)
                                     x1+x2+(xdim<<11),y1+y3+(ydim<<11),col);
                         break;
 
-                    case 16:
+                    case WALL_SPRITE:
                         if ( spr->picnum == LASERLINE ) {
                             x1 = sprx;
                             y1 = spry;
                             tilenum = spr->picnum;
                             xoff = (int32_t)((int8_t  )((tiles[tilenum].animFlags>>8)&255))+((int32_t)spr->xoffset);
-                            if ((spr->cstat&4) > 0) {
+                            if (spr->flags.x_flip) {
                                 xoff = -xoff;
                             }
                             k = spr->ang;
@@ -4332,15 +4332,15 @@ void drawoverheadmap(int32_t cposx, int32_t cposy, int32_t czoom, short cang)
 
                         break;
 
-                    case 32:
+                    case FLOOR_SPRITE:
 
                         tilenum = spr->picnum;
                         xoff = (int32_t)((int8_t  )((tiles[tilenum].animFlags>>8)&255))+((int32_t)spr->xoffset);
                         yoff = (int32_t)((int8_t  )((tiles[tilenum].animFlags>>16)&255))+((int32_t)spr->yoffset);
-                        if ((spr->cstat&4) > 0) {
+                        if (spr->flags.x_flip) {
                             xoff = -xoff;
                         }
-                        if ((spr->cstat&8) > 0) {
+                        if (spr->flags.y_flip) {
                             yoff = -yoff;
                         }
 
@@ -4477,7 +4477,7 @@ void drawoverheadmap(int32_t cposx, int32_t cposy, int32_t czoom, short cang)
 
             rotatesprite((x1<<4)+(xdim<<15),(y1<<4)+(ydim<<15),j,
                          daang,i,sprite[ps[p].i].shade,sprite[ps[p].i].pal,
-                         (sprite[ps[p].i].cstat&2)>>1,windowx1,windowy1,windowx2,windowy2);
+                         sprite[ps[p].i].flags.transluscence,windowx1,windowy1,windowx2,windowy2);
         }
     }
 }

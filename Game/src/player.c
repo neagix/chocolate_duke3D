@@ -87,7 +87,7 @@ void quickkill(struct player_struct *p)
     p->pals_time = 48;
 
     sprite[p->i].extra = 0;
-    sprite[p->i].cstat |= 32768;
+    sprite[p->i].flags.invisible = 1;
     if (ud.god == 0) {
         guts(&sprite[p->i],JIBS6,8,myconnectindex);
     }
@@ -250,7 +250,8 @@ short aim(Sprite *s,short aang, short auto_aim)
                 break;
             }
             for (i=headspritestat[aimstats[k]]; i >= 0; i=nextspritestat[i])
-                if ( sprite[i].xrepeat > 0 && sprite[i].extra >= 0 && (sprite[i].cstat&(257+32768)) == 257)
+                if ( sprite[i].xrepeat > 0 && sprite[i].extra >= 0 &&
+                    (sprite[i].flags.blocking && sprite[i].flags.hitscan && !sprite[i].flags.invisible))
                     if ( badguy(&sprite[i]) || k < 2 ) {
                         if (badguy(&sprite[i]) || PN == APLAYER || PN == SHARK) {
                             if ( PN == APLAYER &&
@@ -423,7 +424,7 @@ void shoot(short i,short atwith)
                                     sprite[k].x = hitx;
                                     sprite[k].y = hity;
                                     sprite[k].z = hitz;
-                                    sprite[k].cstat |= (TRAND&4);
+                                    *(int16_t *)&sprite[k].flags |= (TRAND&4);
                                     ssp(k,CLIPMASK0);
                                     setsprite(k,sprite[k].x,sprite[k].y,sprite[k].z);
                                     if ( PN == OOZFILTER || PN == NEWBEAST ) {
@@ -543,12 +544,16 @@ void shoot(short i,short atwith)
                 }
             }
 
-            s->cstat &= ~257;
+            s->flags.blocking = 0;
+            s->flags.hitscan = 0;
+
             hitscan(sx,sy,sz,sect,
                     fixedPointCos(sa),
                     fixedPointSin(sa),
                     zvel<<6,&hitsect,&hitwall,&hitspr,&hitx,&hity,&hitz,CLIPMASK1);
-            s->cstat |= 257;
+            
+            s->flags.blocking = 1;
+            s->flags.hitscan = 1;
 
             if (hitsect < 0) {
                 return;
@@ -767,7 +772,7 @@ SKIPBULLETHOLE:
                     }
                 }
 
-                sprite[j].cstat = 128;
+                *(int16_t *)&sprite[j].flags = 128;
                 sprite[j].clipdist = 4;
 
                 sa = s->ang+32-(TRAND&63);
@@ -885,7 +890,7 @@ SKIPBULLETHOLE:
                 sprite[j].yrepeat >>= 1;
             }
 
-            sprite[j].cstat = 128;
+            *(int16_t *)&sprite[j].flags = 128;
             if (atwith == RPG) {
                 sprite[j].clipdist = 4;
             } else {
@@ -930,7 +935,7 @@ SKIPBULLETHOLE:
                 spritesound(LASERTRIP_ONWALL,k);
                 sprite[k].xvel = -20;
                 ssp(k,CLIPMASK0);
-                sprite[k].cstat = 16;
+                *(int16_t *)&sprite[k].flags = 16;
                 hittype[k].temp_data[5] = sprite[k].ang = getangle(wall[hitwall].x-wall[wall[hitwall].point2].x,wall[hitwall].y-wall[wall[hitwall].point2].y)-512;
 
                 if (p >= 0) {
@@ -1003,18 +1008,22 @@ SKIPBULLETHOLE:
 
 //            RESHOOTGROW:
 
-            s->cstat &= ~257;
+            s->flags.blocking = 0;
+            s->flags.hitscan = 0;
+
             hitscan(sx,sy,sz,sect,
                     fixedPointCos(sa),
                     fixedPointSin(sa),
                     zvel<<6,&hitsect,&hitwall,&hitspr,&hitx,&hity,&hitz,CLIPMASK1);
 
-            s->cstat |= 257;
+            s->flags.blocking = 1;
+            s->flags.hitscan = 1;
 
             j = EGS(sect,hitx,hity,hitz,GROWSPARK,-16,28,28,sa,0,0,i,1);
 
             sprite[j].pal = 2;
-            sprite[j].cstat |= 130;
+            sprite[j].flags.blocking = 1;
+            sprite[j].flags.real_centered = 1;
             sprite[j].xrepeat = sprite[j].yrepeat = 1;
 
             if ( hitwall == -1 && hitspr == -1 && hitsect >= 0) {
@@ -1072,7 +1081,7 @@ SKIPBULLETHOLE:
                     sy+(fixedPointSin((sa+512))>>12),
                     sz+(2<<8),SHRINKSPARK,-16,28,28,sa,768,zvel,i,4);
 
-            sprite[j].cstat = 128;
+            *(int16_t *)&sprite[j].flags = 128;
             sprite[j].clipdist = 32;
 
 
@@ -2371,7 +2380,7 @@ void processinput(short snum)
     if (lz >= 0 && (lz&49152) == 49152) {
         j = lz&(MAXSPRITES-1);
 
-        if ( (sprite[j].cstat&33) == 33 ) {
+        if ( sprite[j].flags.blocking && sprite[j].flags.type == FLOOR_SPRITE) {
             psectlotag = 0;
             p->footprintcount = 0;
             p->spritebridge = 1;
@@ -2512,11 +2521,11 @@ void processinput(short snum)
                 p->scream_voice = FX_Ok;
             }
 
-            if ( s->pal != 1 && (s->cstat&32768) == 0) {
-                s->cstat = 0;
+            if ( s->pal != 1 && !s->flags.invisible) {
+                *(int16_t *)&s->flags = 0;
             }
 
-            if ( ud.multimode > 1 && ( s->pal != 1 || (s->cstat&32768) ) ) {
+            if ( ud.multimode > 1 && ( s->pal != 1 || s->flags.invisible ) ) {
                 if (p->frag_ps != snum) {
                     ps[p->frag_ps].frag++;
                     frags[p->frag_ps][snum]++;

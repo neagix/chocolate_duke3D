@@ -160,7 +160,7 @@ typedef struct {
 
 
 /*
- * cstat:
+ * WallFlags:
  *   bit 0: 1 = Blocking sprite (use with clipmove, getzrange)       "B"
  *   bit 1: 1 = transluscence, 0 = normal                            "T"
  *   bit 2: 1 = x-flipped, 0 = normal                                "F"
@@ -176,10 +176,30 @@ typedef struct {
  *   bit 15: 1 = Invisible sprite, 0 = not invisible
  */
 
+typedef struct {
+    unsigned blocking                 :1;
+    unsigned transluscence            :1;
+    unsigned x_flip                   :1;
+    unsigned y_flip                   :1;
+    unsigned type                     :2;
+    unsigned one_sided                :1;
+    unsigned real_centered            :1;
+    unsigned hitscan                  :1;
+    unsigned transluscence_reversing  :1;
+    unsigned reserved                 :5;
+    unsigned invisible                :1;
+} SpriteFlags;
+
+#define FACE_SPRITE          0
+#define WALL_SPRITE          1
+#define FLOOR_SPRITE         2
+#define UNKNOW_SPRITE        3  // TODO: WTF is this type?
+
 /* 44 bytes */
 typedef struct {
     int32_t x, y, z;
-    short cstat, picnum;
+    SpriteFlags flags;
+    short picnum;
     int8_t shade;
     uint8_t  pal, clipdist, filler;
     uint8_t  xrepeat, yrepeat;

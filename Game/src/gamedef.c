@@ -220,7 +220,7 @@ void getglobalz(short i)
 
         getzrange(s->x,s->y,s->z-(FOURSLEIGHT),s->sectnum,&hittype[i].ceilingz,&hz,&hittype[i].floorz,&lz,zr,CLIPMASK0);
 
-        if ( (lz&49152) == 49152 && (sprite[lz&(MAXSPRITES-1)].cstat&48) == 0 ) {
+        if ( (lz&49152) == 49152 && (sprite[lz&(MAXSPRITES-1)].flags.type == FACE_SPRITE) ) {
             lz &= (MAXSPRITES-1);
             if ( badguy(&sprite[lz]) && sprite[lz].pal != 1) {
                 if ( s->statnum != 4 ) {
@@ -2627,7 +2627,7 @@ SKIPJIBS:
             break;
         case 101:
             insptr++;
-            g_sp->cstat |= (short)*insptr;
+            *(int16_t *)&g_sp->flags |= (int16_t)*insptr;
             insptr++;
             break;
         case 110:
@@ -2637,7 +2637,7 @@ SKIPJIBS:
             break;
         case 40:
             insptr++;
-            g_sp->cstat = (short) *insptr;
+            *(int16_t *)&g_sp->flags = (int16_t) *insptr;
             insptr++;
             break;
         case 41:
@@ -2663,7 +2663,7 @@ SKIPJIBS:
                 g_sp->z = hittype[g_i].bposy = ps[g_p].oposz =ps[g_p].posz;
                 updatesector(ps[g_p].posx,ps[g_p].posy,&ps[g_p].cursectnum);
                 setsprite(ps[g_p].i,ps[g_p].posx,ps[g_p].posy,ps[g_p].posz+PHEIGHT);
-                g_sp->cstat = 257;
+                *(int16_t *)&g_sp->flags = 257;
 
                 g_sp->shade = -12;
                 g_sp->clipdist = 64;
@@ -3190,7 +3190,7 @@ void execute(short i,short p,int32_t x)
                 if ( ud.respawn_monsters == 1 && g_sp->extra <= 0 ) {
                     return;
                 }
-            } else if ( ud.respawn_items == 1 && (g_sp->cstat&32768) ) {
+            } else if ( ud.respawn_items == 1 && g_sp->flags.invisible ) {
                 return;
             }
 

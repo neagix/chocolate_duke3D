@@ -255,12 +255,13 @@ static void scansector (short sectnum, short *numscans, short *numbunches, Engin
         //Add every script in the current sector as potentially visible.
         for (z=headspritesect[sectnum]; z>=0; z=nextspritesect[z]) {
             spr = &sprite[z];
-            if ((((spr->cstat&0x8000) == 0) || (showinvisibility)) &&
+            if ((!spr->flags.invisible || showinvisibility) &&
                 (spr->xrepeat > 0) && (spr->yrepeat > 0) &&
                 (engine_state->spritesortcnt < MAXSPRITESONSCREEN)) {
                 xs = spr->x - engine_state->posx;
                 ys = spr->y - engine_state->posy;
-                if ((spr->cstat&48) || (xs * fixedPointCos(engine_state->ang) + ys * fixedPointSin(engine_state->ang) > 0)) {
+                if ((spr->flags.type == WALL_SPRITE || spr->flags.type == FLOOR_SPRITE) ||
+                    (xs * fixedPointCos(engine_state->ang) + ys * fixedPointSin(engine_state->ang) > 0)) {
                     copybufbyte(spr,&tsprite[engine_state->spritesortcnt],sizeof(Sprite));
                     tsprite[engine_state->spritesortcnt++].owner = z;
                 }
@@ -2657,7 +2658,7 @@ int loadboard(char  *filename, int32_t *daposx, int32_t *daposy,
         kread32(fil,&s->x);
         kread32(fil,&s->y);
         kread32(fil,&s->z);
-        kread16(fil,&s->cstat);
+        kread16(fil,(int16_t *)&s->flags);
         kread16(fil,&s->picnum);
         kread8(fil,(uint8_t *)&s->shade);
         kread8(fil,(uint8_t *)&s->pal);
@@ -2812,7 +2813,7 @@ int saveboard(char  *filename, int32_t *daposx, int32_t *daposy,
             write32(fil,s->x);
             write32(fil,s->y);
             write32(fil,s->z);
-            write16(fil,s->cstat);
+            write16(fil,*(int16_t *)&s->flags);
             write16(fil,s->picnum);
             write8(fil,s->shade);
             write8(fil,s->pal);
@@ -4185,7 +4186,8 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
 {
     Sprite *tspr;
     Sector *sec;
-    int32_t startum, startdm, sectnum, xb, yp, cstat;
+    int32_t startum, startdm, sectnum, xb, yp;
+    SpriteFlags cstat;
     int32_t siz, xsiz, ysiz, xoff, yoff;
     dimensions_t spriteDim;
     int32_t x1, y1, x2, y2, lx, rx, dalx2, darx2, i, j, k, x, linum, linuminc;
@@ -4213,9 +4215,9 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
     yp = spritesy[engine_state->spritesortcnt];
     tilenum = tspr->picnum;
     spritenum = tspr->owner;
-    cstat = tspr->cstat;
+    cstat = tspr->flags;
 
-    if ((cstat&48) != 48) {
+    if (cstat.type != UNKNOW_SPRITE) {
         if (tiles[tilenum].animFlags&192) {
             tilenum += animateoffs(tilenum);
         }
@@ -4236,9 +4238,9 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         pallete = 0;    // seem to crash when globalpal > 25
     }
     shade = tspr->shade;
-    if (cstat&2) {
+    if (cstat.transluscence) {
 
-        if (cstat&512) {
+        if (cstat.transluscence_reversing) {
             settrans(TRANS_REVERSE);
         } else {
             settrans(TRANS_NORMAL);
@@ -4248,7 +4250,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
     xoff = (int32_t)((int8_t )((tiles[tilenum].animFlags>>8)&255))+((int32_t)tspr->xoffset);
     yoff = (int32_t)((int8_t )((tiles[tilenum].animFlags>>16)&255))+((int32_t)tspr->yoffset);
 
-    if ((cstat&48) == 0) {
+    if (cstat.type == FACE_SPRITE) {
         if (yp <= (4<<8)) {
             return;
         }
@@ -4272,7 +4274,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
             x1 += mulscale31(siz,xv);    /* Odd xspans */
         }
         i = mulscale30(siz,xv*xoff);
-        if ((cstat&4) == 0) {
+        if (!cstat.x_flip) {
             x1 -= i;
         } else {
             x1 += i;
@@ -4281,7 +4283,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         y1 = mulscale16(tspr->z-engine_state->posz,siz);
         y1 -= mulscale14(siz,tspr->yrepeat*yoff);
         y1 += (engine_state->horiz<<8)-ysiz;
-        if (cstat&128) {
+        if (cstat.real_centered) {
             y1 += (ysiz>>1);
             if (spriteDim.height&1) {
                 y1 += mulscale15(siz,tspr->yrepeat);    /* Odd yspans */
@@ -4333,7 +4335,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
             return;
         }
 
-        if ((cstat&4) == 0) {
+        if (!cstat.x_flip) {
             linuminc = divscale24(spriteDim.width,xsiz);
             linum = mulscale8((lx<<8)-x1,linuminc);
         } else {
@@ -4420,7 +4422,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
             }
 
         z2 = tspr->z - ((yoff*tspr->yrepeat)<<2);
-        if (cstat&128) {
+        if (cstat.real_centered) {
             z2 += ((spriteDim.height*tspr->yrepeat)<<1);
             if (spriteDim.height&1) {
                 z2 += (tspr->yrepeat<<1);    /* Odd yspans */
@@ -4447,7 +4449,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         shiftval = 32-shiftval;
         yscale = divscale(512,tspr->yrepeat,shiftval-19);
         zd = (((engine_state->posz-z1)*yscale)<<8);
-        if ((cstat&8) > 0) {
+        if (cstat.y_flip) {
             yscale = -yscale;
             zd = (((engine_state->posz-z2)*yscale)<<8);
         }
@@ -4455,7 +4457,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         qinterpolatedown16((int32_t *)&lwall[lx],rx-lx+1,linum,linuminc);
         clearbuf(&swall[lx],rx-lx+1,mulscale19(yp,xdimscale));
 
-        if ((cstat&2) == 0) {
+        if (!cstat.transluscence) {
             maskwallscan(lx,rx,uwall,dwall,swall,lwall, zd,
                          xpanning, picnum, shade, shiftval, yscale, vis, pallete,
                          engine_state);
@@ -4464,11 +4466,11 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
                               xpanning, picnum, shade, shiftval, yscale, vis, pallete,
                               engine_state);
         }
-    } else if ((cstat&48) == 16) {
-        if ((cstat&4) > 0) {
+    } else if (cstat.type == WALL_SPRITE) {
+        if (cstat.x_flip) {
             xoff = -xoff;
         }
-        if ((cstat&8) > 0) {
+        if (cstat.y_flip) {
             yoff = -yoff;
         }
 
@@ -4498,9 +4500,8 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
 
         swapped = 0;
         if (dmulscale32(xp1,yp2,-xp2,yp1) >= 0) { /* If wall's NOT facing you */
-            if ((cstat&64) != 0) {
-                return;
-            }
+            if (cstat.one_sided) return;
+            
             i = xp1, xp1 = xp2, xp2 = i;
             i = yp1, yp1 = yp2, yp2 = i;
             i = x1, x1 = x2, x2 = i;
@@ -4595,7 +4596,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
             lwall[pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL]] = spriteDim.width-1;
         }
 
-        if ((swapped^((cstat&4)>0)) > 0) {
+        if ((swapped^(cstat.x_flip)) > 0) {
             j = spriteDim.width-1;
             for (x=pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL]; x<=pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL]; x++) {
                 lwall[x] = j-lwall[x];
@@ -4613,7 +4614,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         hinc = (hinc-hplc)/(pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL]-pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL]+1);
 
         z2 = tspr->z - ((yoff*tspr->yrepeat)<<2);
-        if (cstat&128) {
+        if (cstat.real_centered) {
             z2 += ((spriteDim.height*tspr->yrepeat)<<1);
             if (spriteDim.height&1) {
                 z2 += (tspr->yrepeat<<1);    /* Odd yspans */
@@ -4639,7 +4640,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         shiftval = 32-shiftval;
         yscale = divscale(512,tspr->yrepeat,shiftval-19);
         zd = (((engine_state->posz-z1)*yscale)<<8);
-        if ((cstat&8) > 0) {
+        if (cstat.y_flip) {
             yscale = -yscale;
             zd = (((engine_state->posz-z2)*yscale)<<8);
         }
@@ -4770,7 +4771,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
                 searchit = 1;
             }
 
-        if ((cstat&2) == 0) {
+        if (!cstat.transluscence) {
             maskwallscan(pvWalls[MAXWALLSB-1].screenSpaceCoo[0][VEC_COL],
                          pvWalls[MAXWALLSB-1].screenSpaceCoo[1][VEC_COL],
                          uwall,dwall,swall,lwall, zd,
@@ -4782,16 +4783,14 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
                               zd, xpanning, picnum, shade, shiftval, yscale, vis, pallete,
                               engine_state);
         }
-    } else if ((cstat&48) == 32) {
-        if ((cstat&64) != 0)
-            if ((engine_state->posz > tspr->z) == ((cstat&8)==0)) {
-                return;
-            }
+    } else if (cstat.type == FLOOR_SPRITE) {
+        if (cstat.one_sided)
+            if ((engine_state->posz > tspr->z) == (!cstat.y_flip)) return;
 
-        if ((cstat&4) > 0) {
+        if (cstat.x_flip) {
             xoff = -xoff;
         }
-        if ((cstat&8) > 0) {
+        if (cstat.y_flip) {
             yoff = -yoff;
         }
         spriteDim.width = tiles[tilenum].dim.width;
@@ -4831,7 +4830,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         }
         ryi[1] = ryi[2] = ryi[3] = ryi[0];
 
-        if ((cstat&4) == 0) {
+        if (!cstat.x_flip) {
             z = 0;
             z1 = 1;
             z2 = 3;
@@ -5161,7 +5160,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         g_x1 = (g_x1-g_x2)*halfxdimen;
         g_y1 = (g_y1-g_y2)*halfxdimen;
 
-        if ((cstat&2) == 0) {
+        if (!cstat.transluscence) {
             msethlineshift(x,y);
         } else {
             tsethlineshift(x,y);
@@ -5231,7 +5230,7 @@ void drawmasks(EngineState *engine_state, bool draw_mirror)
         if (yp > (4<<8)) {
             xp = dmulscale6(ys, fixedPointCos(engine_state->ang), -xs, fixedPointSin(engine_state->ang));
             spritesx[i] = scale(xp+yp,xdimen<<7,yp);
-        } else if ((tspriteptr[i]->cstat&48) == 0) {
+        } else if (tspriteptr[i]->flags.type == FACE_SPRITE) {
             engine_state->spritesortcnt--;  /* Delete face sprite if on wrong side! */
             //Move the sprite at the end of the array and decrease array length.
             if (i != engine_state->spritesortcnt) {
@@ -5276,11 +5275,11 @@ void drawmasks(EngineState *engine_state, bool draw_mirror)
         if (j > i+1) {
             for (k=i; k<j; k++) {
                 spritesz[k] = tspriteptr[k]->z;
-                if ((tspriteptr[k]->cstat&48) != 32) {
+                if (tspriteptr[k]->flags.type != FLOOR_SPRITE) {
                     yoff = (int32_t)((int8_t )((tiles[tspriteptr[k]->picnum].animFlags>>16)&255))+((int32_t)tspriteptr[k]->yoffset);
                     spritesz[k] -= ((yoff*tspriteptr[k]->yrepeat)<<2);
                     yspan = (tiles[tspriteptr[k]->picnum].dim.height*tspriteptr[k]->yrepeat<<2);
-                    if (!(tspriteptr[k]->cstat&128)) {
+                    if (!tspriteptr[k]->flags.real_centered) {
                         spritesz[k] -= (yspan>>1);
                     }
                     if (klabs(spritesz[k] - engine_state->posz) < (yspan>>1)) {
@@ -5811,7 +5810,8 @@ int hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum,
     walltype *wal, *wal2;
     Sprite *spr;
     int32_t z, zz, x1, y1=0, z1=0, x2, y2, x3, y3, x4, y4, intx, inty, intz;
-    int32_t topt, topu, bot, dist, offx, offy, cstat;
+    int32_t topt, topu, bot, dist, offx, offy;
+    SpriteFlags cstat;
     int32_t i, j, k, l, tilenum, xoff, yoff, dax, day, daz, daz2;
     int32_t ang, cosang, sinang, xspan, yspan, xrepeat, yrepeat;
     int32_t dawalclipmask, dasprclipmask;
@@ -5829,6 +5829,7 @@ int hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum,
     *hitx = hitscangoalx;
     *hity = hitscangoaly;
 
+    //TODO: Refactor this clip masks thing
     dawalclipmask = (cliptype&65535);
     dasprclipmask = (cliptype>>16);
 
@@ -5977,16 +5978,16 @@ int hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum,
 
         for (z=headspritesect[dasector]; z>=0; z=nextspritesect[z]) {
             spr = &sprite[z];
-            cstat = spr->cstat;
-            if ((cstat&dasprclipmask) == 0) {
+            cstat = spr->flags;
+            if (((*(int16_t *)&cstat) & dasprclipmask) == 0) {
                 continue;
             }
 
             x1 = spr->x;
             y1 = spr->y;
             z1 = spr->z;
-            switch (cstat&48) {
-                case 0:
+            switch (cstat.type) {
+                case FACE_SPRITE:
                     topt = vx*(x1-xs) + vy*(y1-ys);
                     if (topt <= 0) {
                         continue;
@@ -6000,7 +6001,7 @@ int hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum,
 
                     i = (tiles[spr->picnum].dim.height*spr->yrepeat<<2);
 
-                    if (cstat&128) {
+                    if (cstat.real_centered) {
                         z1 += (i>>1);
                     }
 
@@ -6035,14 +6036,14 @@ int hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum,
                     *hity = inty;
                     *hitz = intz;
                     break;
-                case 16:
+                case WALL_SPRITE:
                     /*
                      * These lines get the 2 points of the rotated sprite
                      * Given: (x1, y1) starts out as the center point
                      */
                     tilenum = spr->picnum;
                     xoff = (int32_t)((int8_t )((tiles[tilenum].animFlags>>8)&255))+((int32_t)spr->xoffset);
-                    if ((cstat&4) > 0) {
+                    if (cstat.x_flip) {
                         xoff = -xoff;
                     }
                     k = spr->ang;
@@ -6056,7 +6057,7 @@ int hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum,
                     y1 -= mulscale16(day,k);
                     y2 = y1+mulscale16(day,l);
 
-                    if ((cstat&64) != 0)   /* back side of 1-way sprite */
+                    if (cstat.one_sided)   /* back side of 1-way sprite */
                         if ((x1-xs)*(y2-ys) < (x2-xs)*(y1-ys)) {
                             continue;
                         }
@@ -6070,7 +6071,7 @@ int hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum,
                     }
 
                     k = ((tiles[spr->picnum].dim.height*spr->yrepeat)<<2);
-                    if (cstat&128) {
+                    if (cstat.real_centered) {
                         daz = spr->z+(k>>1);
                     } else {
                         daz = spr->z;
@@ -6089,7 +6090,7 @@ int hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum,
                         *hitz = intz;
                     }
                     break;
-                case 32:
+                case FLOOR_SPRITE:
                     if (vz == 0) {
                         continue;
                     }
@@ -6097,8 +6098,8 @@ int hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum,
                     if (((intz-zs)^vz) < 0) {
                         continue;
                     }
-                    if ((cstat&64) != 0)
-                        if ((zs > intz) == ((cstat&8)==0)) {
+                    if (cstat.one_sided)
+                        if ((zs > intz) == (cstat.y_flip == 0)) {
                             continue;
                         }
 
@@ -6112,10 +6113,10 @@ int hitscan(int32_t xs, int32_t ys, int32_t zs, short sectnum,
                     tilenum = spr->picnum;
                     xoff = (int32_t)((int8_t )((tiles[tilenum].animFlags>>8)&255))+((int32_t)spr->xoffset);
                     yoff = (int32_t)((int8_t )((tiles[tilenum].animFlags>>16)&255))+((int32_t)spr->yoffset);
-                    if ((cstat&4) > 0) {
+                    if (cstat.x_flip) {
                         xoff = -xoff;
                     }
-                    if ((cstat&8) > 0) {
+                    if (cstat.y_flip) {
                         yoff = -yoff;
                     }
 
@@ -6306,7 +6307,7 @@ int neartag(int32_t xs, int32_t ys, int32_t zs, short sectnum, short ange,
                     if (bot != 0) {
                         intz = zs+scale(vz,topt,bot);
                         i = tiles[spr->picnum].dim.height*spr->yrepeat;
-                        if (spr->cstat&128) {
+                        if (spr->flags.real_centered) {
                             z1 += (i<<1);
                         }
                         if (tiles[spr->picnum].animFlags&0x00ff0000) {
@@ -6494,7 +6495,8 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
     Sector *sec, *sec2;
     int32_t i, j, templong1, templong2;
     int32_t oxvect, oyvect, goalx, goaly, intx, inty, lx, ly, retval;
-    int32_t k, l, clipsectcnt, startwall, endwall, cstat, dasect;
+    int32_t k, l, clipsectcnt, startwall, endwall, dasect;
+    SpriteFlags cstat;
     int32_t x1, y1, x2, y2, cx, cy, rad, xmin, ymin, xmax, ymax, daz, daz2;
     int32_t bsz, dax, day, xoff, yoff, xspan, yspan, cosang, sinang, tilenum;
     int32_t xrepeat, yrepeat, gx, gy, dx, dy, dasprclipmask, dawalclipmask;
@@ -6630,17 +6632,17 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
 
         for (j=headspritesect[dasect]; j>=0; j=nextspritesect[j]) {
             spr = &sprite[j];
-            cstat = spr->cstat;
-            if ((cstat&dasprclipmask) == 0) {
+            cstat = spr->flags;
+            if (( (*(int16_t *)&cstat) & dasprclipmask) == 0) {
                 continue;
             }
             x1 = spr->x;
             y1 = spr->y;
-            switch (cstat&48) {
-                case 0:
+            switch (cstat.type) {
+                case FACE_SPRITE:
                     if ((x1 >= xmin) && (x1 <= xmax) && (y1 >= ymin) && (y1 <= ymax)) {
                         k = ((tiles[spr->picnum].dim.height*spr->yrepeat)<<2);
-                        if (cstat&128) {
+                        if (cstat.real_centered) {
                             daz = spr->z+(k>>1);
                         } else {
                             daz = spr->z;
@@ -6667,7 +6669,7 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
                 case 16:
                     k = ((tiles[spr->picnum].dim.height*spr->yrepeat)<<2);
 
-                    if (cstat&128) {
+                    if (cstat.real_centered) {
                         daz = spr->z+(k>>1);
                     } else {
                         daz = spr->z;
@@ -6686,7 +6688,7 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
                          */
                         tilenum = spr->picnum;
                         xoff = (int32_t)((int8_t  )((tiles[tilenum].animFlags>>8)&255))+((int32_t)spr->xoffset);
-                        if ((cstat&4) > 0) {
+                        if (cstat.x_flip) {
                             xoff = -xoff;
                         }
                         k = spr->ang;
@@ -6706,9 +6708,8 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
                             if ((x1-(*x))*(y2-(*y)) >= (x2-(*x))*(y1-(*y))) { /* Front */
                                 addclipline(x1+dax,y1+day,x2+day,y2-dax,(short)j+49152);
                             } else {
-                                if ((cstat&64) != 0) {
-                                    continue;
-                                }
+                                if (cstat.one_sided) continue;
+                                
                                 addclipline(x2-dax,y2-day,x1-day,y1+dax,(short)j+49152);
                             }
 
@@ -6725,18 +6726,18 @@ int clipmove (int32_t *x, int32_t *y, int32_t *z, short *sectnum,
                     daz = spr->z+ceildist;
                     daz2 = spr->z-flordist;
                     if (((*z) < daz) && ((*z) > daz2)) {
-                        if ((cstat&64) != 0)
-                            if (((*z) > spr->z) == ((cstat&8)==0)) {
+                        if (cstat.one_sided)
+                            if (((*z) > spr->z) == (cstat.y_flip == 0)) {
                                 continue;
                             }
 
                         tilenum = spr->picnum;
                         xoff = (int32_t)((int8_t  )((tiles[tilenum].animFlags>>8)&255))+((int32_t)spr->xoffset);
                         yoff = (int32_t)((int8_t  )((tiles[tilenum].animFlags>>16)&255))+((int32_t)spr->yoffset);
-                        if ((cstat&4) > 0) {
+                        if (cstat.x_flip) {
                             xoff = -xoff;
                         }
-                        if ((cstat&8) > 0) {
+                        if (cstat.y_flip) {
                             yoff = -yoff;
                         }
 
@@ -7144,7 +7145,7 @@ void getzrange(int32_t x, int32_t y, int32_t z, short sectnum,
     int32_t xmin, ymin, xmax, ymax, i, j, k, l, daz, daz2, dx, dy;
     int32_t x1, y1, x2, y2, x3, y3, x4, y4, ang, cosang, sinang;
     int32_t xspan, yspan, xrepeat, yrepeat, dasprclipmask, dawalclipmask;
-    short cstat;
+    SpriteFlags cstat;
     uint8_t  clipyou;
 
     if (sectnum < 0) {
@@ -7255,19 +7256,19 @@ void getzrange(int32_t x, int32_t y, int32_t z, short sectnum,
     for (i=0; i<clipsectnum; i++) {
         for (j=headspritesect[clipsectorlist[i]]; j>=0; j=nextspritesect[j]) {
             spr = &sprite[j];
-            cstat = spr->cstat;
-            if (cstat&dasprclipmask) {
+            cstat = spr->flags;
+            if ((*(uint16_t *)&cstat) & dasprclipmask) {
                 x1 = spr->x;
                 y1 = spr->y;
 
                 clipyou = 0;
-                switch (cstat&48) {
-                    case 0:
+                switch (cstat.type) {
+                    case FACE_SPRITE:
                         k = walldist+(spr->clipdist<<2)+1;
                         if ((klabs(x1-x) <= k) && (klabs(y1-y) <= k)) {
                             daz = spr->z;
                             k = ((tiles[spr->picnum].dim.height*spr->yrepeat)<<1);
-                            if (cstat&128) {
+                            if (cstat.real_centered) {
                                 daz += k;
                             }
                             if (tiles[spr->picnum].animFlags&0x00ff0000) {
@@ -7277,10 +7278,10 @@ void getzrange(int32_t x, int32_t y, int32_t z, short sectnum,
                             clipyou = 1;
                         }
                         break;
-                    case 16:
+                    case WALL_SPRITE:
                         tilenum = spr->picnum;
                         xoff = (int32_t)((int8_t  )((tiles[tilenum].animFlags>>8)&255))+((int32_t)spr->xoffset);
-                        if ((cstat&4) > 0) {
+                        if (cstat.x_flip) {
                             xoff = -xoff;
                         }
                         k = spr->ang;
@@ -7296,7 +7297,7 @@ void getzrange(int32_t x, int32_t y, int32_t z, short sectnum,
                         if (clipinsideboxline(x,y,x1,y1,x2,y2,walldist+1) != 0) {
                             daz = spr->z;
                             k = ((tiles[spr->picnum].dim.height*spr->yrepeat)<<1);
-                            if (cstat&128) {
+                            if (cstat.real_centered) {
                                 daz += k;
                             }
 
@@ -7308,22 +7309,22 @@ void getzrange(int32_t x, int32_t y, int32_t z, short sectnum,
                             clipyou = 1;
                         }
                         break;
-                    case 32:
+                    case FLOOR_SPRITE:
                         daz = spr->z;
                         daz2 = daz;
 
-                        if ((cstat&64) != 0)
-                            if ((z > daz) == ((cstat&8)==0)) {
+                        if (cstat.one_sided)
+                            if ((z > daz) == ((cstat.y_flip)==0)) {
                                 continue;
                             }
 
                         tilenum = spr->picnum;
                         xoff = (int32_t)((int8_t  )((tiles[tilenum].animFlags>>8)&255))+((int32_t)spr->xoffset);
                         yoff = (int32_t)((int8_t  )((tiles[tilenum].animFlags>>16)&255))+((int32_t)spr->yoffset);
-                        if ((cstat&4) > 0) {
+                        if (cstat.x_flip) {
                             xoff = -xoff;
                         }
-                        if ((cstat&8) > 0) {
+                        if (cstat.y_flip) {
                             yoff = -yoff;
                         }
 
@@ -8131,15 +8132,15 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang, EngineState
 
     for (s=sortnum-1; s>=0; s--) {
         spr = &sprite[tsprite[s].owner];
-        if ((spr->cstat&48) == 32) {
+        if (spr->flags.type == FLOOR_SPRITE) {
             tilenum = spr->picnum;
             xoff = (int32_t)((int8_t  )((tiles[tilenum].animFlags>>8)&255))+((int32_t)spr->xoffset);
             yoff = (int32_t)((int8_t  )((tiles[tilenum].animFlags>>16)&255))+((int32_t)spr->yoffset);
 
-            if ((spr->cstat&4) > 0) {
+            if (spr->flags.x_flip) {
                 xoff = -xoff;
             }
-            if ((spr->cstat&8) > 0) {
+            if (spr->flags.y_flip) {
                 yoff = -yoff;
             }
 
@@ -8245,7 +8246,7 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang, EngineState
             if (sec->visibility != 0) {
                 vis = mulscale4(vis,(int32_t)((uint8_t )(sec->visibility+16)));
             }
-            polyType = ((spr->cstat&2)>>1)+1;
+            polyType = spr->flags.transluscence + 1;
 
             /* relative alignment stuff */
             ox = x2-x1;
@@ -8281,13 +8282,13 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang, EngineState
             engine_state->posx = dmulscale28(-baky1,g_x1,-bakx1,g_y1);
             engine_state->posy = dmulscale28(bakx1,g_x2,-baky1,g_y2);
 
-            if ((spr->cstat&2) == 0) {
+            if (!spr->flags.transluscence) {
                 msethlineshift(ox,oy);
             } else {
                 tsethlineshift(ox,oy);
             }
 
-            if ((spr->cstat&0x4) > 0) {
+            if (spr->flags.x_flip) {
                 g_x1 = -g_x1, g_y1 = -g_y1, engine_state->posx = -engine_state->posx;
             }
             g_x1 <<= 2;

@@ -3270,7 +3270,8 @@ void view(struct player_struct *pp, int32_t *vx, int32_t *vy,int32_t *vz,short *
 {
     Sprite *sp;
     int32_t i, nx, ny, nz, hx, hy, hitx, hity, hitz;
-    short bakcstat, hitsect, hitwall, hitsprite, daang;
+    short hitsect, hitwall, hitsprite, daang;
+    SpriteFlags bakcstat;
 
     nx = (fixedPointCos((ang+1024))>>4);
     ny = (fixedPointSin((ang+1024))>>4);
@@ -3278,14 +3279,16 @@ void view(struct player_struct *pp, int32_t *vx, int32_t *vy,int32_t *vz,short *
 
     sp = &sprite[pp->i];
 
-    bakcstat = sp->cstat;
-    sp->cstat &= (short)~0x101;
+    bakcstat = sp->flags;
+    
+    sp->flags.blocking = 0;
+    sp->flags.hitscan = 0;
 
     updatesectorz(*vx,*vy,*vz,vsectnum);
     hitscan(*vx,*vy,*vz,*vsectnum,nx,ny,nz,&hitsect,&hitwall,&hitsprite,&hitx,&hity,&hitz,CLIPMASK1);
 
     if (*vsectnum < 0) {
-        sp->cstat = bakcstat;
+        sp->flags = bakcstat;
         return;
     }
 
@@ -3328,7 +3331,7 @@ void view(struct player_struct *pp, int32_t *vx, int32_t *vy,int32_t *vz,short *
 
     updatesectorz(*vx,*vy,*vz,vsectnum);
 
-    sp->cstat = bakcstat;
+    sp->flags = bakcstat;
 }
 
 //REPLACE FULLY
@@ -3878,7 +3881,7 @@ short EGS(short whatsect,int32_t s_x,int32_t s_y,int32_t s_z,short s_pn,int8_t s
     s->x = s_x;
     s->y = s_y;
     s->z = s_z;
-    s->cstat = 0;
+    *(int16_t *)&s->flags = 0;
     s->picnum = s_pn;
     s->shade = s_s;
     s->xrepeat = s_xr;
@@ -4020,20 +4023,23 @@ short spawn( short j, short pn )
 
         T1 = T2 = T3 = T4 = T5 = T6 = 0;
 
-        if ( PN != SPEAKER && PN != LETTER && PN != DUCK && PN != TARGET && PN != TRIPBOMB && PN != VIEWSCREEN && PN != VIEWSCREEN2 && (CS&48) )
+        if ( PN != SPEAKER && PN != LETTER && PN != DUCK && PN != TARGET && PN != TRIPBOMB && PN != VIEWSCREEN && PN != VIEWSCREEN2 &&
+            (CS.type == WALL_SPRITE || CS.type == FLOOR_SPRITE) )
             if ( !(PN >= CRACK1 && PN <= CRACK4) ) {
                 if (SS == 127) {
                     return i;
                 }
-                if ( wallswitchcheck(i) == 1 && (CS&16) ) {
+                if ( wallswitchcheck(i) == 1 && ((*(int16_t *)&CS)&16) ) {
                     if ( PN != ACCESSSWITCH && PN != ACCESSSWITCH2 && sprite[i].pal) {
                         if ( (ud.multimode < 2) || (ud.multimode > 1 && ud.coop==1) ) {
                             sprite[i].xrepeat = sprite[i].yrepeat = 0;
-                            sprite[i].cstat = SLT = SHT = 0;
+                            *(int16_t *)&sprite[i].flags = SLT = SHT = 0;
                             return i;
                         }
                     }
-                    CS |= 257;
+                    CS.blocking = 1;
+                    CS.hitscan = 1;
+
                     if ( sprite[i].pal && PN != ACCESSSWITCH && PN != ACCESSSWITCH2) {
                         sprite[i].pal = 0;
                     }
@@ -4042,7 +4048,8 @@ short spawn( short j, short pn )
 
                 if ( SHT ) {
                     changespritestat(i,12);
-                    CS |=  257;
+                    CS.blocking = 1;
+                    CS.hitscan = 1;
                     SH = impact_damage;
                     return i;
                 }
@@ -4050,8 +4057,8 @@ short spawn( short j, short pn )
 
         s = PN;
 
-        if ( CS&1 ) {
-            CS |= 256;
+        if ( CS.blocking ) {
+            CS.hitscan = 1;
         }
 
         if ( actorscrptr[s] ) {
@@ -4133,11 +4140,11 @@ short spawn( short j, short pn )
             }
 
             sp->shade = -16;
-            sp->cstat |= 128;
+            sp->flags.real_centered = 1;
             if (j >= 0) {
                 if (sector[sprite[j].sectnum].lotag == 2) {
                     sp->z = GetZOfSlope(sector[SECT].ceiling, SX, SY)+(16<<8);
-                    sp->cstat |= 8;
+                    sp->flags.y_flip = 1;
                 } else if ( sector[sprite[j].sectnum].lotag == 1) {
                     sp->z = GetZOfSlope(sector[SECT].floor, SX, SY);
                 }
@@ -4155,11 +4162,15 @@ short spawn( short j, short pn )
         case NEON6:
         case DOMELITE:
             if (sp->picnum != WATERSPLASH2) {
-                sp->cstat |= 257;
+                sp->flags.blocking = 1;
+                sp->flags.hitscan = 1;
+
             }
         case NUKEBUTTON:
             if (sp->picnum == DOMELITE) {
-                sp->cstat |= 257;
+                sp->flags.blocking = 1;
+                sp->flags.hitscan = 1;
+
             }
         case JIBS1:
         case JIBS2:
@@ -4188,8 +4199,10 @@ short spawn( short j, short pn )
             changespritestat(i,4);
             break;
         case NATURALLIGHTNING:
-            sp->cstat &= ~257;
-            sp->cstat |= 32768;
+            sp->flags.blocking = 0;
+            sp->flags.hitscan = 0;
+
+            sp->flags.invisible = 1;
             break;
         case TRANSPORTERSTAR:
         case TRANSPORTERBEAM:
@@ -4214,7 +4227,7 @@ short spawn( short j, short pn )
             }
 
             sp->shade = -127;
-            sp->cstat = 128|2;
+            *(int16_t *)&sp->flags = 128|2;
             sp->ang = sprite[j].ang;
 
             sp->xvel = 128;
@@ -4242,9 +4255,9 @@ short spawn( short j, short pn )
             sp->xrepeat = 32;
 
             if (lasermode == 1) {
-                sp->cstat = 16 + 2;
+                *(int16_t *)&sp->flags = 16 + 2;
             } else if (lasermode == 0 || lasermode == 2) {
-                sp->cstat = 16;
+                *(int16_t *)&sp->flags = 16;
             } else {
                 sp->xrepeat = 0;
                 sp->yrepeat = 0;
@@ -4258,7 +4271,7 @@ short spawn( short j, short pn )
 
         case FORCESPHERE:
             if (j == -1 ) {
-                sp->cstat = (short) 32768;
+                *(int16_t *)&sp->flags = (short) 32768;
                 changespritestat(i,2);
             } else {
                 sp->xrepeat = sp->yrepeat = 1;
@@ -4330,7 +4343,7 @@ short spawn( short j, short pn )
                 sp->shade = 127;
             }
         }
-        sp->cstat |= 32;
+        *(int16_t *)&sp->flags |= 32;
         case FECES:
             if ( j >= 0) {
                 sp->xrepeat = sp->yrepeat = 1;
@@ -4342,7 +4355,7 @@ short spawn( short j, short pn )
         case BLOODSPLAT2:
         case BLOODSPLAT3:
         case BLOODSPLAT4:
-            sp->cstat |= 16;
+            *(int16_t *)&sp->flags |= 16;
             sp->xrepeat = 7+(TRAND&7);
             sp->yrepeat = 7+(TRAND&7);
             sp->z -= (16<<8);
@@ -4375,7 +4388,9 @@ short spawn( short j, short pn )
         case SPACEMARINE:
             if (sp->picnum == SPACEMARINE) {
                 sp->extra = 20;
-                sp->cstat |= 257;
+                sp->flags.blocking = 1;
+                sp->flags.hitscan = 1;
+
             }
             changespritestat(i,2);
             break;
@@ -4446,13 +4461,17 @@ short spawn( short j, short pn )
         case PIPE5:
         case PIPE6:
             sp->clipdist = 32;
-            sp->cstat |= 257;
+            sp->flags.blocking = 1;
+            sp->flags.hitscan = 1;
+
         case OCEANSPRITE4:
             changespritestat(i,0);
             break;
         case FEMMAG1:
         case FEMMAG2:
-            sp->cstat &= ~257;
+            sp->flags.blocking = 0;
+            sp->flags.hitscan = 0;
+
             changespritestat(i,0);
             break;
         case DUKETAG:
@@ -4480,8 +4499,8 @@ short spawn( short j, short pn )
         case MASKWALL13:
         case MASKWALL14:
         case MASKWALL15:
-            j = sp->cstat&60;
-            sp->cstat = j|1;
+            j = (*(int16_t *)&sp->flags)&60;
+            *(int16_t *)&sp->flags = j|1;
             changespritestat(i,0);
             break;
         case FOOTPRINTS:
@@ -4517,7 +4536,7 @@ short spawn( short j, short pn )
                     break;
                 }
 
-                sp->cstat = 32+((ps[sprite[j].yvel].footprintcount&1)<<2);
+                *(int16_t *)&sp->flags = 32+((ps[sprite[j].yvel].footprintcount&1)<<2);
                 sp->ang = sprite[j].ang;
             }
 
@@ -4555,10 +4574,12 @@ short spawn( short j, short pn )
         case STRIPEBALL:
 
             if (sp->picnum == QUEBALL || sp->picnum == STRIPEBALL) {
-                sp->cstat = 256;
+                *(int16_t *)&sp->flags = 256;
                 sp->clipdist = 8;
             } else {
-                sp->cstat |= 257;
+                sp->flags.blocking = 1;
+                sp->flags.hitscan = 1;
+
                 sp->clipdist = 32;
             }
 
@@ -4575,7 +4596,7 @@ short spawn( short j, short pn )
         case DUKECAR:
         case HELECOPT:
 //                if(sp->picnum == HELECOPT || sp->picnum == DUKECAR) sp->xvel = 1024;
-            sp->cstat = 0;
+            *(int16_t *)&sp->flags = 0;
             sp->extra = 1;
             sp->xvel = 292;
             sp->zvel = 360;
@@ -4588,7 +4609,9 @@ short spawn( short j, short pn )
                     sp->z = hittype[j].floorz;    // -(1<<4);
                 }
             } else {
-                sp->cstat |= 257;
+                sp->flags.blocking = 1;
+                sp->flags.hitscan = 1;
+                
                 sp->clipdist = 128;
             }
         case MIKE:
@@ -4605,14 +4628,14 @@ short spawn( short j, short pn )
             break;
         case BULLETHOLE:
             sp->xrepeat = sp->yrepeat = 3;
-            sp->cstat = 16+(TRAND&12);
+            *(int16_t *)&sp->flags = 16+(TRAND&12);
             insertspriteq(i);
         case MONEY:
         case MAIL:
         case PAPER:
             if ( sp->picnum == MONEY || sp->picnum == MAIL || sp->picnum == PAPER ) {
                 hittype[i].temp_data[0] = TRAND&2047;
-                sp->cstat = TRAND&12;
+                *(int16_t *)&sp->flags = TRAND&12;
                 sp->xrepeat = sp->yrepeat = 8;
                 sp->ang = TRAND&2047;
             }
@@ -4671,7 +4694,7 @@ short spawn( short j, short pn )
                 changespritestat(i,5);
                 break;
             }
-            sp->cstat = (short)32768;
+            *(int16_t *)&sp->flags = (int16_t)32768;
             changespritestat(i,11);
             break;
 
@@ -4686,14 +4709,14 @@ short spawn( short j, short pn )
             if (j >= 0) {
                 sp->ang = sprite[j].ang;
                 sp->shade = -64;
-                sp->cstat = 128|(TRAND&4);
+                *(int16_t *)&sp->flags = 128|(TRAND&4);
             }
 
             if (sp->picnum == EXPLOSION2 || sp->picnum == EXPLOSION2BOT) {
                 sp->xrepeat = 48;
                 sp->yrepeat = 48;
                 sp->shade = -127;
-                sp->cstat |= 128;
+                sp->flags.real_centered = 1;
             } else if (sp->picnum == SHRINKEREXPLOSION ) {
                 sp->xrepeat = 32;
                 sp->yrepeat = 32;
@@ -4723,7 +4746,7 @@ short spawn( short j, short pn )
                 sp->yrepeat = sprite[j].yrepeat;
                 sp->zvel = 128;
                 if (sector[sp->sectnum].lotag != 2) {
-                    sp->cstat |= 32768;
+                    sp->flags.invisible = 1;
                 }
             }
             changespritestat(i,13);
@@ -4760,7 +4783,7 @@ short spawn( short j, short pn )
 
         case CRANE:
 
-            sp->cstat |= 64|257;
+            *(int16_t *)&sp->flags |= 64|257;
 
             sp->picnum += 2;
             sp->z = sector[sect].ceiling.z+(48<<8);
@@ -4847,7 +4870,7 @@ short spawn( short j, short pn )
                 break;
             }
         case WATERBUBBLEMAKER:
-            sp->cstat |= 32768;
+            sp->flags.invisible = 1;
             changespritestat(i,6);
             break;
         case BOLT1:
@@ -4862,7 +4885,7 @@ short spawn( short j, short pn )
             T2 = sp->yrepeat;
         case MASTERSWITCH:
             if (sp->picnum == MASTERSWITCH) {
-                sp->cstat |= 32768;
+                sp->flags.invisible = 1;
             }
             sp->yvel = 0;
             changespritestat(i,6);
@@ -4871,7 +4894,9 @@ short spawn( short j, short pn )
         case DUCK:
         case LETTER:
             sp->extra = 1;
-            sp->cstat |= 257;
+            sp->flags.blocking = 1;
+            sp->flags.hitscan = 1;
+
             changespritestat(i,1);
             break;
         case OCTABRAINSTAYPUT:
@@ -4965,9 +4990,11 @@ short spawn( short j, short pn )
                 if (sp->picnum == RAT) {
                     sp->ang = TRAND&2047;
                     sp->xrepeat = sp->yrepeat = 48;
-                    sp->cstat = 0;
+                    *(int16_t *)&sp->flags = 0;
                 } else {
-                    sp->cstat |= 257;
+                    sp->flags.blocking = 1;
+                    sp->flags.hitscan = 1;
+
 
                     if (sp->picnum != SHARK) {
                         ps[myconnectindex].max_actors_killed++;
@@ -4975,7 +5002,7 @@ short spawn( short j, short pn )
                 }
 
                 if (sp->picnum == ORGANTIC) {
-                    sp->cstat |= 128;
+                    sp->flags.real_centered = 1;
                 }
 
                 if (j >= 0) {
@@ -4994,13 +5021,13 @@ short spawn( short j, short pn )
             break;
 
         case LOCATORS:
-            sp->cstat |= 32768;
+            sp->flags.invisible = 1;
             changespritestat(i,7);
             break;
 
         case ACTIVATORLOCKED:
         case ACTIVATOR:
-            sp->cstat = (short) 32768;
+            *(int16_t *)&sp->flags = (int16_t) 32768;
             if (sp->picnum == ACTIVATORLOCKED) {
                 sector[sp->sectnum].lotag |= 16384;
             }
@@ -5008,7 +5035,7 @@ short spawn( short j, short pn )
             break;
 
         case DOORSHOCK:
-            sp->cstat |= 1+256;
+            *(int16_t *)&sp->flags |= 1+256;
             sp->shade = -12;
             changespritestat(i,6);
             break;
@@ -5032,7 +5059,7 @@ short spawn( short j, short pn )
 
             sp->yrepeat = j;
             sp->xrepeat = 25-(j>>1);
-            sp->cstat |= (TRAND&4);
+            sp->flags.x_flip = TRAND;
 
             break;
 
@@ -5068,7 +5095,8 @@ short spawn( short j, short pn )
                 sp->extra = impact_damage;
             }
 
-            CS |= 257; // Make it hitable
+            CS.blocking = 1;
+            CS.hitscan = 1;
 
             if ( ud.multimode < 2 && sp->pal != 0) {
                 sp->xrepeat = sp->yrepeat = 0;
@@ -5117,10 +5145,10 @@ short spawn( short j, short pn )
                 sp->z -= (32<<8);
                 sp->zvel = -1024;
                 ssp(i,CLIPMASK0);
-                sp->cstat = TRAND&4;
+                *(int16_t *)&sp->flags = TRAND&4;
             } else {
                 sp->owner = i;
-                sp->cstat = 0;
+                *(int16_t *)&sp->flags = 0;
             }
 
             if ( ( ud.multimode < 2 && sp->pal != 0) || (sp->lotag > ud.player_skill) ) {
@@ -5134,7 +5162,7 @@ short spawn( short j, short pn )
         case ACCESSCARD:
 
             if (sp->picnum == ATOMICHEALTH) {
-                sp->cstat |= 128;
+                sp->flags.real_centered = 1;
             }
 
             if (ud.multimode > 1 && ud.coop != 1 && sp->picnum == ACCESSCARD) {
@@ -5167,7 +5195,7 @@ short spawn( short j, short pn )
         case TIRE:
         case CONE:
         case BOX:
-            CS = 257; // Make it hitable
+            *(int16_t *)&CS = 257; // Make it hitable
             sprite[i].extra = 1;
             changespritestat(i,6);
             break;
@@ -5179,7 +5207,10 @@ short spawn( short j, short pn )
 
         case BOUNCEMINE:
             sp->owner = i;
-            sp->cstat |= 1+256; //Make it hitable
+            
+            sp->flags.blocking = 1;
+            sp->flags.hitscan = 1;
+
             sp->xrepeat = sp->yrepeat = 24;
             sp->shade = -127;
             sp->extra = impact_damage<<2;
@@ -5195,9 +5226,9 @@ short spawn( short j, short pn )
             sp->extra = 1;
 
             if (camerashitable) {
-                sp->cstat = 257;
+                *(int16_t *)&sp->flags = 257;
             } else {
-                sp->cstat = 0;
+                *(int16_t *)&sp->flags = 0;
             }
 
         case GENERICPOLE:
@@ -5218,7 +5249,7 @@ short spawn( short j, short pn )
         case STEAM:
             if (j >= 0) {
                 sp->ang = sprite[j].ang;
-                sp->cstat = 16+128+2;
+                *(int16_t *)&sp->flags = 16+128+2;
                 sp->xrepeat=sp->yrepeat=1;
                 sp->xvel = -8;
                 ssp(i,CLIPMASK0);
@@ -5229,7 +5260,7 @@ short spawn( short j, short pn )
 
         case SECTOREFFECTOR:
             sp->yvel = sector[sect].extra;
-            sp->cstat |= 32768;
+            sp->flags.invisible = 1;
             sp->xrepeat = sp->yrepeat = 0;
 
             switch (sp->lotag) {
@@ -5249,7 +5280,7 @@ short spawn( short j, short pn )
                     }
 
                     T5 = sector[sect].floor.z == SZ;
-                    sp->cstat = 0;
+                    *(int16_t *)&sp->flags = 0;
                     changespritestat(i,9);
                     return i;
                 case 1:
@@ -5288,7 +5319,7 @@ short spawn( short j, short pn )
                 case 27:
                     if (ud.recstat == 1) {
                         sp->xrepeat=sp->yrepeat=64;
-                        sp->cstat &= 32767;
+                        sp->flags.invisible = 0;
                     }
                     break;
                 case 12:
@@ -5674,10 +5705,10 @@ short spawn( short j, short pn )
 
             sp->shade = -16;
             if (sp->xrepeat <= 8) {
-                sp->cstat = (short)32768;
+                *(int16_t *)&sp->flags = (int16_t)32768;
                 sp->xrepeat=sp->yrepeat=0;
             } else {
-                sp->cstat = 1+256;
+                *(int16_t *)&sp->flags = 1+256;
             }
             sp->extra = impact_damage<<2;
             sp->owner = i;
@@ -5691,10 +5722,10 @@ short spawn( short j, short pn )
         case CRACK4:
         case FIREEXT:
             if (sp->picnum == FIREEXT) {
-                sp->cstat = 257;
+                *(int16_t *)&sp->flags = 257;
                 sp->extra = impact_damage<<2;
             } else {
-                sp->cstat |= 17;
+                *(int16_t *)&sp->flags |= 17;
                 sp->extra = 1;
             }
 
@@ -5714,7 +5745,9 @@ short spawn( short j, short pn )
         case TOILET:
         case STALL:
             sp->lotag = 1;
-            sp->cstat |= 257;
+            sp->flags.blocking = 1;
+            sp->flags.hitscan = 1;
+
             sp->clipdist = 8;
             sp->owner = i;
             break;
@@ -5751,7 +5784,7 @@ short spawn( short j, short pn )
                 if (sp->picnum == EGG) {
                     sp->clipdist = 24;
                 }
-                sp->cstat = 257|(TRAND&4);
+                *(int16_t *)&sp->flags = 257|(TRAND&4);
                 changespritestat(i,2);
             }
             break;
@@ -5798,9 +5831,9 @@ void animatesprites(int32_t x, int32_t y, short a, int32_t smoothratio, EngineSt
                 k = (((t->ang+3072+128-a)&2047)>>8)&7;
                 if (k>4) {
                     k = 8-k;
-                    t->cstat |= 4;
+                    t->flags.x_flip = 1;
                 } else {
-                    t->cstat &= ~4;
+                    t->flags.x_flip = 0;
                 }
                 t->picnum = s->picnum+k;
                 break;
@@ -5838,7 +5871,7 @@ void animatesprites(int32_t x, int32_t y, short a, int32_t smoothratio, EngineSt
             case GREENSLIME+7:
                 break;
             default:
-                if ( ( (t->cstat&16) ) || ( badguy(t) && t->extra > 0) || t->statnum == 10) {
+                if ( ( ((*(int16_t *)&t->flags)&16) ) || ( badguy(t) && t->extra > 0) || t->statnum == 10) {
                     continue;
                 }
         }
@@ -5869,7 +5902,7 @@ void animatesprites(int32_t x, int32_t y, short a, int32_t smoothratio, EngineSt
             case SECTOREFFECTOR:
                 if (t->lotag == 27 && ud.recstat == 1) {
                     t->picnum = 11+((totalclock>>3)&1);
-                    t->cstat |= 128;
+                    t->flags.hitscan = 1;
                 } else {
                     t->xrepeat = t->yrepeat = 0;
                 }
@@ -6032,7 +6065,8 @@ void animatesprites(int32_t x, int32_t y, short a, int32_t smoothratio, EngineSt
             case VIEWSCREEN2:
                 if (camsprite >= 0 && hittype[OW].temp_data[0] == 1) {
                     t->picnum = STATIC;
-                    t->cstat |= (rand()&12);
+                    t->flags.x_flip = rand();
+                    t->flags.y_flip = rand();
                     t->xrepeat += 8;
                     t->yrepeat += 8;
                 }
@@ -6049,9 +6083,9 @@ void animatesprites(int32_t x, int32_t y, short a, int32_t smoothratio, EngineSt
                 k = (((s->ang+3072+128-k)&2047)/170);
                 if (k > 6) {
                     k = 12-k;
-                    t->cstat |= 4;
+                    t->flags.x_flip = 1;
                 } else {
-                    t->cstat &= ~4;
+                    t->flags.x_flip = 0;
                 }
                 t->picnum = RPG+k;
                 break;
@@ -6067,9 +6101,9 @@ void animatesprites(int32_t x, int32_t y, short a, int32_t smoothratio, EngineSt
 
                 if (k>6) {
                     k = 12-k;
-                    t->cstat |= 4;
+                    t->flags.x_flip = 1;
                 } else {
-                    t->cstat &= ~4;
+                    t->flags.x_flip = 0;
                 }
 
                 if ( klabs(t3) > 64 ) {
@@ -6088,7 +6122,7 @@ void animatesprites(int32_t x, int32_t y, short a, int32_t smoothratio, EngineSt
                 }
 
                 if (ps[p].over_shoulder_on > 0 && ps[p].newowner < 0 ) {
-                    t->cstat |= 2;
+                    t->flags.transluscence = 1;
                     if ( screenpeek == myconnectindex && numplayers >= 2 ) {
                         t->x = omyx+mulscale16((int32_t)(myx-omyx),smoothratio);
                         t->y = omyy+mulscale16((int32_t)(myy-omyy),smoothratio);
@@ -6109,7 +6143,7 @@ void animatesprites(int32_t x, int32_t y, short a, int32_t smoothratio, EngineSt
                     }
 
                     tsprite[engine_state->spritesortcnt].shade = t->shade;
-                    tsprite[engine_state->spritesortcnt].cstat = 0;
+                    *(int16_t *)&tsprite[engine_state->spritesortcnt].flags = 0;
 
                     switch (ps[p].curr_weapon) {
                         case PISTOL_WEAPON:
@@ -6165,9 +6199,9 @@ void animatesprites(int32_t x, int32_t y, short a, int32_t smoothratio, EngineSt
                     k = (((s->ang+3072+128-a)&2047)>>8)&7;
                     if (k>4) {
                         k = 8-k;
-                        t->cstat |= 4;
+                        *(int16_t *)&t->flags |= 4;
                     } else {
-                        t->cstat &= ~4;
+                        *(int16_t *)&t->flags &= ~4;
                     }
 
                     if (sector[t->sectnum].lotag == 2) {
@@ -6309,10 +6343,10 @@ PALONLY:
                     case 4:
                         k = (((s->ang+3072+128-a)&2047)>>7)&7;
                         if (k > 3) {
-                            t->cstat |= 4;
+                            *(int16_t *)&t->flags |= 4;
                             k = 7-k;
                         } else {
-                            t->cstat &= ~4;
+                            *(int16_t *)&t->flags &= ~4;
                         }
                         break;
 
@@ -6321,9 +6355,9 @@ PALONLY:
                         k = (((s->ang+3072+128-k)&2047)>>8)&7;
                         if (k>4) {
                             k = 8-k;
-                            t->cstat |= 4;
+                            *(int16_t *)&t->flags |= 4;
                         } else {
-                            t->cstat &= ~4;
+                            *(int16_t *)&t->flags &= ~4;
                         }
                         break;
                     case 7:
@@ -6331,14 +6365,14 @@ PALONLY:
                         k = (((s->ang+3072+128-k)&2047)/170);
                         if (k>6) {
                             k = 12-k;
-                            t->cstat |= 4;
+                            *(int16_t *)&t->flags |= 4;
                         } else {
-                            t->cstat &= ~4;
+                            *(int16_t *)&t->flags &= ~4;
                         }
                         break;
                     case 8:
                         k = (((s->ang+3072+128-a)&2047)>>8)&7;
-                        t->cstat &= ~4;
+                        *(int16_t *)&t->flags &= ~4;
                         break;
                     default:
                         k = 0;
@@ -6356,7 +6390,7 @@ PALONLY:
                     hittype[i].dispicnum = t->picnum;
                 }
             } else if (display_mirror == 1) {
-                t->cstat |= 4;
+                *(int16_t *)&t->flags |= 4;
             }
         }
 
@@ -6387,7 +6421,7 @@ PALONLY:
                                 }
 
                                 tsprite[engine_state->spritesortcnt].shade = 127;
-                                tsprite[engine_state->spritesortcnt].cstat |= 2;
+                                tsprite[engine_state->spritesortcnt].flags.transluscence = 1;
 
                                 tsprite[engine_state->spritesortcnt].z = daz;
                                 xrep = tsprite[engine_state->spritesortcnt].xrepeat;// - (klabs(daz-t->z)>>11);
@@ -6452,9 +6486,9 @@ PALONLY:
                 k = (((t->ang+3072+128-a)&2047)>>8)&7;
                 if (k>4) {
                     k = 8-k;
-                    t->cstat |= 4;
+                    *(int16_t *)&t->flags |= 4;
                 } else {
-                    t->cstat &= ~4;
+                    *(int16_t *)&t->flags &= ~4;
                 }
 
                 t->picnum = s->picnum+k+((T1<4)*5);
@@ -6471,12 +6505,13 @@ PALONLY:
             case SHELL:
                 t->picnum = s->picnum+(T1&1);
             case SHOTGUNSHELL:
-                t->cstat |= 12;
+                t->flags.x_flip = 1;
+                t->flags.y_flip = 1;
                 if (T1 > 1) {
-                    t->cstat &= ~4;
+                    *(int16_t *)&t->flags &= ~4;
                 }
                 if (T1 > 2) {
-                    t->cstat &= ~12;
+                    *(int16_t *)&t->flags &= ~12;
                 }
                 break;
             case FRAMEEFFECT1:
@@ -6488,12 +6523,12 @@ PALONLY:
                                 t->owner = -1;
                                 break;
                             }
-                    if ( (sprite[s->owner].cstat&32768) == 0 ) {
+                    if (!sprite[s->owner].flags.invisible) {
                         t->picnum = hittype[s->owner].dispicnum;
                         t->pal = sprite[s->owner].pal;
                         t->shade = sprite[s->owner].shade;
                         t->ang = sprite[s->owner].ang;
-                        t->cstat = 2|sprite[s->owner].cstat;
+                        *(int16_t *)&t->flags = 2|(*(int16_t *)&sprite[s->owner].flags);
                     }
                 }
                 break;
@@ -6503,9 +6538,9 @@ PALONLY:
                 k = (((t->ang+3072+128-a)&2047)>>8)&7;
                 if (k>4) {
                     k = 8-k;
-                    t->cstat |= 4;
+                    t->flags.x_flip = 1;
                 } else {
-                    t->cstat &= ~4;
+                    t->flags.x_flip = 0;
                 }
                 t->picnum = s->picnum+k;
                 break;
@@ -6609,7 +6644,7 @@ FOUNDCHEAT: {
                             // set on
                             pus = 1;
                             pub = 1;
-                            sprite[ps[myconnectindex].i].cstat = 257;
+                            *(int16_t *)&sprite[ps[myconnectindex].i].flags = 257;
 
                             hittype[ps[myconnectindex].i].temp_data[0] = 0;
                             hittype[ps[myconnectindex].i].temp_data[1] = 0;
@@ -9362,15 +9397,17 @@ void fakedomovethings(void)
     struct player_struct *p;
     int32_t i, j, k, doubvel, fz, cz, hz, lz, x, y;
     uint32_t sb_snum;
-    short psect, psectlotag, tempsect, backcstat;
+    short psect, psectlotag, tempsect;
+    SpriteFlags backcstat;
     uint8_t  shrunk, spritebridge;
 
     syn = (input *)&inputfifo[fakemovefifoplc&(MOVEFIFOSIZ-1)][myconnectindex];
 
     p = &ps[myconnectindex];
 
-    backcstat = sprite[p->i].cstat;
-    sprite[p->i].cstat &= ~257;
+    backcstat = sprite[p->i].flags;
+    sprite[p->i].flags.blocking = 0;
+    sprite[p->i].flags.hitscan = 0;
 
     sb_snum = syn->bits;
 
@@ -9431,7 +9468,7 @@ void fakedomovethings(void)
 
     if (lz >= 0 && (lz&49152) == 49152) {
         j = lz&(MAXSPRITES-1);
-        if ((sprite[j].cstat&33) == 33) {
+        if (((*(int16_t *)&sprite[j].flags)&33) == 33) {
             psectlotag = 0;
             spritebridge = 1;
         }
@@ -9802,7 +9839,7 @@ ENDFAKEPROCESSINPUT:
     myhorizbak[fakemovefifoplc&(MOVEFIFOSIZ-1)] = myhoriz;
     fakemovefifoplc++;
 
-    sprite[p->i].cstat = backcstat;
+    sprite[p->i].flags = backcstat;
 }
 
 

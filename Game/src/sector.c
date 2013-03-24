@@ -1608,7 +1608,7 @@ void checkhitwall(short spr,short dawallnum,int32_t x,int32_t y,int32_t z,short 
                             }
                         }
 
-                        CS |= 18+128;
+                        *(int16_t *)&CS |= 18+128;
                         SA = getangle(wal->x-wall[wal->point2].x,
                                       wal->y-wall[wal->point2].y)-512;
 
@@ -2004,7 +2004,8 @@ void checkhitsprite(short i,short sn)
                 case HYDRENT:
                 case HEAVYHBOMB:
                     if (T1 == 0) {
-                        CS &= ~257;
+                        CS.blocking = 0;
+                        CS.hitscan = 0;
                         T1 = 1;
                         spawn(i,BURNING);
                     }
@@ -2027,7 +2028,8 @@ void checkhitsprite(short i,short sn)
                     if (PN == CACTUS) {
                         PN = CACTUSBROKE;
                     }
-                    CS &= ~257;
+                    CS.blocking = 0;
+                    CS.hitscan = 0;
                     //       else deletesprite(i);
                     break;
             }
@@ -2045,7 +2047,9 @@ void checkhitsprite(short i,short sn)
 
         case FANSPRITE:
             PN = FANSPRITEBROKE;
-            CS &= (65535-257);
+            CS.blocking = 0;
+            CS.hitscan = 0;
+
             if ( sector[SECT].floor.picnum == FANSHADOW ) {
                 sector[SECT].floor.picnum = FANSHADOWBROKE;
             }
@@ -2150,26 +2154,29 @@ void checkhitsprite(short i,short sn)
             break;
 
         case BROKEHYDROPLANT:
-            if (CS&1) {
+            if (CS.blocking) {
                 spritesound(GLASS_BREAKING,i);
                 SZ += 16<<8;
-                CS = 0;
+                *(int16_t *)&CS = 0;
                 lotsofglass(i,-1,5);
             }
             break;
 
         case TOILET:
             PN = TOILETBROKE;
-            CS |= (TRAND&1)<<2;
-            CS &= ~257;
+            *(int16_t *)&CS |= (TRAND&1)<<2;
+            CS.blocking = 0;
+            CS.hitscan = 0;
             spawn(i,TOILETWATER);
             spritesound(GLASS_BREAKING,i);
             break;
 
         case STALL:
             PN = STALLBROKE;
-            CS |= (TRAND&1)<<2;
-            CS &= ~257;
+            *(int16_t *)&CS |= (TRAND&1)<<2;
+            CS.blocking = 0;
+            CS.hitscan = 0;
+
             spawn(i,TOILETWATER);
             spritesound(GLASS_HEAVYBREAK,i);
             break;
@@ -2188,24 +2195,29 @@ void checkhitsprite(short i,short sn)
 
         case GRATE1:
             PN = BGRATE1;
-            CS &= (65535-256-1);
+            CS.blocking = 0;
+            CS.hitscan = 0;
+
             spritesound(VENT_BUST,i);
             break;
 
         case CIRCLEPANNEL:
             PN = CIRCLEPANNELBROKE;
-            CS &= (65535-256-1);
+            CS.blocking = 0;
+            CS.hitscan = 0;
             spritesound(VENT_BUST,i);
             break;
         case PANNEL1:
         case PANNEL2:
             PN = BPANNEL1;
-            CS &= (65535-256-1);
+            CS.blocking = 0;
+            CS.hitscan = 0;
             spritesound(VENT_BUST,i);
             break;
         case PANNEL3:
             PN = BPANNEL3;
-            CS &= (65535-256-1);
+            CS.blocking = 0;
+            CS.hitscan = 0;
             spritesound(VENT_BUST,i);
             break;
         case PIPE1:
@@ -2278,7 +2290,7 @@ void checkhitsprite(short i,short sn)
         case CHAIR1:
         case CHAIR2:
             PN = BROKENCHAIR;
-            CS = 0;
+            *(int16_t *)&CS = 0;
             break;
         case CHAIR3:
         case MOVIECAMERA:
@@ -2300,7 +2312,7 @@ void checkhitsprite(short i,short sn)
         case PLAYERONWATER:
             i = OW;
         default:
-            if ( (sprite[i].cstat&16) && SHT == 0 && SLT == 0 && sprite[i].statnum == 0) {
+            if ( (sprite[i].flags.type == WALL_SPRITE) && SHT == 0 && SLT == 0 && sprite[i].statnum == 0) {
                 break;
             }
 
@@ -2334,7 +2346,7 @@ void checkhitsprite(short i,short sn)
                         }
 
                     if ( PN != TANK && PN != BOSS1 && PN != BOSS4 && PN != BOSS2 && PN != BOSS3 && PN != RECON && PN != ROTATEGUN ) {
-                        if ( (sprite[i].cstat&48) == 0 ) {
+                        if ( sprite[i].flags.type == FACE_SPRITE) {
                             SA = (sprite[sn].ang+1024)&2047;
                         }
                         sprite[i].xvel = -(sprite[sn].extra<<2);
