@@ -149,13 +149,18 @@ typedef struct {
 
 /* 32 bytes */
 typedef struct {
-    int32_t x, y;
-    short point2, nextwall, nextsector;
+    int32_t x, y;               // Coordinate of left side of wall, get right side from next wall's left side
+    short point2;               // Index to next wall on the right (always in the same sector)
+    short nextwall;             // Index to wall on other side of wall (-1 if there is no sector)
+    short nextsector;           // Index to sector on other side of wall (-1 if there is no sector)
     WallFlags flags;
-    short picnum, overpicnum;
-    int8_t shade;
-    uint8_t  pal, xrepeat, yrepeat, xpanning, ypanning;
-    short lotag, hitag, extra;
+    short picnum;               // texture index into art file
+    short overpicnum;           // texture index into art file for masked walls / 1-way walls
+    int8_t shade;               // shade offset of wall
+    uint8_t pal;                // palette lookup table number (0 - use standard colors)
+    uint8_t xrepeat, yrepeat;   // used to change the size of pixels (stretch textures)
+    uint8_t xpanning, ypanning; // used to align textures or to do texture panning
+    short lotag, hitag, extra;  // Used by the game only
 } walltype;
 
 
