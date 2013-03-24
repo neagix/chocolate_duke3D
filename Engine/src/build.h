@@ -77,10 +77,10 @@ typedef struct {
 } SectorFlags;
 
 // Defines for the 'type' flag
-#define SECTOR_NORMAL               0
-#define SECTOR_MASKED               1
-#define SECTOR_TRANSLUSCENT         2
-#define SECTOR_REVERSE_TRANSLUSCENT 3
+//#define SECTOR_NORMAL               0
+//#define SECTOR_MASKED               1
+//#define SECTOR_TRANSLUSCENT         2
+//#define SECTOR_REVERSE_TRANSLUSCENT 3
 
 /* 40 bytes */
 typedef struct {

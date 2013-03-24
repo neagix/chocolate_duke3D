@@ -28,7 +28,7 @@ extern "C" {
     void sethlinesizes(int32_t,int32_t,uint8_t *);
 
 
-    void hlineasm4(int32_t numPixels, int32_t shade, uint32_t i4, uint32_t i5, uint8_t *dest, int32_t asm1, int32_t asm2, int8_t *pallete);
+    void hlineasm4(int32_t numPixels, int32_t shade, uint32_t i4, uint32_t i5, uint8_t *dest, int32_t asm1, int32_t asm2, uint8_t *pallete);
     void setuprhlineasm4(int32_t,int32_t,int32_t,int32_t,int32_t);
     void rhlineasm4(int32_t,uint8_t *,int32_t,uint32_t,uint32_t,int32_t);
     void setuprmhlineasm4(int32_t,int32_t,int32_t,int32_t,int32_t);

@@ -564,7 +564,7 @@ static int32_t getpalookup(int32_t davis, int32_t dashade)
 static void hline (int32_t xr, int32_t yp,
                    int32_t xpanning, int32_t ypanning,
                    int32_t g_x1, int32_t g_y1,
-                   int32_t g_x2, int32_t g_y2, int32_t shade, int32_t vis, int8_t *pallete,
+                   int32_t g_x2, int32_t g_y2, int32_t shade, int32_t vis, uint8_t *pallete,
                    EngineState *engine_state)
 {
     int32_t xl, r, s;
@@ -586,44 +586,6 @@ static void hline (int32_t xr, int32_t yp,
               g_y2 * r, pallete);
 }
 
-
-static void slowhline (int32_t xr, int32_t yp,
-                       int32_t xpanning, int32_t ypanning,
-                       int32_t g_x1, int32_t g_y1,
-                       int32_t g_x2, int32_t g_y2,
-                       SectorFlags flags,
-                       int32_t shade, int32_t vis,
-                       EngineState *engine_state)
-{
-    int32_t xl, r, a1, a2, a3;
-
-    xl = lastx[yp];
-    if (xl > xr) {
-        return;
-    }
-    r = horizlookup2[yp - engine_state->horiz + horizycent];
-    a1 = g_x1 * r;
-    a2 = g_y2 * r;
-    a3 = (int32_t)palookup[0] + (getpalookup(mulscale16(r,vis),shade)<<8);
-
-    if (!(flags.type == SECTOR_REVERSE_TRANSLUSCENT || flags.type == SECTOR_TRANSLUSCENT)) {
-        mhline(globalbufplc,
-               g_y1 * r + xpanning - a1 * (xr - xl),
-               (xr-xl) << 16,
-               g_x2 * r + ypanning - a2 * (xr - xl),
-               ylookup[yp] + xl + frameoffset,
-               a1,a2,a3);
-        return;
-    }
-    thline(globalbufplc,
-           g_y1 * r + xpanning - a1 * (xr - xl),
-           (xr-xl)<<16,
-           g_x2 * r + ypanning - a2 * (xr - xl),
-           ylookup[yp]+xl+frameoffset,
-           a1, a2, a3);
-}
-
-
 int32_t GetDistanceFromFloorOrCeiling (InnerSector floor_or_ceiling, int32_t z_position, bool is_floor) {
     return is_floor ? z_position - floor_or_ceiling.z : floor_or_ceiling.z - z_position;
 }
@@ -639,7 +601,7 @@ static void FloorCeilingScan (int32_t x1, int32_t x2, InnerSector floor_or_ceili
     int16_t picnum;
     int32_t shade;
     int32_t vis;
-    int8_t *pallete = (int8_t *)palookup[floor_or_ceiling.pal];
+    uint8_t *pallete = (uint8_t *)palookup[floor_or_ceiling.pal];
     
     zd = GetDistanceFromFloorOrCeiling(floor_or_ceiling, engine_state->posz, is_floor);
     
@@ -771,97 +733,34 @@ static void FloorCeilingScan (int32_t x1, int32_t x2, InnerSector floor_or_ceili
     g_y2 = mulscale16(g_y2, zd);
     vis = klabs(mulscale10(vis, zd));
 
-    if (floor_or_ceiling.flags.type == SECTOR_NORMAL) {
-        y1 = is_floor ? max(dplc[x1], umost[x1]) : umost[x1];
-        y2 = y1;
-        for (x=x1; x<=x2; x++) {
-            twall = is_floor ? max(dplc[x], umost[x]) - 1 : umost[x]-1;
-            bwall = is_floor ? dmost[x] : min(uplc[x],dmost[x]);
-            if (twall < bwall-1) {
-                if (twall >= y2) {
-                    while (y1 < y2-1) {
-                        hline(x-1, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, shade, vis, pallete, engine_state);
-                    }
-                    y1 = twall;
-                } else {
-                    while (y1 < twall) {
-                        hline(x-1, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, shade, vis, pallete, engine_state);
-                    }
-                    while (y1 > twall) {
-                        lastx[y1--] = x;
-                    }
-                }
-                while (y2 > bwall) {
-                    hline(x-1, --y2, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, shade, vis, pallete, engine_state);
-                }
-                while (y2 < bwall) {
-                    lastx[y2++] = x;
-                }
-            } else {
-                while (y1 < y2-1) {
-                    hline(x-1,++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, shade, vis, pallete, engine_state);
-                }
-                if (x == x2) {
-                    g_x2 += g_y2;
-                    g_y1 += g_x1;
-                    break;
-                }
-                y1 = is_floor ? max(dplc[x+1], umost[x+1]) : umost[x+1];
-                y2 = y1;
-            }
-            g_x2 += g_y2;
-            g_y1 += g_x1;
-        }
-        while (y1 < y2-1) {
-            hline(x2, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, shade, vis, pallete, engine_state);
-        }
-        
-        faketimerhandler();
-        return;
-    }
-    
-    switch (floor_or_ceiling.flags.type) {
-        case SECTOR_MASKED:
-            msethlineshift(picsiz[picnum]&15,picsiz[picnum]>>4);
-            break;
-        case SECTOR_TRANSLUSCENT:
-            settrans(TRANS_NORMAL);
-            tsethlineshift(picsiz[picnum]&15,picsiz[picnum]>>4);
-            break;
-        case SECTOR_REVERSE_TRANSLUSCENT:
-            settrans(TRANS_REVERSE);
-            tsethlineshift(picsiz[picnum]&15,picsiz[picnum]>>4);
-            break;
-    }
-    
     y1 = is_floor ? max(dplc[x1], umost[x1]) : umost[x1];
     y2 = y1;
     for (x=x1; x<=x2; x++) {
-        twall = is_floor ? max(dplc[x], umost[x]) - 1 : umost[x] - 1;
-        bwall = is_floor ? dmost[x] : min(uplc[x], dmost[x]);
+        twall = is_floor ? max(dplc[x], umost[x]) - 1 : umost[x]-1;
+        bwall = is_floor ? dmost[x] : min(uplc[x],dmost[x]);
         if (twall < bwall-1) {
             if (twall >= y2) {
                 while (y1 < y2-1) {
-                    slowhline(x-1, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, floor_or_ceiling.flags, shade, vis, engine_state);
+                    hline(x-1, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, shade, vis, pallete, engine_state);
                 }
                 y1 = twall;
             } else {
                 while (y1 < twall) {
-                    slowhline(x-1, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, floor_or_ceiling.flags, shade, vis, engine_state);
+                    hline(x-1, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, shade, vis, pallete, engine_state);
                 }
                 while (y1 > twall) {
                     lastx[y1--] = x;
                 }
             }
             while (y2 > bwall) {
-                slowhline(x-1, --y2, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, floor_or_ceiling.flags, shade, vis, engine_state);
+                hline(x-1, --y2, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, shade, vis, pallete, engine_state);
             }
             while (y2 < bwall) {
                 lastx[y2++] = x;
             }
         } else {
             while (y1 < y2-1) {
-                slowhline(x-1, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, floor_or_ceiling.flags, shade, vis, engine_state);
+                hline(x-1,++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, shade, vis, pallete, engine_state);
             }
             if (x == x2) {
                 g_x2 += g_y2;
@@ -874,12 +773,12 @@ static void FloorCeilingScan (int32_t x1, int32_t x2, InnerSector floor_or_ceili
         g_x2 += g_y2;
         g_y1 += g_x1;
     }
-    
     while (y1 < y2-1) {
-        slowhline(x2, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, floor_or_ceiling.flags, shade, vis, engine_state);
+        hline(x2, ++y1, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, shade, vis, pallete, engine_state);
     }
     
     faketimerhandler();
+    return;
 }
 
 
@@ -3324,8 +3223,6 @@ static void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short pi
         return;
     }
 
-
-
     //Taking care of the X coordinates.
     pvWalls[0].cameraSpaceCoo[0][VEC_X] = sx - (xv2*xoff - yv2*yoff);
     pvWalls[1].cameraSpaceCoo[0][VEC_X] = pvWalls[0].cameraSpaceCoo[0][VEC_X] + xv2 * tileWidht;
@@ -3349,13 +3246,6 @@ static void dorotatesprite (int32_t sx, int32_t sy, int32_t z, short a, short pi
         (pvWalls[3].cameraSpaceCoo[0][VEC_X]>i)) {
         return;
     }
-
-
-
-
-
-
-
 
     gx1 = pvWalls[0].cameraSpaceCoo[0][VEC_X];
     gy1 = pvWalls[0].cameraSpaceCoo[0][VEC_Y];   /* back up these before clipping */
@@ -7798,7 +7688,7 @@ void setbrightness(uint8_t  dabrightness, uint8_t  *dapal)
 //This is only used by drawmapview.
 static void fillpolygon(int32_t npoints, uint8_t polyType,
                         int32_t a1, int32_t a2, int32_t asm3,
-                        int32_t g_x1, int32_t g_y2, int32_t shade, int8_t *pallete,
+                        int32_t g_x1, int32_t g_y2, int32_t shade, uint8_t *pallete,
                         EngineState *engine_state)
 {
     int32_t z, zz, x1, y1, x2, y2, miny, maxy, y, xinc, cnt;
@@ -8405,7 +8295,7 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang, EngineState
             g_y2 <<= 2;
             engine_state->posy <<= (20+2);
 
-            fillpolygon(npoints, polyType, (g_y1<<2), (g_x2<<2), a3, g_x1, g_y2, shade, palookup, engine_state);
+            fillpolygon(npoints, polyType, (g_y1<<2), (g_x2<<2), a3, g_x1, g_y2, shade, (uint8_t *)palookup, engine_state);
         }
     }
 }
