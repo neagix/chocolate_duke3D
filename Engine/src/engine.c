@@ -4257,6 +4257,7 @@ static void ceilspritescan (int32_t x1, int32_t x2, int32_t zd,
                             int32_t xpanning, int32_t ypanning,
                             int32_t g_x1, int32_t g_y1, int32_t g_x2, int32_t g_y2,
                             SectorFlags flags, int32_t shade, int32_t vis,
+                            int32_t pallete,
                             EngineState *engine_state)
 {
     int32_t x, y1, y2, twall, bwall;
@@ -4269,26 +4270,26 @@ static void ceilspritescan (int32_t x1, int32_t x2, int32_t zd,
         if (twall < bwall-1) {
             if (twall >= y2) {
                 while (y1 < y2-1) {
-                    ceilspritehline(x-1, ++y1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, shade, vis, globalpal, engine_state);
+                    ceilspritehline(x-1, ++y1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, shade, vis, pallete, engine_state);
                 }
                 y1 = twall;
             } else {
                 while (y1 < twall) {
-                    ceilspritehline(x-1, ++y1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, shade, vis, globalpal, engine_state);
+                    ceilspritehline(x-1, ++y1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, shade, vis, pallete, engine_state);
                 }
                 while (y1 > twall) {
                     lastx[y1--] = x;
                 }
             }
             while (y2 > bwall) {
-                ceilspritehline(x-1, --y2, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, shade, vis, globalpal, engine_state);
+                ceilspritehline(x-1, --y2, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, shade, vis, pallete, engine_state);
             }
             while (y2 < bwall) {
                 lastx[y2++] = x;
             }
         } else {
             while (y1 < y2-1) {
-                ceilspritehline(x-1, ++y1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, shade, vis, globalpal, engine_state);
+                ceilspritehline(x-1, ++y1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, shade, vis, pallete, engine_state);
             }
             if (x == x2) {
                 break;
@@ -4298,12 +4299,12 @@ static void ceilspritescan (int32_t x1, int32_t x2, int32_t zd,
         }
     }
     while (y1 < y2-1) {
-        ceilspritehline(x2, ++y1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, shade, vis, globalpal, engine_state);
+        ceilspritehline(x2, ++y1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, flags, shade, vis, pallete, engine_state);
     }
     faketimerhandler();
 }
 
-static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *spritesy)
+static void drawsprite (EngineState *engine_state, int32_t pallete, int32_t *spritesx, int32_t *spritesy)
 {
     spritetype *tspr;
     Sector *sec;
@@ -4353,8 +4354,8 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
     sec = &sector[sectnum];
     globalpal = tspr->pal;
     // FIX_00088: crash on maps using a bad palette index (like the end of roch3.map)
-    if (!palookup[globalpal]) {
-        globalpal = 0;    // seem to crash when globalpal > 25
+    if (!palookup[pallete]) {
+        pallete = 0;    // seem to crash when globalpal > 25
     }
     shade = tspr->shade;
     if (cstat&2) {
@@ -5290,7 +5291,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
 
         /* Draw it! */
         // TODO: remove SectorFlags casting
-        ceilspritescan(lx, rx-1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, *(SectorFlags *)&cstat, shade, vis, engine_state);
+        ceilspritescan(lx, rx-1, zd, xpanning, ypanning, g_x1, g_y1, g_x2, g_y2, *(SectorFlags *)&cstat, shade, vis, pallete, engine_state);
     }
 }
 
@@ -5431,7 +5432,7 @@ void drawmasks(EngineState *engine_state, bool draw_mirror)
     while ((engine_state->spritesortcnt > 0) && (engine_state->maskwallcnt > 0)) { /* While BOTH > 0 */
         j = engine_state->maskwall[engine_state->maskwallcnt-1];
         if (spritewallfront(tspriteptr[engine_state->spritesortcnt-1],pvWalls[j].worldWallId) == 0) {
-            drawsprite(engine_state, spritesx, spritesy);
+            drawsprite(engine_state, globalpal, spritesx, spritesy);
         } else {
             /*
             // Check to see if any sprites behind the masked wall...
@@ -5470,7 +5471,7 @@ void drawmasks(EngineState *engine_state, bool draw_mirror)
         }
     }
     while (engine_state->spritesortcnt > 0) {
-        drawsprite(engine_state, spritesx, spritesy);
+        drawsprite(engine_state, globalpal, spritesx, spritesy);
     }
     while (engine_state->maskwallcnt > 0) {
         drawmaskwall(engine_state);
