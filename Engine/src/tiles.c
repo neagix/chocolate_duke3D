@@ -184,10 +184,9 @@ uint8_t *allocatepermanenttile(short tilenume, int32_t width, int32_t height)
     tiles[tilenume].dim.width = width;
     tiles[tilenume].dim.height = height;
     tiles[tilenume].animFlags = 0;
-
-    picsiz[tilenume] = RoundPowerOf2(width);
-    picsiz[tilenume] += (uint8_t )RoundPowerOf2(height)<<4;
-
+    tiles[tilenume].dim_power_2.width = RoundPowerOf2(width);
+    tiles[tilenume].dim_power_2.height = RoundPowerOf2(height);
+    
     return tiles[tilenume].data;
 }
 
@@ -274,8 +273,8 @@ int loadpics(char  *filename, char *gamedir)
     initcache(pic,cachesize);
 
     for (i=0; i<MAXTILES; i++) {
-        picsiz[i] = RoundPowerOf2(tiles[i].dim.width);
-        picsiz[i] += (uint8_t )RoundPowerOf2(tiles[i].dim.height)<<4;
+        tiles[i].dim_power_2.width = RoundPowerOf2(tiles[i].dim.width);
+        tiles[i].dim_power_2.height = RoundPowerOf2(tiles[i].dim.height);
     }
 
     artfil = -1;

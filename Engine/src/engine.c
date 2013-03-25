@@ -63,7 +63,7 @@ int32_t slopalookup[16384];
 uint8_t  permanentlock = 255;
 int32_t  mapversion;
 
-uint8_t  picsiz[MAXTILES], tilefilenum[MAXTILES];
+uint8_t tilefilenum[MAXTILES];
 int32_t lastageclock;
 int32_t tilefileoffs[MAXTILES];
 
@@ -677,8 +677,9 @@ static void FloorCeilingScan (int32_t x1, int32_t x2, InnerSector floor_or_ceili
     
     g_x2 = mulscale16(g_x2,viewingrangerecip);
     g_y1 = mulscale16(g_y1,viewingrangerecip);
-    xshift = (8-(picsiz[picnum]&15));
-    yshift = (8-(picsiz[picnum]>>4));
+    xshift = 8 - tiles[picnum].dim_power_2.width;
+    yshift = 8 - tiles[picnum].dim_power_2.height;
+    
     if (floor_or_ceiling.flags.double_smooshiness) {
         xshift++;
         yshift++;
@@ -720,7 +721,7 @@ static void FloorCeilingScan (int32_t x1, int32_t x2, InnerSector floor_or_ceili
     g_x2 = (g_x2-g_y2)*halfxdimen;
     
     //Setup the drawing routine paramters
-    sethlinesizes(picsiz[picnum]&15, picsiz[picnum]>>4, tiles[picnum].data);
+    sethlinesizes(tiles[picnum].dim_power_2.width, tiles[picnum].dim_power_2.height, tiles[picnum].data);
     
     g_x2 += g_y2*(x1-1);
     g_y1 += g_x1*(x1-1);
@@ -845,14 +846,14 @@ static void wallscan(int32_t x1, int32_t x2,
 
     TILE_MakeAvailable(picnum);
 
-    xnice = (pow2long[picsiz[picnum]&15] == tileWidth);
+    xnice = (pow2long[tiles[picnum].dim_power_2.width] == tileWidth);
     if (xnice) {
         tileWidth--;
     }
 
-    ynice = (pow2long[picsiz[picnum]>>4] == tileHeight);
+    ynice = (pow2long[tiles[picnum].dim_power_2.height] == tileHeight);
     if (ynice) {
-        tileHeight = (picsiz[picnum]>>4);
+        tileHeight = tiles[picnum].dim_power_2.height;
     }
 
     fpalookup = palookup[pallete];
@@ -927,14 +928,14 @@ static void maskwallscan(int32_t x1, int32_t x2,
 
     TILE_MakeAvailable(picnum);
 
-    xnice = (pow2long[picsiz[picnum]&15] == tileWidth);
+    xnice = (pow2long[tiles[picnum].dim_power_2.width] == tileWidth);
     if (xnice) {
         tileWidth--;
     }
 
-    ynice = (pow2long[picsiz[picnum]>>4] == tileHeight);
+    ynice = (pow2long[tiles[picnum].dim_power_2.height] == tileHeight);
     if (ynice) {
-        tileHeight = (picsiz[picnum]>>4);
+        tileHeight = tiles[picnum].dim_power_2.height;
     }
 
     fpalookup = palookup[pallete];
@@ -1026,7 +1027,7 @@ static void parascan(bool is_floor, int32_t bunch, EngineState *engine_state)
         picnum += animateoffs(picnum);
     }
 
-    shiftval = (picsiz[picnum]>>4);
+    shiftval = tiles[picnum].dim_power_2.height;
 
     if (pow2long[shiftval] != tiles[picnum].dim.height) {
         shiftval++;
@@ -1035,7 +1036,7 @@ static void parascan(bool is_floor, int32_t bunch, EngineState *engine_state)
     zd = (((tiles[picnum].dim.height >> 1) + parallaxyoffs) << shiftval) + (ypanning << 24);
     yscale = (8<<(shiftval-19));
 
-    k = 11 - (picsiz[picnum]&15) - pskybits;
+    k = 11 - tiles[picnum].dim_power_2.width - pskybits;
     x = -1;
 
     for (z=bunchfirst[bunch]; z>=0; z=bunchWallsList[z]) {
@@ -1070,7 +1071,7 @@ static void parascan(bool is_floor, int32_t bunch, EngineState *engine_state)
             }
         } else if (x >= 0) {
             l = picnum;
-            m = (picsiz[picnum]&15);
+            m = tiles[picnum].dim_power_2.width;
             picnum = l+pskyoff[lplc[x]>>m];
 
             if (((lplc[x]^lplc[pvWalls[z].screenSpaceCoo[0][VEC_COL]-1])>>m) == 0) {
@@ -1107,7 +1108,7 @@ static void parascan(bool is_floor, int32_t bunch, EngineState *engine_state)
 
     if (x >= 0) {
         l = picnum;
-        m = (picsiz[picnum]&15);
+        m = tiles[picnum].dim_power_2.width;
         picnum = l+pskyoff[lplc[x]>>m];
 
         if (((lplc[x]^lplc[pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL]])>>m) == 0) {
@@ -1264,8 +1265,8 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
     g_y2 = mulscale20(g_y2,-daz);
     ly = mulscale28(ly, -daz);
 
-    i = 8-(picsiz[picnum]&15);
-    j = 8-(picsiz[picnum]>>4);
+    i = 8 - tiles[picnum].dim_power_2.width;
+    j = 8 - tiles[picnum].dim_power_2.height;
     if (flags.double_smooshiness) {
         i++;
         j++;
@@ -1293,7 +1294,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
     vis = mulscale16(vis,xdimscale);
     j =(int32_t) FP_OFF(palookup[pallete]);
 
-    setupslopevlin(((int32_t)(picsiz[picnum]&15))+(((int32_t)(picsiz[picnum]>>4))<<8),
+    setupslopevlin(((int32_t)tiles[picnum].dim_power_2.width) + (((int32_t)tiles[picnum].dim_power_2.height)<<8),
                    -ylookup[1],
                    -(zd >> (16-BITSOFPRECISION)));
 
@@ -1760,7 +1761,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                     }
                     xpanning = (int32_t)wal->xpanning;
                     ypanning = (int32_t)wal->ypanning;
-                    shiftval = (picsiz[picnum]>>4);
+                    shiftval = tiles[picnum].dim_power_2.height;
                     if (pow2long[shiftval] != tiles[picnum].dim.height) {
                         shiftval++;
                     }
@@ -1898,7 +1899,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                     if (sec->visibility != 0) {
                         vis = mulscale4(vis,(int32_t)((uint8_t )(sec->visibility+16)));
                     }
-                    shiftval = (picsiz[picnum]>>4);
+                    shiftval = tiles[picnum].dim_power_2.height;
 
                     if (pow2long[shiftval] != tiles[picnum].dim.height) {
                         shiftval++;
@@ -2014,7 +2015,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
                 vis = mulscale4(vis,(int32_t)((uint8_t )(sec->visibility+16)));
             }
 
-            shiftval = (picsiz[picnum]>>4);
+            shiftval = tiles[picnum].dim_power_2.height;
             if (pow2long[shiftval] != tiles[picnum].dim.height) {
                 shiftval++;
             }
@@ -3998,7 +3999,7 @@ static void drawmaskwall(EngineState *engine_state)
         vis = mulscale4(vis,(int32_t)((uint8_t )(sec->visibility+16)));
     }
     pallete = (int32_t)wal->pal;
-    shiftval = (picsiz[picnum]>>4);
+    shiftval = tiles[picnum].dim_power_2.height;
     if (pow2long[shiftval] != tiles[picnum].dim.height) {
         shiftval++;
     }
@@ -4439,7 +4440,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         if (sec->visibility != 0) {
             vis = mulscale4(vis,(int32_t)((uint8_t )(sec->visibility+16)));
         }
-        shiftval = (picsiz[picnum]>>4);
+        shiftval = tiles[picnum].dim_power_2.height;
         if (pow2long[shiftval] != tiles[picnum].dim.height) {
             shiftval++;
         }
@@ -4631,7 +4632,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         if (sec->visibility != 0) {
             vis = mulscale4(vis,(int32_t)((uint8_t )(sec->visibility+16)));
         }
-        shiftval = (picsiz[picnum]>>4);
+        shiftval = tiles[picnum].dim_power_2.height;
         if (pow2long[shiftval] != tiles[picnum].dim.height) {
             shiftval++;
         }
@@ -5136,9 +5137,9 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
             vis = mulscale4(vis,(int32_t)((uint8_t )(sec->visibility+16)));
         }
 
-        x = picsiz[picnum];
-        y = ((x>>4)&15);
-        x &= 15;
+        x = tiles[picnum].dim_power_2.width;
+        y = tiles[picnum].dim_power_2.height;
+
         if (pow2long[x] != spriteDim.width) {
             x++;
             g_x1 = mulscale(g_x1,spriteDim.width,x);
@@ -8265,9 +8266,8 @@ void drawmapview(int32_t dax, int32_t day, int32_t zoome, short ang, EngineState
             g_x2 = mulscale10(dmulscale10(ox,bakgxvect,oy,bakgyvect),i);
             g_y2 = mulscale10(dmulscale10(ox,bakgyvect,-oy,bakgxvect),i);
 
-            ox = picsiz[picnum];
-            oy = ((ox>>4)&15);
-            ox &= 15;
+            ox = tiles[picnum].dim_power_2.width;
+            oy = tiles[picnum].dim_power_2.height;
             if (pow2long[ox] != xspan) {
                 ox++;
                 g_x1 = mulscale(g_x1,xspan,ox);

@@ -41,6 +41,7 @@ typedef struct dimensions_s {
 
 typedef struct tile_s {
     dimensions_t dim;
+    dimensions_t dim_power_2;
     uint8_t lock;
     int32_t animFlags;
     uint8_t *data;

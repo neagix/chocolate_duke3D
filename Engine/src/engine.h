@@ -172,7 +172,7 @@ extern "C" {
     extern int32_t bakxsiz[4], bakysiz[4];
     extern int32_t bakwindowx1[4], bakwindowy1[4];
     extern int32_t bakwindowx2[4], bakwindowy2[4];
-    extern uint8_t  picsiz[MAXTILES], tilefilenum[MAXTILES];
+    extern uint8_t tilefilenum[MAXTILES];
     extern int32_t numtilefiles, artfil , artfilnum, artfilplc;
     extern int32_t pow2long[32];
     extern int32_t tilefileoffs[MAXTILES];
