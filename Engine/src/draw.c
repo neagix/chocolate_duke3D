@@ -10,6 +10,7 @@
 #include "build.h"
 #include "tiles.h"
 #include "draw.h"
+#include "fixedPoint_math.h"
 
 int32_t pixelsAllowed = 10000000000;
 
@@ -665,16 +666,11 @@ void tsethlineshift(int32_t i1, int32_t i2)
 }
 
 
-#include "fixedPoint_math.h"
-
-#define low32(a) ((a&0xffffffff))
-#define high32(a) ((int)(((__int64)a&(__int64)0xffffffff00000000)>>32))
-
 //FCS: Render RENDER_SLOPPED_CEILING_AND_FLOOR
 void slopevlin(uint8_t *framebuffer, int32_t *slopaloffs, int32_t cnt,
                int32_t bx, int32_t by, int32_t asm3,
                int32_t x3, int32_t y3, int32_t asm1,
-               int32_t pinc, tile_t *tile)
+               int32_t byter_per_line, tile_t *tile)
 {
     int32_t bz, bzinc;
     uint32_t i, u, v, frame_index = 0;
@@ -696,7 +692,7 @@ void slopevlin(uint8_t *framebuffer, int32_t *slopaloffs, int32_t cnt,
         framebuffer[frame_index] = *(char *)(slopaloffs[0] + tile->data[index]);
         
         slopaloffs--;
-        frame_index += pinc;
+        frame_index -= byter_per_line;
     }
 }
 

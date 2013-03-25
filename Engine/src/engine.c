@@ -1341,7 +1341,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
                       mulscale16(y2, zd) + (g_zx >> 6), // asm3
                       g_x3, g_y3,
                       -(zd >> (16-BITSOFPRECISION)), //asm1
-                      -game_mode.bytesperline,
+                      game_mode.bytesperline,
                       &tiles[picnum]);
 
             if ((x&15) == 0) {
