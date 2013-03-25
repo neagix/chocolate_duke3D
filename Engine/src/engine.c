@@ -1336,7 +1336,6 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
             g_y3 = (g_y2>>10);
             int32_t a3 = mulscale16(y2, zd) + (g_zx >> 6);
             slopevlin(ylookup[y2]+x+frameoffset,
-                      krecip(a3>>3),
                       nptr2,
                       y2 - y1 + 1,
                       g_x1, g_y1,
