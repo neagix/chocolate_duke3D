@@ -8,6 +8,7 @@
 
 #include "platform.h"
 #include "build.h"
+#include "tiles.h"
 #include "draw.h"
 
 int32_t pixelsAllowed = 10000000000;
@@ -668,34 +669,32 @@ static int32_t slopemach_ecx;
 static int32_t slopemach_edx;
 static uint8_t  slopemach_ah1;
 static uint8_t  slopemach_ah2;
-static float asm2_f;
-typedef union {
-    unsigned int i;
-    float f;
-} bitwisef2i;
-void setupslopevlin(int32_t i1, int32_t i3, int32_t asm1)
+static float xdimscale_float;
+
+#include <stdio.h>
+
+void setupslopevlin(dimensions_t power_2_dimension, int32_t i3, int32_t xdimscale)
 {
-    bitwisef2i c;
     slopemach_ecx = i3;
-    slopemach_edx = (1<<(i1&0x1f)) - 1;
-    slopemach_edx <<= ((i1&0x1f00)>>8);
-    slopemach_ah1 = 32-((i1&0x1f00)>>8);
-    slopemach_ah2 = (slopemach_ah1 - (i1&0x1f)) & 0x1f;
-    c.f = asm2_f = (float)asm1;
+    slopemach_edx = (1 << power_2_dimension.width) - 1;
+    slopemach_edx <<= power_2_dimension.height;
+    slopemach_ah1 = 32 - power_2_dimension.height;
+    slopemach_ah2 = (slopemach_ah1 - power_2_dimension.width) & 0x1f;
+    xdimscale_float = (float)xdimscale;
 }
 
 #define low32(a) ((a&0xffffffff))
 #define high32(a) ((int)(((__int64)a&(__int64)0xffffffff00000000)>>32))
 
 //FCS: Render RENDER_SLOPPED_CEILING_AND_FLOOR
-void slopevlin(int32_t i1, uint32_t i2, int32_t i3, int32_t i4,
+void slopevlin(int32_t framebuffer, uint32_t i2, int32_t i3, int32_t i4,
                int32_t i5, int32_t i6, int32_t asm3,
                int32_t g_x3, int32_t g_y3, uint8_t *tile_data)
 {
     uint32_t ecx,eax,ebx,edx,esi,edi, asm4;
-#pragma This is so bad to cast asm3 to int then float :( !!!
-    float a = (float)(int32_t) asm3 + asm2_f;
-    i1 -= slopemach_ecx;
+    float a = asm3 + xdimscale_float;
+    
+    framebuffer -= slopemach_ecx;
     esi = i5 + low32((__int64)g_x3 * (__int64)(i2<<3));
     edi = i6 + low32((__int64)g_y3 * (__int64)(i2<<3));
     ebx = i4;
@@ -712,7 +711,7 @@ void slopevlin(int32_t i1, uint32_t i2, int32_t i3, int32_t i4,
         eax -= edx;
         ecx = low32((__int64)g_x3 * (__int64)eax);
         eax = low32((__int64)g_y3 * (__int64)eax);
-        a += asm2_f;
+        a += xdimscale_float;
 
         asm4 = ebx;
         ecx = ((ecx&0xffffff00)|(ebx&0xff));
@@ -728,7 +727,7 @@ void slopevlin(int32_t i1, uint32_t i2, int32_t i3, int32_t i4,
             edx >>= slopemach_ah1;
             ebx &= slopemach_edx;
             edi += eax;
-            i1 += slopemach_ecx;
+            framebuffer += slopemach_ecx;
             edx = ((edx&0xffffff00)|((((uint8_t *)(ebx+edx))[(uint32_t)tile_data])));
             ebx = *((uint32_t *)i3); // register trickery
             i3 -= 4;
@@ -736,7 +735,7 @@ void slopevlin(int32_t i1, uint32_t i2, int32_t i3, int32_t i4,
             ebx = esi;
 
             if (pixelsAllowed-- > 0) {
-                *((uint8_t *)i1) = (eax&0xff);
+                *((uint8_t *)framebuffer) = (eax&0xff);
             }
 
             edx = edi;

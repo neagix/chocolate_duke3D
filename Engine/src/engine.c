@@ -1294,7 +1294,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
     vis = mulscale16(vis,xdimscale);
     j =(int32_t) FP_OFF(palookup[pallete]);
 
-    setupslopevlin(((int32_t)tiles[picnum].dim_power_2.width) + (((int32_t)tiles[picnum].dim_power_2.height)<<8),
+    setupslopevlin(tiles[picnum].dim_power_2,
                    -ylookup[1],
                    -(zd >> (16-BITSOFPRECISION)));
 
