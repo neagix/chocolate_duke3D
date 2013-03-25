@@ -664,30 +664,22 @@ void tsethlineshift(int32_t i1, int32_t i2)
     tshift_bl = (i2&0x1f);
 }
 
-static int32_t slopemach_edx;
-static uint8_t  slopemach_ah1;
-static uint8_t  slopemach_ah2;
-
-#include <stdio.h>
-
-void setupslopevlin(dimensions_t power_2_dimension)
-{
-    slopemach_edx = (1 << power_2_dimension.width) - 1;
-    slopemach_edx <<= power_2_dimension.height;
-    slopemach_ah1 = 32 - power_2_dimension.height;
-    slopemach_ah2 = (slopemach_ah1 - power_2_dimension.width) & 0x1f;
-}
-
 #define low32(a) ((a&0xffffffff))
 #define high32(a) ((int)(((__int64)a&(__int64)0xffffffff00000000)>>32))
 
 //FCS: Render RENDER_SLOPPED_CEILING_AND_FLOOR
 void slopevlin(int32_t framebuffer, uint32_t i2, int32_t i3, int32_t i4,
                int32_t i5, int32_t i6, int32_t asm3,
-               int32_t g_x3, int32_t g_y3, uint8_t *tile_data, float xdimscale, int32_t ylookup)
+               int32_t g_x3, int32_t g_y3, uint8_t *tile_data, float xdimscale,
+               int32_t ylookup, dimensions_t power_2_dimension)
 {
     uint32_t ecx,eax,ebx,edx,esi,edi, asm4;
     float a = asm3 + xdimscale;
+
+    int32_t slopemach_edx = (1 << power_2_dimension.width) - 1;
+    slopemach_edx <<= power_2_dimension.height;
+    uint8_t slopemach_ah1 = 32 - power_2_dimension.height;
+    uint8_t slopemach_ah2 = (slopemach_ah1 - power_2_dimension.width) & 0x1f;
     
     framebuffer -= ylookup;
     esi = i5 + low32((__int64)g_x3 * (__int64)(i2<<3));
