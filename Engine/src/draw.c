@@ -671,13 +671,13 @@ void tsethlineshift(int32_t i1, int32_t i2)
 #define high32(a) ((int)(((__int64)a&(__int64)0xffffffff00000000)>>32))
 
 //FCS: Render RENDER_SLOPPED_CEILING_AND_FLOOR
-void slopevlin(int32_t framebuffer, int32_t *slopaloffs, int32_t cnt,
+void slopevlin(uint8_t *framebuffer, int32_t *slopaloffs, int32_t cnt,
                int32_t bx, int32_t by, int32_t asm3,
                int32_t x3, int32_t y3, int32_t asm1,
                int32_t pinc, tile_t *tile)
 {
     int32_t bz, bzinc;
-    uint32_t i, u, v;
+    uint32_t i, u, v, frame_index = 0;
     
     uint32_t glogx = tile->dim_power_2.width;
     uint32_t glogy = tile->dim_power_2.height;
@@ -693,10 +693,10 @@ void slopevlin(int32_t framebuffer, int32_t *slopaloffs, int32_t cnt,
         v = by + y3 * i;
         
         int32_t index = ((u >> (32-glogx)) << glogy) + (v >> (32-glogy));
-        (*(char *)framebuffer) = *(char *)(slopaloffs[0] + tile->data[index]);
+        framebuffer[frame_index] = *(char *)(slopaloffs[0] + tile->data[index]);
         
         slopaloffs--;
-        framebuffer += pinc;
+        frame_index += pinc;
     }
 }
 
