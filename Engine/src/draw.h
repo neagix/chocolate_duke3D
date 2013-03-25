@@ -55,7 +55,10 @@ extern "C" {
     void thline(uint8_t *,int32_t,int32_t,int32_t,uint8_t *,int32_t,int32_t,int32_t);
     void thlineskipmodify(int32_t,uint32_t,uint32_t,int32_t,uint8_t *);
     void tsethlineshift(int32_t,int32_t);
-    void slopevlin(int32_t, uint32_t, int32_t *palette, int32_t, int32_t, int32_t, int32_t, int32_t, int32_t, uint8_t *tile_data, float xdimscale, int32_t ylookup, dimensions_t tile_dimension);
+    void slopevlin(int32_t framebuffer, uint32_t i, int32_t *slopaloffs, int32_t cnt,
+                   int32_t bx, int32_t by, int32_t asm3,
+                   int32_t globalx3, int32_t globaly3, int32_t asm1,
+                   int32_t pinc, tile_t *tile);
 
 
 #define TRANS_NORMAL  0

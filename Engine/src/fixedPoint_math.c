@@ -6,6 +6,12 @@
 #include "fixedPoint_math.h"
 
 
+//CC: Returns 1/denominator shifted 30
+int32_t krecip(int32_t denominator)
+{
+    return (int32_t)(1073741824.0/denominator);
+}
+
 int32_t fixedPointSqrt(uint32_t radicand)
 {
     return (int32_t)floor(sqrt(radicand));

@@ -209,12 +209,6 @@ static __inline int32_t getclipmask(int32_t a, int32_t b, int32_t c, int32_t d)
     return (((d<<4)^0xf0)|d);
 }
 
-//CC: Returns 1/denominator shifted 30
-int32_t krecip(int32_t denominator)
-{
-    return (int32_t)(1073741824.0/denominator);
-}
-
 uint16_t _swap16(uint16_t D)
 {
     return ((D<<8)|(D>>8));
@@ -1346,12 +1340,11 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
                       nptr2,
                       y2 - y1 + 1,
                       g_x1, g_y1,
-                      a3,
+                      a3, // asm3
                       g_x3, g_y3,
-                      tiles[picnum].data,
-                      (float)-(zd >> (16-BITSOFPRECISION)),
+                      (float)-(zd >> (16-BITSOFPRECISION)), //asm1
                       -ylookup[1],
-                      tiles[picnum].dim_power_2);
+                      &tiles[picnum]);
 
             if ((x&15) == 0) {
                 faketimerhandler();
