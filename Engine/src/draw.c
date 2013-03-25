@@ -669,18 +669,16 @@ static int32_t slopemach_ecx;
 static int32_t slopemach_edx;
 static uint8_t  slopemach_ah1;
 static uint8_t  slopemach_ah2;
-static float xdimscale_float;
 
 #include <stdio.h>
 
-void setupslopevlin(dimensions_t power_2_dimension, int32_t i3, int32_t xdimscale)
+void setupslopevlin(dimensions_t power_2_dimension, int32_t i3)
 {
     slopemach_ecx = i3;
     slopemach_edx = (1 << power_2_dimension.width) - 1;
     slopemach_edx <<= power_2_dimension.height;
     slopemach_ah1 = 32 - power_2_dimension.height;
     slopemach_ah2 = (slopemach_ah1 - power_2_dimension.width) & 0x1f;
-    xdimscale_float = (float)xdimscale;
 }
 
 #define low32(a) ((a&0xffffffff))
@@ -689,10 +687,10 @@ void setupslopevlin(dimensions_t power_2_dimension, int32_t i3, int32_t xdimscal
 //FCS: Render RENDER_SLOPPED_CEILING_AND_FLOOR
 void slopevlin(int32_t framebuffer, uint32_t i2, int32_t i3, int32_t i4,
                int32_t i5, int32_t i6, int32_t asm3,
-               int32_t g_x3, int32_t g_y3, uint8_t *tile_data)
+               int32_t g_x3, int32_t g_y3, uint8_t *tile_data, float xdimscale)
 {
     uint32_t ecx,eax,ebx,edx,esi,edi, asm4;
-    float a = asm3 + xdimscale_float;
+    float a = asm3 + xdimscale;
     
     framebuffer -= slopemach_ecx;
     esi = i5 + low32((__int64)g_x3 * (__int64)(i2<<3));
@@ -711,7 +709,7 @@ void slopevlin(int32_t framebuffer, uint32_t i2, int32_t i3, int32_t i4,
         eax -= edx;
         ecx = low32((__int64)g_x3 * (__int64)eax);
         eax = low32((__int64)g_y3 * (__int64)eax);
-        a += xdimscale_float;
+        a += xdimscale;
 
         asm4 = ebx;
         ecx = ((ecx&0xffffff00)|(ebx&0xff));
