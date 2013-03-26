@@ -1139,63 +1139,39 @@ static void parascan(bool is_floor, int32_t bunch, EngineState *engine_state)
 
 
 #define BITSOFPRECISION 3  /* Don't forget to change this in A.ASM also! */
-static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dastat, EngineState *engine_state)
+static void grouscan (int32_t dax1, int32_t dax2, InnerSector surface, bool is_floor, EngineState *engine_state)
 {
-    int32_t i, j, l, x, y, dx, dy, wx, wy, y1, y2, daz, zd;
-    int32_t daslope, dasqr;
+    int32_t i, j, l, x, y, dx, dy, wx, wy, y1, y2, zd;
+    int32_t dasqr;
     int32_t shoffs, shinc, m1, m2, *mptr1, *mptr2, *nptr1, *nptr2;
     int32_t g_x1, g_y1, g_x2, g_y2, g_x3, g_y3, g_zx;
     int32_t lx, ly, lz;
-    SectorFlags flags;
     walltype *wal;
-    Sector *sec;
-    int16_t picnum;
-    int32_t shade;
-    int32_t vis;
-    int32_t pallete;
 
-    sec = &sector[sectnum];
-
-    if (dastat == 0) {
-        if (engine_state->posz <= GetZOfSlope(sector[sectnum].ceiling, engine_state->posx, engine_state->posy)) {
-            return;    /* Back-face culling */
-        }
-        flags = sec->ceiling.flags;
-        picnum = sec->ceiling.picnum;
-        shade = sec->ceiling.shade;
-        pallete = sec->ceiling.pal;
-        daslope = sec->ceiling.heinum;
-        daz = sec->ceiling.z;
+    if (is_floor) {
+        if (engine_state->posz >= GetZOfSlope(surface, engine_state->posx, engine_state->posy)) return;
     } else {
-        if (engine_state->posz >= GetZOfSlope(sector[sectnum].floor, engine_state->posx, engine_state->posy)) {
-            return;    /* Back-face culling */
-        }
-        flags = sec->floor.flags;
-        picnum = sec->floor.picnum;
-        shade = sec->floor.shade;
-        pallete = sec->floor.pal;
-        daslope = sec->floor.heinum;
-        daz = sec->floor.z;
+        if (engine_state->posz <= GetZOfSlope(surface, engine_state->posx, engine_state->posy)) return;
+    }
+    
+    if ((tiles[surface.picnum].animFlags&192) != 0) {
+        surface.picnum += animateoffs(surface.picnum);
     }
 
-    if ((tiles[picnum].animFlags&192) != 0) {
-        picnum += animateoffs(picnum);
-    }
+    setgotpic(surface.picnum);
 
-    setgotpic(picnum);
-
-    if ((tiles[picnum].dim.width <= 0) ||
-        (tiles[picnum].dim.height <= 0)) {
+    if ((tiles[surface.picnum].dim.width <= 0) ||
+        (tiles[surface.picnum].dim.height <= 0)) {
         return;
     }
 
-    TILE_MakeAvailable(picnum);
+    TILE_MakeAvailable(surface.picnum);
 
-    wal = &wall[sec->wallptr];
+    wal = &wall[surface.sector->wallptr];
     wx = wall[wal->point2].x - wal->x;
     wy = wall[wal->point2].y - wal->y;
     dasqr = krecip(fixedPointSqrt(wx*wx+wy*wy));
-    i = mulscale21(daslope,dasqr);
+    i = mulscale21(surface.heinum,dasqr);
     wx *= i;
     wy *= i;
 
@@ -1210,11 +1186,11 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
     g_zx = -dmulscale17(wx, g_y2, -wy, g_x2) + mulscale10(1 - engine_state->horiz, zd);
     lz = -dmulscale25(wx, ly, -wy, lx);
 
-    if (flags.align_texture_to_first_wall) { /* Relative alignment */
+    if (surface.flags.align_texture_to_first_wall) { /* Relative alignment */
         dx = mulscale14(wall[wal->point2].x-wal->x,dasqr);
         dy = mulscale14(wall[wal->point2].y-wal->y,dasqr);
 
-        i = fixedPointSqrt(daslope*daslope+16777216);
+        i = fixedPointSqrt(surface.heinum*surface.heinum+16777216);
 
         x = lx;
         y = ly;
@@ -1231,7 +1207,8 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
         g_x2 = dmulscale16(x,dx,y,dy);
         g_y2 = mulscale12(dmulscale16(-y,dx,x,dy),i);
     }
-    if (flags.swap_xy) {
+    
+    if (surface.flags.swap_xy) {
         i = lx;
         lx = -ly;
         ly = -i;
@@ -1242,26 +1219,28 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
         g_x2 = -g_y2;
         g_y2 = -i;
     }
-    if (flags.x_flip) {
+    
+    if (surface.flags.x_flip) {
         g_x1 = -g_x1;
         g_x2 = -g_x2;
         lx = -lx;
     }
-    if (flags.y_flip) {
+    
+    if (surface.flags.y_flip) {
         g_y1 = -g_y1;
         g_y2 = -g_y2;
         ly = -ly;
     }
 
-    daz = dmulscale9(wx, engine_state->posy - wal->y, -wy, engine_state->posx - wal->x) + ((daz - engine_state->posz)<<8);
-    g_x2 = mulscale20(g_x2,daz);
-    lx = mulscale28(lx, daz);
-    g_y2 = mulscale20(g_y2,-daz);
-    ly = mulscale28(ly, -daz);
+    surface.z = dmulscale9(wx, engine_state->posy - wal->y, -wy, engine_state->posx - wal->x) + ((surface.z - engine_state->posz)<<8);
+    g_x2 = mulscale20(g_x2,surface.z);
+    lx = mulscale28(lx, surface.z);
+    g_y2 = mulscale20(g_y2,-surface.z);
+    ly = mulscale28(ly, -surface.z);
 
-    i = 8 - tiles[picnum].dim_power_2.width;
-    j = 8 - tiles[picnum].dim_power_2.height;
-    if (flags.double_smooshiness) {
+    i = 8 - tiles[surface.picnum].dim_power_2.width;
+    j = 8 - tiles[surface.picnum].dim_power_2.height;
+    if (surface.flags.double_smooshiness) {
         i++;
         j++;
     }
@@ -1272,22 +1251,22 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
     g_y2 <<= j;
     ly <<= j;
 
-    if (dastat == 0) {
-        g_x1 += (((int32_t)sec->ceiling.xpanning)<<24);
-        g_y1 += (((int32_t)sec->ceiling.ypanning)<<24);
+    if (is_floor == 0) {
+        g_x1 += (((int32_t)surface.xpanning)<<24);
+        g_y1 += (((int32_t)surface.ypanning)<<24);
     } else {
-        g_x1 += (((int32_t)sec->floor.xpanning)<<24);
-        g_y1 += (((int32_t)sec->floor.ypanning)<<24);
+        g_x1 += (((int32_t)surface.xpanning)<<24);
+        g_y1 += (((int32_t)surface.ypanning)<<24);
     }
 
-    vis = engine_state->visibility;
-    if (sec->visibility != 0) {
-        vis = mulscale4(vis,(int32_t)((uint8_t )(sec->visibility+16)));
+    int32_t visibility = engine_state->visibility;
+    if (surface.sector->visibility != 0) {
+        visibility = mulscale4(visibility, (int32_t)((uint8_t )(surface.sector->visibility + 16)));
     }
-    vis = mulscale13(vis,daz);
-    vis = mulscale16(vis,xdimscale);
-    j =(int32_t) FP_OFF(palookup[pallete]);
-
+    visibility = mulscale13(visibility, surface.z);
+    visibility = mulscale16(visibility, xdimscale);
+    
+    j =(int32_t) FP_OFF(palookup[surface.pal]);
     l = (zd >> 16);
 
     shinc = mulscale16(lx, xdimenscale);
@@ -1296,13 +1275,15 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
     } else {
         shoffs = ((16380-ydimen)<<15);    // JBF: was 2044     16380
     }
-    if (dastat == 0) {
-        y1 = umost[dax1];
-    } else {
+    
+    if (is_floor) {
         y1 = max(umost[dax1],dplc[dax1]);
+    } else {
+        y1 = umost[dax1];
     }
+    
     m1 = mulscale16(y1, zd) + (g_zx>>6);
-    /* Avoid visibility overflow by crossing horizon */
+    // Avoid visibility overflow by crossing horizon
     if (zd > 0) {
         m1 += (zd >> 16);
     } else {
@@ -1313,7 +1294,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
     mptr2 = mptr1+1;
 
     for (x=dax1; x<=dax2; x++) {
-        if (dastat == 0) {
+        if (is_floor == 0) {
             y1 = umost[x];
             y2 = min(dmost[x],uplc[x])-1;
         } else {
@@ -1324,11 +1305,11 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
             nptr1 = (int32_t *)&slopalookup[y1+(shoffs>>15)];
             nptr2 = (int32_t *)&slopalookup[y2+(shoffs>>15)];
             while (nptr1 <= mptr1) {
-                *mptr1-- = j + (getpalookup((int32_t)mulscale24(krecip(m1),vis),shade)<<8);
+                *mptr1-- = j + (getpalookup((int32_t)mulscale24(krecip(m1), visibility), surface.shade) << 8);
                 m1 -= l;
             }
             while (nptr2 >= mptr2) {
-                *mptr2++ = j + (getpalookup((int32_t)mulscale24(krecip(m2),vis),shade)<<8);
+                *mptr2++ = j + (getpalookup((int32_t)mulscale24(krecip(m2), visibility), surface.shade) << 8);
                 m2 += l;
             }
 
@@ -1342,7 +1323,7 @@ static void grouscan (int32_t dax1, int32_t dax2, int32_t sectnum, uint8_t  dast
                       g_x3, g_y3,
                       -(zd >> (16-BITSOFPRECISION)), //asm1
                       game_mode.bytesperline,
-                      &tiles[picnum]);
+                      &tiles[surface.picnum]);
 
             if ((x&15) == 0) {
                 faketimerhandler();
@@ -1637,7 +1618,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
         if (sec->ceiling.flags.groudraw && !sec->ceiling.flags.parallaxing) {
             grouscan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],
                      pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],
-                     sectnum, 0, engine_state);
+                     sector[sectnum].ceiling, false, engine_state);
         } else if (!sec->ceiling.flags.parallaxing) {
             CeilingScan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],
                         pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],
@@ -1653,7 +1634,7 @@ static void drawalls(int32_t bunch, short *numscans, short *numhits, short *numb
         if (sec->floor.flags.groudraw && !sec->floor.flags.parallaxing) {
             grouscan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],
                      pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],
-                     sectnum, 1, engine_state);
+                     sector[sectnum].floor, true, engine_state);
         } else if (!sec->floor.flags.parallaxing) {
             FloorScan(pvWalls[bunchfirst[bunch]].screenSpaceCoo[0][VEC_COL],
                       pvWalls[bunchlast[bunch]].screenSpaceCoo[1][VEC_COL],
