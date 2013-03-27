@@ -246,6 +246,8 @@ static void scansector (short sectnum, short *numscans, short *numbunches, Engin
         sectnum = sectorsToVisit[--numSectorsToVisit];
 
         //Add every script in the current sector as potentially visible.
+        //TODO: this seens to be running even when there is no sprites in the map
+        // I need to double check this
         for (z=headspritesect[sectnum]; z>=0; z=nextspritesect[z]) {
             spr = &sprite[z];
             if ((!spr->flags.invisible || showinvisibility) &&
@@ -262,6 +264,8 @@ static void scansector (short sectnum, short *numscans, short *numbunches, Engin
         }
 
         //Mark the current sector bit as "visited" in the bitvector
+        //TODO: There is no need to save memory like this anymore, we can increase this
+        // array size
         visitedSectors[sectnum>>3] |= pow2char[sectnum&7];
 
         bunchfrst = *numbunches;
@@ -319,8 +323,6 @@ static void scansector (short sectnum, short *numscans, short *numbunches, Engin
             // Rotate: This is a standard cos sin 2D rotation matrix projection
             xp2 = dmulscale6(y2, fixedPointCos(engine_state->ang), -x2, fixedPointSin(engine_state->ang));
             yp2 = dmulscale6(x2, cosviewingrangeglobalang, y2, sinviewingrangeglobalang);
-
-
 
             // Equivalent of a near plane clipping ?
             if ((yp1 < 256) && (yp2 < 256)) {
@@ -621,6 +623,7 @@ static void FloorCeilingScan (int32_t x1, int32_t x2, InnerSector floor_or_ceili
     }
     
     //If this is an animated texture: Animate it.
+    //TODO: Not sure, this is executing for non-animated textures
     if (tiles[picnum].animFlags&192) {
         picnum += animateoffs(picnum);
     }
@@ -637,10 +640,8 @@ static void FloorCeilingScan (int32_t x1, int32_t x2, InnerSector floor_or_ceili
     }
 
     if (!floor_or_ceiling.flags.align_texture_to_first_wall) {
-        g_x1 = fixedPointSin(engine_state->ang);
-        g_x2 = fixedPointSin(engine_state->ang);
-        g_y1 = fixedPointCos(engine_state->ang);
-        g_y2 = fixedPointCos(engine_state->ang);
+        g_x1 = g_x2 = fixedPointSin(engine_state->ang);
+        g_y1 = g_y2 = fixedPointCos(engine_state->ang);
         xpanning = (engine_state->posx<<20);
         ypanning = -(engine_state->posy<<20);
     } else {
@@ -4456,6 +4457,7 @@ static void drawsprite (EngineState *engine_state, int32_t *spritesx, int32_t *s
         y1 = tspr->y-engine_state->posy-mulscale16(yv,i);
         y2 = y1+mulscale16(yv,spriteDim.width );
 
+        // Rotate: This is a standard cos sin 2D rotation matrix projection
         yp1 = dmulscale6(x1,cosviewingrangeglobalang,y1,sinviewingrangeglobalang);
         yp2 = dmulscale6(x2,cosviewingrangeglobalang,y2,sinviewingrangeglobalang);
         if ((yp1 <= 0) && (yp2 <= 0)) {
