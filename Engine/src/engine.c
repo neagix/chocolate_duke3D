@@ -285,7 +285,7 @@ static void scansector (short sectnum, short *numscans, short *numbunches, Engin
             y2 = wal2->y - engine_state->posy;
 
             // If this is a portal...
-            if ((nextsectnum >= 0) && !wal->flags.one_way)
+            if ((nextsectnum >= 0) && !wal->flags.one_way) {
                 //If this portal has not been visited yet.
                 if ((visitedSectors[nextsectnum>>3]&pow2char[nextsectnum&7]) == 0) {
                     //Cross product -> Z component
@@ -302,6 +302,7 @@ static void scansector (short sectnum, short *numscans, short *numbunches, Engin
                         }
                     }
                 }
+            }
 
             // Rotate the wall endpoints vectors according to the player orientation.
             // This is a regular rotation matrix using [29.3] fixed point.
@@ -326,7 +327,7 @@ static void scansector (short sectnum, short *numscans, short *numbunches, Engin
                 goto skipitaddwall;
             }
 
-            /* If wall's NOT facing you */
+            // If wall's NOT facing you
             if (dmulscale32(xp1,yp2,-xp2,yp1) >= 0) {
                 goto skipitaddwall;
             }
@@ -341,7 +342,7 @@ static void scansector (short sectnum, short *numscans, short *numbunches, Engin
                 //Project the point onto screen and see in which column it belongs.
                 pvWalls[*numscans].screenSpaceCoo[0][VEC_COL] = halfxdimen + scale(xp1,halfxdimen,yp1);
                 if (xp1 >= 0) {
-                    pvWalls[*numscans].screenSpaceCoo[0][VEC_COL]++;    /* Fix for SIGNED divide */
+                    pvWalls[*numscans].screenSpaceCoo[0][VEC_COL]++;    // Fix for SIGNED divide
                 }
 
                 if (pvWalls[*numscans].screenSpaceCoo[0][VEC_COL] >= xdimen) {
@@ -455,15 +456,15 @@ skipitaddwall:
  param 2: Only used to lookup the xrepeat attribute of the wall.
 
 */
-static void prepwall(int32_t z, walltype *wal)
+static void prepwall(int32_t wall_id, walltype *wal)
 {
     int32_t i, l=0, ol=0, splc, sinc, x, topinc, top, botinc, bot, walxrepeat;
-    vector_t *wallCoo = pvWalls[z].cameraSpaceCoo;
+    vector_t *wallCoo = pvWalls[wall_id].cameraSpaceCoo;
 
-    walxrepeat = (wal->xrepeat<<3);
+    walxrepeat = wal->xrepeat << 3;
 
-    /* lwall calculation */
-    i = pvWalls[z].screenSpaceCoo[0][VEC_COL]-halfxdimen;
+    // lwall calculation
+    i = pvWalls[wall_id].screenSpaceCoo[0][VEC_COL]-halfxdimen;
 
     //Let's use some of the camera space wall coordinate now.
     topinc = -(wallCoo[0][VEC_Y]>>2);
@@ -476,7 +477,7 @@ static void prepwall(int32_t z, walltype *wal)
     sinc = mulscale16(wallCoo[1][VEC_Y]-wallCoo[0][VEC_Y],xdimscale);
 
     //X screenspce column of point Z.
-    x = pvWalls[z].screenSpaceCoo[0][VEC_COL];
+    x = pvWalls[wall_id].screenSpaceCoo[0][VEC_COL];
 
     if (bot != 0) {
         l = divscale12(top,bot);
@@ -486,7 +487,7 @@ static void prepwall(int32_t z, walltype *wal)
     }
 
     //If the wall is less than 4 column wide.
-    while (x+4 <= pvWalls[z].screenSpaceCoo[1][VEC_COL]) {
+    while (x+4 <= pvWalls[wall_id].screenSpaceCoo[1][VEC_COL]) {
         top += topinc;
         bot += botinc;
         if (bot != 0) {
@@ -507,7 +508,7 @@ static void prepwall(int32_t z, walltype *wal)
     }
 
     //If the wall is less than 2 columns wide.
-    if (x+2 <= pvWalls[z].screenSpaceCoo[1][VEC_COL]) {
+    if (x+2 <= pvWalls[wall_id].screenSpaceCoo[1][VEC_COL]) {
         top += (topinc>>1);
         bot += (botinc>>1);
         if (bot != 0) {
@@ -523,7 +524,7 @@ static void prepwall(int32_t z, walltype *wal)
     }
 
     //The wall is 1 column wide.
-    if (x+1 <= pvWalls[z].screenSpaceCoo[1][VEC_COL]) {
+    if (x+1 <= pvWalls[wall_id].screenSpaceCoo[1][VEC_COL]) {
         bot += (botinc>>2);
         if (bot != 0) {
             l = divscale12(top+(topinc>>2),bot);
@@ -532,17 +533,17 @@ static void prepwall(int32_t z, walltype *wal)
         }
     }
 
-    if (lwall[pvWalls[z].screenSpaceCoo[0][VEC_COL]] < 0) {
-        lwall[pvWalls[z].screenSpaceCoo[0][VEC_COL]] = 0;
+    if (lwall[pvWalls[wall_id].screenSpaceCoo[0][VEC_COL]] < 0) {
+        lwall[pvWalls[wall_id].screenSpaceCoo[0][VEC_COL]] = 0;
     }
 
-    if ((lwall[pvWalls[z].screenSpaceCoo[1][VEC_COL]] >= walxrepeat) && (walxrepeat)) {
-        lwall[pvWalls[z].screenSpaceCoo[1][VEC_COL]] = walxrepeat-1;
+    if ((lwall[pvWalls[wall_id].screenSpaceCoo[1][VEC_COL]] >= walxrepeat) && (walxrepeat)) {
+        lwall[pvWalls[wall_id].screenSpaceCoo[1][VEC_COL]] = walxrepeat-1;
     }
 
     if (wal->flags.x_flip) {
         walxrepeat--;
-        for (x=pvWalls[z].screenSpaceCoo[0][VEC_COL]; x<=pvWalls[z].screenSpaceCoo[1][VEC_COL]; x++) {
+        for (x=pvWalls[wall_id].screenSpaceCoo[0][VEC_COL]; x<=pvWalls[wall_id].screenSpaceCoo[1][VEC_COL]; x++) {
             lwall[x] = walxrepeat-lwall[x];
         }
     }
