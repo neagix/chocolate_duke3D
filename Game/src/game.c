@@ -8472,7 +8472,7 @@ void findGRPToUse(char *groupfilefullpath)
     while ((dirEntry = readdir(dir)) != NULL) {
 
 
-        if (dukeGRP_Match(dirEntry->d_name,dirEntry->d_namlen)) {
+        if (dukeGRP_Match(dirEntry->d_name, strlen(dirEntry->d_name))) {
             sprintf(groupfilefullpath,"%s",dirEntry->d_name);
             return;
         }
@@ -11052,12 +11052,12 @@ void takescreenshot(void)
     // If this is a TC save it to the TC's directory
     if (getGameDir()[0] != '\0') {
         sprintf(szFilename, "%s\\%s", getGameDir(), SCREENSHOTPATH);
-        mkdir(szFilename);
+        mkdir(szFilename, 0777);
         sprintf(szFilename, "%s\\%s\\%s", getGameDir(), SCREENSHOTPATH, tempbuf);
     }
     // otherwise let's save it to the root.
     else {
-        mkdir(SCREENSHOTPATH);
+        mkdir(SCREENSHOTPATH, 0777);
         sprintf(szFilename, "%s\\%s", SCREENSHOTPATH, tempbuf);
     }
 

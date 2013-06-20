@@ -4,7 +4,7 @@
 #if (defined PLATFORM_WIN32)
 #include "win32_compat.h"
 #elif (defined PLATFORM_UNIX)
-#include "unix_compat.h"
+#include "../../Game/src/dukeunix.h"
 #elif (defined PLATFORM_DOS)
 #include "doscmpat.h"
 #elif (defined __APPLE__)

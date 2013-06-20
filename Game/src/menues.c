@@ -30,7 +30,7 @@ Prepared for public release: 03/21/2003 - Charlie Wiederhold, 3D Realms
 #include "control.h"
 
 #include "filesystem.h"
-#include "SDL.h"
+#include <SDL/SDL.h>
 #include "premap.h"
 #include "display.h"
 
@@ -223,7 +223,7 @@ int loadplayer(int8_t spot)
     char  fn[] = "game0.sav";
     char  mpfn[] = "gameA_00.sav";
     char  *fnptr, scriptptrs[MAXSCRIPTSIZE];
-    int32_t fil, bv, i, j, x;
+    int32_t fil, bv, j, x;
     int32 nump;
 
     if (spot < 0) {
@@ -389,14 +389,14 @@ int loadplayer(int8_t spot)
 
     kdfread(&scriptptrs[0],1,MAXSCRIPTSIZE,fil);
     kdfread(&script[0],4,MAXSCRIPTSIZE,fil);
-    for (i=0; i<MAXSCRIPTSIZE; i++)
+    for (int i=0; i<MAXSCRIPTSIZE; i++)
         if ( scriptptrs[i] ) {
             j = (int32_t)script[i]+(int32_t)&script[0];
             script[i] = j;
         }
 
     kdfread(&actorscrptr[0],4,MAXTILES,fil);
-    for (i=0; i<MAXTILES; i++)
+    for (int i=0; i<MAXTILES; i++)
         if (actorscrptr[i]) {
             j = (int32_t)actorscrptr[i]+(int32_t)&script[0];
             actorscrptr[i] = (int32_t *)j;
@@ -405,7 +405,7 @@ int loadplayer(int8_t spot)
     kdfread(&scriptptrs[0],1,MAXSPRITES,fil);
     kdfread(&hittype[0],sizeof(struct weaponhit),MAXSPRITES,fil);
 
-    for (i=0; i<MAXSPRITES; i++) {
+    for (int i=0; i<MAXSPRITES; i++) {
         j = (int32_t)(&script[0]);
         if ( scriptptrs[i]&1 ) {
             T2 += j;
@@ -425,7 +425,7 @@ int loadplayer(int8_t spot)
     kdfread(&animatecnt,sizeof(animatecnt),1,fil);
     kdfread(&animatesect[0],2,MAXANIMATES,fil);
     kdfread(&animateptr[0],4,MAXANIMATES,fil);
-    for (i = animatecnt-1; i>=0; i--) {
+    for (int i = animatecnt-1; i>=0; i--) {
         animateptr[i] = (int32_t *)((int32_t)animateptr[i]+(int32_t)(&sector[0]));
     }
     kdfread(&animategoal[0],4,MAXANIMATES,fil);
@@ -553,10 +553,10 @@ int loadplayer(int8_t spot)
         k = nextspritestat[k];
     }
 
-    for (i=numinterpolations-1; i>=0; i--) {
+    for (int i=numinterpolations-1; i>=0; i--) {
         bakipos[i] = *curipos[i];
     }
-    for (i = animatecnt-1; i>=0; i--) {
+    for (int i = animatecnt-1; i>=0; i--) {
         setinterpolation(animateptr[i]);
     }
 

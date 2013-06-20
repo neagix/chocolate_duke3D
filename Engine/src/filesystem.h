@@ -42,7 +42,7 @@ void     setGameDir(char *gameDir);
 
 int32_t  TCkopen4load(const char  *filename, int32_t readfromGRP);
 
-#ifdef __APPLE__
+#ifndef	PLATFORM_WIN32
 int32_t  filelength(int32_t fd);
 #endif
 

@@ -17,7 +17,7 @@
 #if defined(__APPLE__)
 #include "enet/include/enet.h"
 #else
-#include <enet.h>
+#include <enet/enet.h>
 #endif
 
 //STL

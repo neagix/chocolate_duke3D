@@ -40,6 +40,10 @@ void Shutdown(void);
 // Defined in endian.h
 // #define BYTE_ORDER LITTLE_ENDIAN
 #endif
+#else
+//#include <sys/endian.h>
+
+
 #endif
 
 #ifndef BYTE_ORDER

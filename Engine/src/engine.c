@@ -17,8 +17,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include "platform.h"
 
 #if !PLATFORM_MACOSX
@@ -1141,7 +1139,7 @@ static void parascan(bool is_floor, int32_t bunch, EngineState *engine_state)
 
 
 #define BITSOFPRECISION 3  /* Don't forget to change this in A.ASM also! */
-static void grouscan (int32_t dax1, int32_t dax2, InnerSector surface, bool is_floor, EngineState *engine_state)
+void grouscan (int32_t dax1, int32_t dax2, InnerSector surface, bool is_floor, EngineState *engine_state)
 {
     int32_t i, j, l, x, y, dx, dy, wx, wy, y1, y2, zd;
     int32_t dasqr;
@@ -2466,7 +2464,7 @@ static int spritewallfront (Sprite *s, int32_t w)
 }
 
 
-static void transmaskvline(int32_t x, int32_t zd,
+void transmaskvline(int32_t x, int32_t zd,
                            int32_t xpanning, int16_t picnum, int32_t shade,
                            int16_t shiftval, int32_t yscale, int32_t vis, int32_t pallete,
                            EngineState *engine_state)

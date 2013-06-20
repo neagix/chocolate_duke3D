@@ -31,6 +31,8 @@ Prepared for public release: 03/21/2003 - Charlie Wiederhold, 3D Realms
 #include <errno.h>
 #include "global.h"
 #include "duke3d.h"
+#include <SDL/SDL.h>
+#include <fcntl.h>
 
 char  *mymembuf;
 uint8_t  MusicPtr[72000];
@@ -489,7 +491,7 @@ int FindDistance3D(int ix, int iy, int iz)
 
     return (ix - (ix>>4) + (t>>2) + (t>>3));
 }
-#include "SDL.h"
+
 void Error (int errorType, char  *error, ...)
 {
     va_list argptr;
@@ -836,7 +838,7 @@ uint8_t  *ltoa(int32_t value, uint8_t  *string, int radix)
     return string;
 }
 
-uint8_t  *ultoa(unsigned int32_t value, uint8_t  *string, int radix)
+uint8_t  *ultoa(uint32_t value, uint8_t  *string, int radix)
 {
     switch (radix) {
         case 10:

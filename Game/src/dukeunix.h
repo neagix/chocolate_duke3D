@@ -9,6 +9,7 @@
 #ifndef Duke3D_dukeunix_h
 #define Duke3D_dukeunix_h
 
+#define PLATFORM_SUPPORTS_SDL
 
 #define cdecl
 #define __far
@@ -31,17 +32,30 @@
 #define O_BINARY 0
 #endif
 
+#include <ctype.h>
+#include <stdint.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>
 #include <assert.h>
+#include <linux/limits.h>
+
+// Horrible horrible macro: Watcom allowed memory pointer to be cast
+// to a 32bits integer. The code is unfortunately stuffed with this :( !
+#define FP_OFF(x) ((int32_t) (x))
+
+#define kmalloc(x) malloc(x)
+#define kkmalloc(x) malloc(x)
+#define kfree(x) free(x)
+#define kkfree(x) free(x)
 
 struct find_t {
     DIR *dir;
-    char  pattern[MAX_PATH];
-    char  name[MAX_PATH];
+    char  pattern[PATH_MAX];
+    char  name[PATH_MAX];
 };
 int _dos_findfirst(char  *filename, int x, struct find_t *f);
 int _dos_findnext(struct find_t *f);
@@ -69,6 +83,8 @@ void _dos_getdate(struct dosdate_t *date);
 #define strcmpi(x, y) strcasecmp(x, y)
 #endif
 
+#define	stricmp	strcasecmp
+
 #ifdef DC
 #undef stderr
 #undef stdout
@@ -91,7 +107,7 @@ void _dos_getdate(struct dosdate_t *date);
 
 // FCS: Game.c features calls to mkdir without the proper flags.
 // Giving all access is ugly but it is just game OK !
-#define mkdir(X) mkdir(X,0777)
+//#define mkdir(X) mkdir(X,0777)
 
 #define getch getchar
 

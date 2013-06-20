@@ -8,8 +8,8 @@
 
 #include <stdio.h>
 #include "../audiolib/music.h"
-#include "SDL.h"
-#include "SDL_Mixer.h"
+#include <SDL/SDL.h>
+#include <SDL/SDL_mixer.h>
 #include "build.h"
 
 /*

@@ -421,7 +421,7 @@ int32_t klseek(int32_t handle, int32_t offset, int whence)
 
 }
 
-#ifdef __APPLE__
+#ifndef PLATFORM_WIN32
 int32_t filelength(int32_t fd)
 {
     struct stat stats;
