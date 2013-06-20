@@ -1,6 +1,6 @@
 # Builds all the projects in the solution...
 .PHONY: all_projects
-all_projects: Game Engine 
+all_projects: Engine Game
 
 # Builds project 'Game'...
 .PHONY: Game
@@ -17,4 +17,3 @@ Engine:
 clean:
 	make --directory="Game/" clean
 	make --directory="Engine/" clean
-
