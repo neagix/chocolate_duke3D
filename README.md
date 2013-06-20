@@ -23,7 +23,7 @@ Build
 
 Windows: Use Visual Studio 2005 or Visual Studio 2012  
 OS X: Use Xcode 4.0  
-Linux: Not yet tested 
+Linux: work-in-progress!
 
 
 Background
