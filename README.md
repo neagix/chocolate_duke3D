@@ -26,11 +26,11 @@ OS X: Use Xcode 4.0
 Linux: work-in-progress!
 
 
-Background
+Credits
 ==========
 
 **Project initiator:** Fabien Sanglard 
 
 **More information:** [Review of the Duke 3D source code](http://fabiensanglard.net/duke3d/)
 
-
+This fork currently mantained by neagix is based on canassa's fork.
